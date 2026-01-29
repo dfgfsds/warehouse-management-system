@@ -4,7 +4,7 @@ import baseUrl from '../../../api-endpoints/ApiUrls';
 import { useAuth } from "../../hooks/useAuth";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function UserForm({ open, onCancel, editUser, getUser }: any) {
+export default function UserForm({ open, onCancel, editUser, getUser, warehousesData }: any) {
     if (!open) return null;
     const { user }: any = useAuth();
     const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +25,8 @@ export default function UserForm({ open, onCancel, editUser, getUser }: any) {
         vendor_id: user?.vendor_id,
         division_id: "",
         password: "",
-        // permission_type: "both",
+        hub_id: "",
+        permission_type: "both",
         // permission_status: "",
     });
 
@@ -98,7 +99,7 @@ export default function UserForm({ open, onCancel, editUser, getUser }: any) {
                     onCancel();
                 }
             } else {
-                const updatedApi = await axios.post(baseUrl?.vendorUsers, formData)
+                const updatedApi = await axios.post(baseUrl?.UserPermission, formData)
                 if (updatedApi) {
                     getUser();
                     setLoading(true);
@@ -253,7 +254,32 @@ export default function UserForm({ open, onCancel, editUser, getUser }: any) {
                         >
                             <option value="">Select division</option>
                             {divisionsData?.map((item: any) => (
-                                <option value={item?.division?.id}>{item?.division?.division_title}</option>
+                                <option value={item?.id}>{item?.division_name}</option>
+
+                            ))}
+
+                        </select>
+                    </div>
+
+
+                    {/* Hub ID */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Hub ID
+                        </label>
+                        <select
+                            value={formData.hub_id}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    hub_id: e.target.value,
+                                })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                        >
+                            <option value="">Select division</option>
+                            {warehousesData?.map((item: any) => (
+                                <option value={item?.id}>{item?.title}</option>
 
                             ))}
 
@@ -288,7 +314,7 @@ export default function UserForm({ open, onCancel, editUser, getUser }: any) {
 
 
                     {/* Permission Type */}
-                    {/* <div>
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Permission Type
                         </label>
@@ -307,7 +333,7 @@ export default function UserForm({ open, onCancel, editUser, getUser }: any) {
                             <option value="read">Read</option>
                             <option value="write">Write</option>
                         </select>
-                    </div> */}
+                    </div>
 
 
                     {/* Permission Status */}

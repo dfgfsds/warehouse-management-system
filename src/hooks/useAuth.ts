@@ -42,8 +42,11 @@ export const useAuth = () => {
       const apiUser: User = res.data?.data;
 
       // store user
-      AuthManager.loginWithApi(apiUser);
-      setUser(apiUser);
+      if (apiUser) {
+        AuthManager.loginWithApi(apiUser);
+        setUser(apiUser);
+        window.location.reload();
+      }
 
       return { success: true };
     } catch (error: any) {

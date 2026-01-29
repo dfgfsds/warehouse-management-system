@@ -22,7 +22,7 @@ export default function CategoryGroups() {
         try {
             setLoading(true);
             const res = await axios.get(baseUrl.categoryGroups);
-            setData(res?.data?.category_groups || []);
+            setData(res?.data?.data?.category_groups || []);
         } catch (err) {
             console.log(err);
         } finally {

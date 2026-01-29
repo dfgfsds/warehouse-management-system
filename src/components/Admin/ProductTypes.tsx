@@ -28,7 +28,7 @@ export default function ProductTypes() {
   const getProductTypes = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${baseUrl.productTypes}/by-vendor/${user?.vendor_id}`);
+      const res = await axios.get(`${baseUrl?.productTypes}/by-vendor/${user?.vendor_id}`);
       setData(res?.data?.data?.product_types || []);
     } catch (err) {
       console.log(err);
@@ -45,7 +45,7 @@ export default function ProductTypes() {
   const handleDelete = async () => {
     try {
       await axios.delete(
-        `${baseUrl.productTypes}/${deleteItem.id}`
+        `${baseUrl?.productTypes}/${deleteItem.id}`
       );
       setConfirmOpen(false);
       setDeleteItem(null);
@@ -56,7 +56,7 @@ export default function ProductTypes() {
   };
 
   // ================= SEARCH =================
-  const filteredData = data.filter((item: any) => {
+  const filteredData = data?.filter((item: any) => {
     const s = search.toLowerCase();
     return (
       item?.name?.toLowerCase().includes(s) ||
@@ -84,23 +84,17 @@ export default function ProductTypes() {
     <>
       <div className="p-2 space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Package className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              Product Types
-            </h1>
-          </div>
-
+        <div className="flex justify-between items-center flex-wrap gap-2">
+          <h2 className="text-lg font-semibold text-gray-900">Product Types</h2>
           <button
             onClick={() => {
               setEditData(null);
               setOpenModal(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <PlusCircle size={18} />
-            Add Product Type
+            <span>Add Warehouse</span>
           </button>
         </div>
 
@@ -117,10 +111,10 @@ export default function ProductTypes() {
           </div>
         </div>
 
-    
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredData?.map((productType) => (
-            <div key={productType.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div key={productType?.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-gray-900 capitalize">{productType?.name}</h3>
                 <button
@@ -134,9 +128,9 @@ export default function ProductTypes() {
                 </button>
               </div>
               <p className="text-sm text-gray-600 mb-1">Code: {productType?.code}</p>
-              <p className="text-sm text-gray-600 mb-2">Category: {productType.category}</p>
+              <p className="text-sm text-gray-600 mb-2">Category: {productType.category?.title}</p>
               <p className="text-xs text-gray-500">
-                {productType.isDismantleable ? 'Dismantleable' : 'Not dismantleable'}
+                {productType?.isDismantleable ? 'Dismantleable' : 'Not dismantleable'}
               </p>
             </div>
           ))}

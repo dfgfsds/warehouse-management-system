@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import baseUrl from "../../../api-endpoints/ApiUrls";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function BrandForm({
     open,
@@ -10,14 +11,18 @@ export default function BrandForm({
 }: any) {
     if (!open) return null;
 
+    const { user }: any = useAuth();
+
     const [formData, setFormData] = useState({
         brand_name: "",
-        logo_media_id: "",
+        logo_file: "",
         description: "",
         sub_description: "",
+        vendor_id: user?.vendor_id
     });
 
     const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [logoPreview, setLogoPreview] = useState<string>(""); // existing image
     const [loading, setLoading] = useState(false);
     const [apiErrors, setApiErrors] = useState<string>("");
 
@@ -26,10 +31,13 @@ export default function BrandForm({
         if (editBrand) {
             setFormData({
                 brand_name: editBrand.brand_name || "",
-                logo_media_id: editBrand.logo_media_id || "",
+                logo_file: editBrand?.logo_media || "",
                 description: editBrand.description || "",
                 sub_description: editBrand.sub_description || "",
+                vendor_id: user?.vendor_id
+
             });
+            setLogoPreview(editBrand?.logo_media?.file_path || "");
         }
     }, [editBrand]);
 
@@ -38,48 +46,55 @@ export default function BrandForm({
         try {
             setLoading(true);
             setApiErrors("");
-            let logoMediaId = formData.logo_media_id;
-            // 🟢 Step 1: upload logo if file selected
-            if (logoFile) {
-                const fd = new FormData();
-                fd.append("file", logoFile);
 
-                const uploadRes = await axios.post(
-                    baseUrl.uploadMedia,
-                    fd,
+            // 🟢 brand payload (WITHOUT logo id)
+            const payload = {
+                brand_name: formData.brand_name,
+                description: formData.description,
+                sub_description: formData.sub_description,
+                vendor_id: user?.vendor_id
+
+            };
+
+            // ✅ FormData
+            const formDatas = new FormData();
+
+            // 🔑 brand JSON
+            formDatas.append("brand_data", JSON.stringify(payload));
+
+            // 🔑 logo file directly
+            if (logoFile) {
+                formDatas.append("logo_file", logoFile);
+            }
+
+            let res;
+            if (editBrand) {
+                res = await axios.put(
+                    `${baseUrl.brands}/${editBrand.id}`,
+                    formDatas,
                     {
                         headers: {
                             "Content-Type": "multipart/form-data",
                         },
                     }
                 );
-                logoMediaId = uploadRes.data?.id;
-            }
-            // 🟢 Step 2: payload
-            const payload = {
-                brand_name: formData.brand_name,
-                logo_media_id: logoMediaId,
-                description: formData.description,
-                sub_description: formData.sub_description,
-            };
-            // 🟢 Step 3: create / update
-            let res;
-            if (editBrand) {
-                res = await axios.put(
-                    `${baseUrl.brands}/${editBrand.id}`,
-                    payload
-                );
             } else {
-                res = await axios.post(baseUrl.brands, payload);
+                res = await axios.post(
+                    baseUrl.brands,
+                    formDatas,
+                    {
+                        headers: {
+                            "Content-Type": "multipart/form-data",
+                        },
+                    }
+                );
             }
 
-            // 🟢 Success
             if (res?.status === 200 || res?.status === 201) {
                 getBrands && getBrands();
                 onCancel();
             }
 
-            return res;
         } catch (error: any) {
             const err =
                 error?.response?.data?.error ||
@@ -92,12 +107,11 @@ export default function BrandForm({
             } else {
                 setApiErrors(err);
             }
-
-            return error?.response;
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -142,6 +156,18 @@ export default function BrandForm({
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         />
                     </div>
+
+                    {logoPreview && (
+                        <div className="mt-2">
+                            <p className="text-xs text-gray-500 mb-1">Logo Preview</p>
+                            <img
+                                src={logoPreview}
+                                alt="Brand Logo"
+                                className="h-20 w-20 object-contain border rounded"
+                            />
+                        </div>
+                    )}
+
 
                     {/* Description */}
                     <div>

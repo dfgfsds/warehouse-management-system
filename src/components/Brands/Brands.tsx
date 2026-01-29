@@ -7,7 +7,7 @@ import DeleteConfirmModal from "../Modals/DeleteConfirmModal";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function Brands() {
-        const { user }: any = useAuth();
+    const { user }: any = useAuth();
     const [brandData, setBrandData] = useState<any[]>([]);
     const [openModal, setOpenModal] = useState(false);
     const [editBrand, setEditBrand] = useState('');
@@ -45,16 +45,13 @@ export default function Brands() {
             item?.sub_description?.toLowerCase().includes(search)
         );
     });
-// GET
-// /brands/by-vendor/{vendor_id}
-// Get 
 
     const getBrands = async () => {
         try {
             setLoading(true); // 🔥 start loading
             const updateApi = await axios.get(`${baseUrl?.brands}/by-vendor/${user?.vendor_id}`);
             if (updateApi) {
-                setBrandData(updateApi?.data?.brands || []);
+                setBrandData(updateApi?.data?.data?.brands || []);
             }
         } catch (error) {
             setLoading(false);
