@@ -1,17 +1,20 @@
-export const baseUrl = import.meta.env.VITE_API_BASE_URL;
+export const baseUrl = import.meta.env.VITE_API_BASE_URL || ' https://inventory-fastapi.justvy.in';
 
 const signIn = `${baseUrl}/auth/login`;
-const vendorUsers=`${baseUrl}/users/vendor-user`;
-const vendors=`${baseUrl}/vendors`
-const divisions=`${baseUrl}/divisions`;
-const users =`${baseUrl}/users`;
-const brands=`${baseUrl}/brands`;
-const categories =`${baseUrl}/categories`;
-const categoryGroups=`${baseUrl}/category-groups`;
-const productStatus=`${baseUrl}/statuses`;
-const productUnits=`${baseUrl}/product-units`;
-const productTypes=`${baseUrl}/product-types`;
-const products =`${baseUrl}/products`;
+const vendorUsers = `${baseUrl}/users/vendor-user`;
+const vendors = `${baseUrl}/vendors`
+const divisions = `${baseUrl}/divisions`;
+const users = `${baseUrl}/users`;
+const brands = `${baseUrl}/brands`;
+const categories = `${baseUrl}/categories`;
+const categoryGroups = `${baseUrl}/category-groups`;
+const productStatus = `${baseUrl}/statuses`;
+const productUnits = `${baseUrl}/product-units`;
+const productTypes = `${baseUrl}/product-types`;
+const products = `${baseUrl}/products`;
+const UserPermission = `${baseUrl}/users/with-permission`;
+const barcode = `${baseUrl}/products/barcode`;
+
 
 export default {
   signIn,
@@ -26,4 +29,6 @@ export default {
   productUnits,
   productTypes,
   products,
+  UserPermission,
+  barcode,
 };

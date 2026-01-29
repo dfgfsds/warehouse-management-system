@@ -4,6 +4,8 @@ import { StorageManager } from '../../utils/storage';
 import { Asset, AssetEvent, EventType } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { QRGenerator } from '../../utils/qr-generator';
+import axios from 'axios';
+import baseUrl from '../../../api-endpoints/ApiUrls';
 
 export const ScanAsset: React.FC = () => {
   const { user } = useAuth();
@@ -11,6 +13,22 @@ export const ScanAsset: React.FC = () => {
   const [asset, setAsset] = useState<Asset | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  const getQrCode = async () => {
+    try {
+      const res = await axios.get(`${baseUrl?.barcode}/${qrCode}`)
+    } catch (error) {
+
+    }
+  }
+
+  useEffect(() => {
+    if (qrCode) {
+
+      getQrCode();
+    }
+
+  }, [qrCode])
 
   const handleQRScan = async () => {
     if (!qrCode.trim()) {
@@ -20,7 +38,7 @@ export const ScanAsset: React.FC = () => {
 
     setLoading(true);
     const foundAsset = StorageManager.getAssetByQR(qrCode.trim());
-    
+
     if (foundAsset) {
       setAsset(foundAsset);
       setMessage('');
@@ -88,7 +106,7 @@ export const ScanAsset: React.FC = () => {
     const warehouse = warehouses.find(w => w.id === warehouseId);
     const section = warehouse?.sections.find(s => s.id === sectionId);
     const tray = section?.trays.find(t => t.id === trayId);
-    
+
     return {
       warehouseName: warehouse?.name || 'Unknown',
       sectionName: section?.name || 'Unknown',
@@ -141,11 +159,10 @@ export const ScanAsset: React.FC = () => {
             {loading ? 'Scanning...' : 'Scan'}
           </button>
         </div>
-        
+
         {message && (
-          <div className={`mt-4 p-3 rounded-lg ${
-            message.includes('successfully') || asset ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-          }`}>
+          <div className={`mt-4 p-3 rounded-lg ${message.includes('successfully') || asset ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+            }`}>
             {message}
           </div>
         )}

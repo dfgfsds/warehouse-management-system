@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Search, Filter, Plus, Eye, CreditCard as Edit, Trash2, MapPin, Calendar, PlusCircle } from 'lucide-react';
+import { Package, Search, Filter, Plus, Eye, CreditCard as Edit, Trash2, MapPin, Calendar, PlusCircle, Edit2 } from 'lucide-react';
 import { StorageManager } from '../../utils/storage';
 import { Asset, Warehouse, AssetStatus } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import AddProductModal, { Select } from '../Modals/AddProductModal';
 import axios from 'axios';
 import baseUrl from '../../../api-endpoints/ApiUrls';
+import DeleteConfirmModal from '../Modals/DeleteConfirmModal';
 
 export const InventoryManagement: React.FC = () => {
   const { user }: any = useAuth();
@@ -19,6 +20,7 @@ export const InventoryManagement: React.FC = () => {
   const [showAddAssetModal, setShowAddAssetModal] = useState(false);
   const [productData, setProductData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editData, setEditData] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -27,6 +29,13 @@ export const InventoryManagement: React.FC = () => {
 
   const [productTypes, setProductTypes] = useState<any[]>([]);
   const [productStatuses, setProductStatuses] = useState<any[]>([]);
+  // Warehouses
+  const [warehousesData, setWarehousesData] = useState<any[]>()
+console.log(warehousesData)
+  // 🔹 delete
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<any>(null);
+
 
   const getProducts = async () => {
     try {
@@ -52,6 +61,37 @@ export const InventoryManagement: React.FC = () => {
   }, [user?.vendor_id]);
 
 
+    // Warehouses APIS 
+  const getWarehouses = async () => {
+    try {
+      const updatedAPi = await axios.get(`${baseUrl?.vendors}/${user?.vendor_id}/hubs`)
+      console.log(updatedAPi?.data)
+      if (updatedAPi) {
+        setWarehousesData(updatedAPi?.data?.data?.hubs)
+      }
+    } catch (error) {
+
+    }
+  }
+
+  useEffect(() => {
+    getWarehouses();
+  }, []);
+
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(
+        `${baseUrl.products}/${deleteItem?.product?.id}`
+      );
+      setConfirmOpen(false);
+      setDeleteItem(null);
+      getProducts();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   /* ================= LOAD DROPDOWNS ================= */
   useEffect(() => {
@@ -63,7 +103,7 @@ export const InventoryManagement: React.FC = () => {
 
     axios
       .get(baseUrl.productStatus)
-      .then(r => setProductStatuses(r.data.product_status || []));
+      .then(r => setProductStatuses(r?.data?.data?.statuses || []));
   }, [user?.vendor_id]);
 
 
@@ -73,17 +113,23 @@ export const InventoryManagement: React.FC = () => {
   }, []);
 
   const loadData = () => {
-    const allAssets = StorageManager.getAssets();
-    const allWarehouses = StorageManager.getWarehouses();
+    setSearchTerm('');
+    setStatusFilter('all');
+    setHubFilter('all');
+    setProductTypeFilter('all');
+  }
+  // const loadData = () => {
+  //   const allAssets = StorageManager.getAssets();
+  //   const allWarehouses = StorageManager.getWarehouses();
 
-    // Filter assets based on user permissions
-    const filteredAssets = user?.role === 'admin'
-      ? allAssets
-      : allAssets.filter(asset => user?.warehouseIds.includes(asset.warehouseId));
+  //   // Filter assets based on user permissions
+  //   const filteredAssets = user?.role === 'admin'
+  //     ? allAssets
+  //     : allAssets.filter(asset => user?.warehouseIds.includes(asset.warehouseId));
 
-    setAssets(filteredAssets);
-    setWarehouses(allWarehouses);
-  };
+  //   setAssets(filteredAssets);
+  //   setWarehouses(allWarehouses);
+  // };
 
   const filteredAssets = assets.filter(asset => {
     const matchesSearch = asset.qrCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -207,225 +253,26 @@ export const InventoryManagement: React.FC = () => {
     );
   };
 
-  // const AddAssetModal = () => {
-  //   const [newAsset, setNewAsset] = useState<Partial<Asset>>({
-  //     status: 'working',
-  //     productType: '',
-  //     qrCode: '',
-  //     warehouseId: warehouses[0]?.id || '',
-  //   });
-  //   const [error, setError] = useState('');
+  const filteredProducts = (productData || []).filter((item: any) => {
+    const p = item.product;
+    if (!p) return false;
 
-  //   const productTypes = StorageManager.getProductTypes();
-
-  //   const selectedWarehouse = warehouses.find(w => w.id === newAsset.warehouseId);
-  //   if (selectedWarehouse && !newAsset.sectionId && selectedWarehouse.sections.length > 0) {
-  //     // Auto-select first section/tray if available
-  //   }
-
-  //   const handleSubmit = (e: React.FormEvent) => {
-  //     e.preventDefault();
-  //     setError('');
-
-  //     if (!newAsset.qrCode || !newAsset.productType || !newAsset.warehouseId || !newAsset.sectionId || !newAsset.trayId) {
-  //       setError('Please fill in all required fields');
-  //       return;
-  //     }
-
-  //     const existing = StorageManager.getAssetByQR(newAsset.qrCode);
-  //     if (existing) {
-  //       setError('Asset with this QR Code already exists');
-  //       return;
-  //     }
-
-  //     const asset: Asset = {
-  //       id: `asset-${Date.now()}`,
-  //       qrCode: newAsset.qrCode,
-  //       productType: newAsset.productType,
-  //       status: newAsset.status as AssetStatus,
-  //       warehouseId: newAsset.warehouseId,
-  //       sectionId: newAsset.sectionId,
-  //       trayId: newAsset.trayId,
-  //       parentAssetId: undefined,
-  //       childAssetIds: [],
-  //       isPacked: false,
-  //       isDispatched: false,
-  //       receivedAt: new Date().toISOString(),
-  //       lastMovedAt: new Date().toISOString(),
-  //       lastHandledBy: user?.id || 'unknown',
-  //       deviceId: user?.deviceId || 'unknown',
-  //       metadata: {}
-  //     };
-
-  //     StorageManager.addAsset(asset);
-
-  //     StorageManager.addEvent({
-  //       id: `event-${Date.now()}`,
-  //       assetId: asset.id,
-  //       type: 'RECEIVED',
-  //       userId: user?.id || 'unknown',
-  //       deviceId: user?.deviceId || 'unknown',
-  //       timestamp: new Date().toISOString(),
-  //       toLocation: {
-  //         warehouseId: asset.warehouseId,
-  //         warehouseName: warehouses.find(w => w.id === asset.warehouseId)?.name || 'Unknown',
-  //         sectionId: asset.sectionId,
-  //         sectionName: selectedWarehouse?.sections.find(s => s.id === asset.sectionId)?.name || 'Unknown',
-  //         trayId: asset.trayId,
-  //         trayName: selectedWarehouse?.sections.find(s => s.id === asset.sectionId)?.trays.find(t => t.id === asset.trayId)?.name || 'Unknown'
-  //       }
-  //     });
-
-  //     loadData();
-  //     setShowAddAssetModal(false);
-  //   };
-
-  //   return (
-  //     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-  //       <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-  //         <div className="p-6 border-b border-gray-200">
-  //           <div className="flex items-center justify-between">
-  //             <h2 className="text-xl font-semibold text-gray-900">Add New Asset</h2>
-  //             <button
-  //               onClick={() => setShowAddAssetModal(false)}
-  //               className="text-gray-400 hover:text-gray-600"
-  //             >
-  //               ×
-  //             </button>
-  //           </div>
-  //         </div>
-
-  //         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-  //           {error && (
-  //             <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-  //               {error}
-  //             </div>
-  //           )}
-
-  //           <div>
-  //             <label className="block text-sm font-medium text-gray-700 mb-1">QR Code</label>
-  //             <input
-  //               type="text"
-  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-  //               value={newAsset.qrCode}
-  //               onChange={e => setNewAsset({ ...newAsset, qrCode: e.target.value })}
-  //               placeholder="Enter unique QR code"
-  //             />
-  //           </div>
-
-  //           <div>
-  //             <label className="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
-  //             <select
-  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-  //               value={newAsset.productType}
-  //               onChange={e => setNewAsset({ ...newAsset, productType: e.target.value })}
-  //             >
-  //               <option value="">Select Type</option>
-  //               {productTypes.map(pt => (
-  //                 <option key={pt.id} value={pt.name}>{pt.name}</option>
-  //               ))}
-  //             </select>
-  //           </div>
-
-  //           <div>
-  //             <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-  //             <select
-  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-  //               value={newAsset.status}
-  //               onChange={e => setNewAsset({ ...newAsset, status: e.target.value as AssetStatus })}
-  //             >
-  //               <option value="working">Working</option>
-  //               <option value="needs_fix">Needs Fix</option>
-  //               <option value="scrap">Scrap</option>
-  //               <option value="reserved">Reserved</option>
-  //               <option value="damaged">Damaged</option>
-  //               <option value="testing">Testing</option>
-  //             </select>
-  //           </div>
-
-  //           <div>
-  //             <label className="block text-sm font-medium text-gray-700 mb-1">Warehouse</label>
-  //             <select
-  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-  //               value={newAsset.warehouseId}
-  //               onChange={e => setNewAsset({ ...newAsset, warehouseId: e.target.value, sectionId: '', trayId: '' })}
-  //             >
-  //               <option value="">Select Warehouse</option>
-  //               {warehouses.map(w => (
-  //                 <option key={w.id} value={w.id}>{w.name}</option>
-  //               ))}
-  //             </select>
-  //           </div>
-
-  //           {newAsset.warehouseId && (
-  //             <div>
-  //               <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
-  //               <select
-  //                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-  //                 value={newAsset.sectionId}
-  //                 onChange={e => setNewAsset({ ...newAsset, sectionId: e.target.value, trayId: '' })}
-  //               >
-  //                 <option value="">Select Section</option>
-  //                 {warehouses.find(w => w.id === newAsset.warehouseId)?.sections.map(s => (
-  //                   <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
-  //                 ))}
-  //               </select>
-  //             </div>
-  //           )}
-
-  //           {newAsset.sectionId && (
-  //             <div>
-  //               <label className="block text-sm font-medium text-gray-700 mb-1">Tray</label>
-  //               <select
-  //                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-  //                 value={newAsset.trayId}
-  //                 onChange={e => setNewAsset({ ...newAsset, trayId: e.target.value })}
-  //               >
-  //                 <option value="">Select Tray</option>
-  //                 {warehouses.find(w => w.id === newAsset.warehouseId)?.sections.find(s => s.id === newAsset.sectionId)?.trays.map(t => (
-  //                   <option key={t.id} value={t.id}>{t.name} ({t.code})</option>
-  //                 ))}
-  //               </select>
-  //             </div>
-  //           )}
-
-  //           <div className="pt-4 flex space-x-3">
-  //             <button
-  //               type="button"
-  //               onClick={() => setShowAddAssetModal(false)}
-  //               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-  //             >
-  //               Cancel
-  //             </button>
-  //             <button
-  //               type="submit"
-  //               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-  //             >
-  //               Add Asset
-  //             </button>
-  //           </div>
-  //         </form>
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
-  const filteredProducts = productData?.filter((p: any) => {
     const search = searchTerm.toLowerCase();
 
     const matchSearch =
       p.title?.toLowerCase().includes(search) ||
       p.sku?.toLowerCase().includes(search) ||
-      p.barcode?.includes(search);
+      p.barcode_value?.toLowerCase().includes(search);
 
     const matchStatus =
-      statusFilter === "all" || p.statusId === statusFilter;
+      statusFilter === "all" || p.status?.id === statusFilter;
 
     const matchHub =
-      hubFilter === "all" || p.hubId === hubFilter;
+      hubFilter === "all" || p.hub?.id === hubFilter;
 
     const matchProductType =
-      productTypeFilter === "all" || p.productTypeId === productTypeFilter;
+      productTypeFilter === "all" ||
+      p.product_type?.id === productTypeFilter;
 
     return matchSearch && matchStatus && matchHub && matchProductType;
   });
@@ -459,7 +306,7 @@ export const InventoryManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
         </div>
         <div className="text-sm text-gray-600">
-          Total Assets: {filteredAssets.length}
+          Total Assets: {filteredProducts?.length}
         </div>
       </div>
 
@@ -483,8 +330,10 @@ export const InventoryManagement: React.FC = () => {
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { id: "all", name: "All Status" },
-            // ...productStatuses,
+            ...(productStatuses || [])?.map((productType: any) => ({
+              id: productType.id,
+              name: productType.name,
+            })),
           ]}
         />
 
@@ -493,11 +342,13 @@ export const InventoryManagement: React.FC = () => {
           label="Warehouse"
           value={hubFilter}
           onChange={setHubFilter}
-          options={[
-            { id: "all", name: "All Warehouses" },
-            // ...hubs,
+                    options={[
+            ...(warehousesData || []).map((item: any) => ({
+              id: item?.id,  
+              name: item?.title,
+            })),
           ]}
-          labelKey="title"
+          // labelKey="title"
         />
 
         {/* Product Type */}
@@ -558,16 +409,13 @@ export const InventoryManagement: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   AMC / Insurance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Created At
-                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {productData.map((item: any) => {
+              {filteredProducts?.map((item: any) => {
                 const p = item.product;
 
                 return (
@@ -578,28 +426,28 @@ export const InventoryManagement: React.FC = () => {
                         {p?.title}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {p.short_description}
+                        {p?.short_description}
                       </div>
                     </td>
 
                     {/* SKU / Barcode */}
                     <td className="px-6 py-4 text-sm">
-                      <div>{p.sku}</div>
+                      <div>{p?.sku}</div>
                       <div className="font-mono text-xs text-gray-500">
-                        {p.barcode_value}
+                        {p?.barcode_value}
                       </div>
                     </td>
 
                     {/* Status */}
                     <td className="px-6 py-4">
                       <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                        {p.product_status_id}
+                        {p.status?.name}
                       </span>
                     </td>
 
                     {/* Hub */}
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {p.hub_id}
+                      {p.hub?.name}
                     </td>
 
                     {/* AMC / Insurance */}
@@ -618,10 +466,28 @@ export const InventoryManagement: React.FC = () => {
                       </div>
                     </td>
 
-                    {/* Created At */}
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(p.created_at).toLocaleDateString()}
+                    <td className="px-6 py-4 flex gap-4">
+                      <button
+                        onClick={() => {
+                          setEditData(item);
+                          setShowAddAssetModal(!showAddAssetModal);
+                        }}
+                        className="text-blue-600 flex gap-1"
+                      >
+                        <Edit2 size={16} /> Edit
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setDeleteItem(item);
+                          setConfirmOpen(true);
+                        }}
+                        className="text-red-600 flex gap-1"
+                      >
+                        <Trash2 size={16} /> Delete
+                      </button>
                     </td>
+
                   </tr>
                 );
               })}
@@ -630,7 +496,7 @@ export const InventoryManagement: React.FC = () => {
           </table>
         </div>
 
-        {filteredAssets.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="text-center py-12">
             <Package className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No assets found</h3>
@@ -647,11 +513,20 @@ export const InventoryManagement: React.FC = () => {
         <AddProductModal
           open={showAddAssetModal}
           onCancel={() => (setShowAddAssetModal(!showAddAssetModal))}
-          // editProduct={ }
-          // refresh={ }
+          editProduct={editData}
+          refresh={getProducts}
           productTypes={productTypes}
           productStatuses={productStatuses}
         />}
+
+      <DeleteConfirmModal
+        open={confirmOpen}
+        title="Delete Product Unit"
+        description={`Are you sure you want to delete "${deleteItem?.product?.title}"?`}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleDelete}
+      />
+
     </div>
   );
 };

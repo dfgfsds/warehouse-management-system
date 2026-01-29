@@ -10,6 +10,7 @@ import WarehouseForm from '../Modals/AddWareHouseForm';
 import ProductStatus from './ProductStatus';
 import ProductUnit from './ProductUnit';
 import ProductTypes from './ProductTypes';
+import DeleteConfirmModal from '../Modals/DeleteConfirmModal';
 
 export const Administration: React.FC = () => {
   const { user }: any = useAuth();
@@ -30,6 +31,26 @@ export const Administration: React.FC = () => {
   // Filter States
   const [filterWarehouse, setFilterWarehouse] = useState('all');
   const [filterSection, setFilterSection] = useState('all');
+
+
+  // 🔹 delete
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<any>(null);
+
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(
+        `${baseUrl?.users}/${deleteItem.id}`
+      );
+      setConfirmOpen(false);
+      setDeleteItem(null);
+      getUser();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   useEffect(() => {
     loadData();
@@ -53,10 +74,10 @@ export const Administration: React.FC = () => {
   // Warehouses APIS 
   const getWarehouses = async () => {
     try {
-      const updatedAPi = await axios.get(`${baseUrl?.vendors}`)
+      const updatedAPi = await axios.get(`${baseUrl?.vendors}/${user?.vendor_id}/hubs`)
       console.log(updatedAPi?.data)
       if (updatedAPi) {
-        setWarehousesData(updatedAPi?.data?.data?.vendors)
+        setWarehousesData(updatedAPi?.data?.data?.hubs)
       }
     } catch (error) {
 
@@ -64,7 +85,7 @@ export const Administration: React.FC = () => {
   }
 
   useEffect(() => {
-    getUser();  
+    getUser();
     getWarehouses();
   }, []);
 
@@ -467,7 +488,7 @@ export const Administration: React.FC = () => {
       {/* Admin Tabs */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+          <nav className="flex space-x-8 px-6 flex-wrap">
             {adminTabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -490,7 +511,7 @@ export const Administration: React.FC = () => {
         <div className="p-6">
           {activeTab === 'warehouses' && (
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center flex-wrap gap-2">
                 <h2 className="text-lg font-semibold text-gray-900">Warehouse Management</h2>
                 <button
                   onClick={() => setShowAddModal(true)}
@@ -592,33 +613,58 @@ export const Administration: React.FC = () => {
             <>
               {usersList?.length > 0 && (
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center flex-wrap gap-2">
                     <h2 className="text-lg font-semibold text-gray-900">Users ({usersList.length})</h2>
                     <button onClick={() => setShowUserModal(!showAddModal)} className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                       <UserPlus className="h-4 w-4" /> <span>Add User</span>
                     </button>
                   </div>
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {usersList?.map((u: any) => (
-                          <tr key={u.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{u?.full_name}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{u?.email}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{u?.email.replace('_', ' ')}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer" onClick={() => { setShowUserModal(!showUserModal), setEditUser(u) }}>Edit</td>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {usersList?.map((u: any) => (
+                            <tr key={u.id}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{u?.full_name}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{u?.email}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{u?.email.replace('_', ' ')}</td>
+
+                              {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer" onClick={() => { setShowUserModal(!showUserModal), setEditUser(u) }}>
+                                Edit
+                              </td> */}
+
+                              <td className="px-6 py-4 flex gap-4">
+                                <button
+                                  onClick={() => { setShowUserModal(!showUserModal), setEditUser(u) }}
+                                  className="text-blue-600 flex gap-1"
+                                >
+                                  <Edit2 size={16} /> Edit
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    setDeleteItem(u);
+                                    setConfirmOpen(true);
+                                  }}
+                                  className="text-red-600 flex gap-1"
+                                >
+                                  <Trash2 size={16} /> Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
                   </div>
                 </div>
               )}
@@ -679,6 +725,7 @@ export const Administration: React.FC = () => {
           editUser={editUser}
           onCancel={() => { setShowUserModal(!showUserModal), setEditUser('') }}
           getUser={getUser}
+          warehousesData={warehousesData}
         />
       )}
 
@@ -689,6 +736,16 @@ export const Administration: React.FC = () => {
           onCancel={() => setManagingSectionsFor(null)}
         />
       )} */}
+
+        {/* ================= DELETE CONFIRM ================= */}
+                  <DeleteConfirmModal
+                      open={confirmOpen}
+                      title="Delete user"
+                      description={`Are you sure you want to delete "${deleteItem?.full_name}"?`}
+                      onCancel={() => setConfirmOpen(false)}
+                      onConfirm={handleDelete}
+                  />
+
     </div>
   );
 };

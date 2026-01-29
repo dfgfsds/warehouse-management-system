@@ -17,7 +17,7 @@ export default function ProductStatus() {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
-console.log(data)
+    console.log(data)
     // 🔹 form modal
     const [showFormModal, setShowFormModal] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
@@ -153,7 +153,7 @@ console.log(data)
         <>
             <div className="p-2 space-y-6">
                 {/* Header */}
-                <div className="flex justify-between items-center">
+                {/* <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <Package className="h-8 w-8 text-blue-600" />
                         <h1 className="text-2xl font-bold text-gray-900">
@@ -170,6 +170,20 @@ console.log(data)
                     >
                         <PlusCircle size={18} />
                         Add Status
+                    </button>
+                </div> */}
+
+                <div className="flex justify-between items-center flex-wrap gap-2">
+                    <h2 className="text-lg font-semibold text-gray-900">Product Status</h2>
+                    <button
+                        onClick={() => {
+                            resetForm();
+                            setShowFormModal(true);
+                        }}
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <PlusCircle size={18} />
+                        <span>Add Status</span>
                     </button>
                 </div>
 
@@ -188,64 +202,65 @@ console.log(data)
 
                 {/* Table */}
                 <div className="bg-white rounded-lg border overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Name
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Created At
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-
-                        <tbody className="divide-y divide-gray-200">
-                            {filteredData.map((item: any) => (
-                                <tr key={item.id}>
-                                    <td className="px-6 py-4 font-medium capitalize">
-                                        {item.name}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
-                                        {item.created_at
-                                            ? new Date(item.created_at).toLocaleString()
-                                            : "-"}
-                                    </td>
-                                    <td className="px-6 py-4 flex gap-4">
-                                        <button
-                                            onClick={() => {
-                                                setFormData({
-                                                    id: item.id,
-                                                    name: item.name,
-                                                    vendor_id: item?.vendor_id,
-                                                    type: item?.type
-                                                });
-                                                setIsEditing(true);
-                                                setShowFormModal(true);
-                                            }}
-                                            className="text-blue-600 flex gap-1"
-                                        >
-                                            <Edit size={16} /> Edit
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                setDeleteItem(item);
-                                                setConfirmOpen(true);
-                                            }}
-                                            className="text-red-600 flex gap-1"
-                                        >
-                                            <Trash2 size={16} /> Delete
-                                        </button>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Name
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Created At
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Actions
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
 
+                            <tbody className="divide-y divide-gray-200">
+                                {filteredData.map((item: any) => (
+                                    <tr key={item.id}>
+                                        <td className="px-6 py-4 font-medium capitalize">
+                                            {item.name}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                            {item.created_at
+                                                ? new Date(item.created_at).toLocaleString()
+                                                : "-"}
+                                        </td>
+                                        <td className="px-6 py-4 flex gap-4">
+                                            <button
+                                                onClick={() => {
+                                                    setFormData({
+                                                        id: item.id,
+                                                        name: item.name,
+                                                        vendor_id: item?.vendor_id,
+                                                        type: item?.type
+                                                    });
+                                                    setIsEditing(true);
+                                                    setShowFormModal(true);
+                                                }}
+                                                className="text-blue-600 flex gap-1"
+                                            >
+                                                <Edit size={16} /> Edit
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    setDeleteItem(item);
+                                                    setConfirmOpen(true);
+                                                }}
+                                                className="text-red-600 flex gap-1"
+                                            >
+                                                <Trash2 size={16} /> Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                     {filteredData.length === 0 && (
                         <div className="text-center py-12 text-gray-500">
                             No product status found

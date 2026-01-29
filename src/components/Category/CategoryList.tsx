@@ -24,7 +24,7 @@ export default function CategoryList() {
         try {
             setLoading(true);
             const res = await axios.get(baseUrl.categories);
-            setCategoryData(res?.data?.categories || []);
+            setCategoryData(res?.data?.data?.categories || []);
         } catch (error) {
             console.log(error);
         } finally {
