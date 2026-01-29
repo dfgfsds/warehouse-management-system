@@ -10,8 +10,10 @@ import {
 } from "lucide-react";
 import baseUrl from "../../../api-endpoints/ApiUrls";
 import DeleteConfirmModal from "../Modals/DeleteConfirmModal";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function ProductUnit() {
+  const { user }: any = useAuth();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -25,6 +27,7 @@ export default function ProductUnit() {
   const [formData, setFormData] = useState({
     id: "",
     value: "",
+    vendor_id: user?.vendor_id
   });
 
   // 🔹 delete
@@ -38,7 +41,7 @@ export default function ProductUnit() {
     try {
       setLoading(true);
       const res = await axios.get(baseUrl.productUnits);
-      setData(res?.data?.units || []);
+      setData(res?.data?.data?.product_units || []);
     } catch (error) {
       console.log(error);
     } finally {
@@ -54,7 +57,7 @@ export default function ProductUnit() {
   // RESET FORM
   // =========================
   const resetForm = () => {
-    setFormData({ id: "", value: "" });
+    setFormData({ id: "", value: "", vendor_id: user?.vendor_id });
     setIsEditing(false);
     setApiErrors("");
   };
@@ -80,6 +83,7 @@ export default function ProductUnit() {
       } else {
         await axios.post(baseUrl.productUnits, {
           value: formData.value,
+          vendor_id: user?.vendor_id
         });
       }
 
@@ -160,7 +164,7 @@ export default function ProductUnit() {
               resetForm();
               setShowFormModal(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
           >
             <PlusCircle size={18} />
             Add Unit
@@ -182,62 +186,64 @@ export default function ProductUnit() {
 
         {/* Table */}
         <div className="bg-white rounded-lg border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Unit Value
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Created At
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-200">
-              {filteredData.map((item: any) => (
-                <tr key={item.id}>
-                  <td className="px-6 py-4 font-medium capitalize">
-                    {item.value}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {item.created_at
-                      ? new Date(item.created_at).toLocaleString()
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4 flex gap-4">
-                    <button
-                      onClick={() => {
-                        setFormData({
-                          id: item.id,
-                          value: item.value,
-                        });
-                        setIsEditing(true);
-                        setShowFormModal(true);
-                      }}
-                      className="text-blue-600 flex gap-1"
-                    >
-                      <Edit size={16} /> Edit
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setDeleteItem(item);
-                        setConfirmOpen(true);
-                      }}
-                      className="text-red-600 flex gap-1"
-                    >
-                      <Trash2 size={16} /> Delete
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Unit Value
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Created At
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
 
+              <tbody className="divide-y divide-gray-200">
+                {filteredData.map((item: any) => (
+                  <tr key={item.id}>
+                    <td className="px-6 py-4 font-medium capitalize">
+                      {item.value}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {item.created_at
+                        ? new Date(item.created_at).toLocaleString()
+                        : "-"}
+                    </td>
+                    <td className="px-6 py-4 flex gap-4">
+                      <button
+                        onClick={() => {
+                          setFormData({
+                            id: item.id,
+                            value: item.value,
+                            vendor_id: user?.vendor_id
+                          });
+                          setIsEditing(true);
+                          setShowFormModal(true);
+                        }}
+                        className="text-blue-600 flex gap-1"
+                      >
+                        <Edit size={16} /> Edit
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setDeleteItem(item);
+                          setConfirmOpen(true);
+                        }}
+                        className="text-red-600 flex gap-1"
+                      >
+                        <Trash2 size={16} /> Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {filteredData.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               No product units found
@@ -306,8 +312,8 @@ export default function ProductUnit() {
                 {formLoading
                   ? "Saving..."
                   : isEditing
-                  ? "Update"
-                  : "Create"}
+                    ? "Update"
+                    : "Create"}
               </button>
             </div>
           </div>

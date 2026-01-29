@@ -82,6 +82,79 @@ export default function AddProductModal({
   ];
 
 
+  useEffect(() => {
+    if (!editProduct) return;
+
+    const p = editProduct?.product;
+
+    /* ================= PRODUCT ================= */
+    setProduct({
+      title: p?.title || "",
+      description: p?.description || "",
+      sku: p.sku || "",
+      short_description: p.short_description || "",
+      detailed_description: p.detailed_description || "",
+      barcode_value: p.barcode_value || "",
+      meta_data: p.meta_data || {},
+      product_kind: p.product_kind || "product",
+      parent_id: p.parent_id || null,
+      hsn_code: p.hsn_code || "",
+
+      // ✅ NOW IT WILL WORK
+      brand_id: p.brand?.id ?? "",
+      unit_of_measure_id: p.unit_of_measure?.id ?? "",
+      product_type_id: p.product_type?.id ?? "",
+      product_status_id: p.status?.id ?? "",
+      division_id: p.division?.id ?? "",
+      hub_id: p.hub?.id ?? "",
+
+
+      // 📅 dates (YYYY-MM-DD format)
+      product_expiry_date: p.product_expiry_date
+        ? p.product_expiry_date.split("T")[0]
+        : null,
+
+      amc_expiry_date: p.amc_expiry_date
+        ? p.amc_expiry_date.split("T")[0]
+        : "",
+
+      insurance_expiry_date: p.insurance_expiry_date
+        ? p.insurance_expiry_date.split("T")[0]
+        : "",
+    });
+
+    /* ================= CATEGORIES ================= */
+    setCategories(
+      (editProduct.categories || []).map((c: any) => ({
+        category_id: c.id,
+        vendor_id: user?.vendor_id,
+      }))
+    );
+
+    /* ================= PRICING ================= */
+    setPricing(
+      (editProduct.pricing || []).map((p: any) => ({
+        title: p.title,
+        value: p.value,
+        tax: p.tax,
+        is_tax_included: p.is_tax_included,
+        currency: p.currency || "INR",
+      }))
+    );
+
+    /* ================= INVENTORY ================= */
+    if (editProduct.inventory) {
+      setInventory({
+        status: editProduct.inventory?.status || "in_stock",
+        stock: editProduct.inventory.stock ?? "",
+        min_required_stock: editProduct.inventory.min_required_stock ?? "",
+        max_stock: editProduct.inventory.max_stock ?? "",
+        vendor_id: user?.vendor_id,
+      });
+    }
+  }, [editProduct, user?.vendor_id]);
+
+
   /* ================= LOAD DROPDOWNS ================= */
   useEffect(() => {
     axios.get(`${baseUrl.brands}/by-vendor/${user?.vendor_id}`).then(r => setBrands(r?.data?.data?.brands || []));
@@ -92,15 +165,15 @@ export default function AddProductModal({
   }, []);
 
 
-  /* ================= EDIT MODE ================= */
-  useEffect(() => {
-    if (editProduct) {
-      setProduct(editProduct.product);
-      setCategories(editProduct.categories || []);
-      setPricing(editProduct.pricing || []);
-      setInventory(editProduct.inventory || inventory);
-    }
-  }, [editProduct]);
+  // /* ================= EDIT MODE ================= */
+  // useEffect(() => {
+  //   if (editProduct) {
+  //     setProduct(editProduct.product);
+  //     setCategories(editProduct.categories || []);
+  //     setPricing(editProduct.pricing || []);
+  //     setInventory(editProduct.inventory || inventory);
+  //   }
+  // }, [editProduct]);
 
   /* ================= ADD / REMOVE ================= */
   const addCategory = () =>
@@ -118,39 +191,6 @@ export default function AddProductModal({
   const removePricing = (index: number) =>
     setPricing(pricing.filter((_, i) => i !== index));
 
-  /* ================= SUBMIT ================= */
-  // const handleSubmit = async () => {
-  //   try {
-  //     setLoading(true);
-  //     setApiErrors("");
-
-  //     if (!product.title || !product.sku) {
-  //       setApiErrors("Title and SKU are required");
-  //       return;
-  //     }
-
-  //     const payload = { product, categories, pricing, inventory };
-
-  //     editProduct
-  //       ? await axios.put(`${baseUrl.products}/${editProduct.product.id}`, payload)
-  //       : await axios.post(baseUrl.products, payload);
-
-  //     refresh();
-  //     onCancel();
-  //   } catch (error: any) {
-  //     const data = error?.response?.data?.data;
-  //     if (data?.errors) {
-  //       const [k, v]: any = Object.entries(data.errors)[0];
-  //       setApiErrors(`${k}: ${Array.isArray(v) ? v[0] : v}`);
-  //     } else {
-  //       setApiErrors(data?.message || "Something went wrong");
-  //     }
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -167,7 +207,6 @@ export default function AddProductModal({
           vendor_id: user.vendor_id,
           product_kind: product.product_kind || "product",
         },
-        // categories: categories.filter(c => c.category_id),
         categories: categories
           .filter(c => c.category_id)   // empty remove
           .map(c => ({
@@ -201,7 +240,7 @@ export default function AddProductModal({
 
       editProduct
         ? await axios.put(
-          `${baseUrl.products}/${editProduct.product.id}`,
+          `${baseUrl.products}/${editProduct?.product?.id}`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         )
@@ -242,8 +281,8 @@ export default function AddProductModal({
 
           {/* BASIC */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Title" value={product.title} onChange={(v: any) => setProduct({ ...product, title: v })} />
-            <Input label="Product kind" value={product.product_kind} onChange={(v: any) => setProduct({ ...product, product_kind: v })} />
+            <Input label="Title" value={product?.title} onChange={(v: any) => setProduct({ ...product, title: v })} />
+            <Input label="Product kind" value={product?.product_kind} onChange={(v: any) => setProduct({ ...product, product_kind: v })} />
 
 
             <Input label="Barcode" value={product.barcode_value} onChange={(v: any) => setProduct({ ...product, barcode_value: v })} />
