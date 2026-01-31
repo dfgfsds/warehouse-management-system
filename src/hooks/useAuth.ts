@@ -28,14 +28,15 @@ export const useAuth = () => {
 
   const login = async (
     username: string,
-    password: string
+    password: string,
+    // division: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const res = await axios.post(baseUrl?.signIn, {
         username,
         password,
         // vendor_id: '0f258d22-df45-4f34-9093-c2164ad00579',
-        division_id: 'b6ca8c4b-fd99-4c3e-b87d-e429f43fc75f'
+        // division_id: division
       });
 
       // 🔥 IMPORTANT: backend response structure

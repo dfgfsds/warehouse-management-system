@@ -209,6 +209,9 @@ export default function ProductStatus() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Name
                                     </th>
+                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Type
+                                    </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Created At
                                     </th>
@@ -222,11 +225,14 @@ export default function ProductStatus() {
                                 {filteredData.map((item: any) => (
                                     <tr key={item.id}>
                                         <td className="px-6 py-4 font-medium capitalize">
-                                            {item.name}
+                                            {item?.name}
+                                        </td>
+                                          <td className="px-6 py-4 font-medium capitalize">
+                                            {item?.type}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600">
-                                            {item.created_at
-                                                ? new Date(item.created_at).toLocaleString()
+                                            {item?.created_at
+                                                ? new Date(item?.created_at).toLocaleString()
                                                 : "-"}
                                         </td>
                                         <td className="px-6 py-4 flex gap-4">
@@ -303,6 +309,26 @@ export default function ProductStatus() {
                                     placeholder="Enter status name"
                                 />
                             </div>
+                            {/* Type */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Type
+                                </label>
+                                <select
+                                    value={formData.type}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            type: e.target.value,
+                                        })
+                                    }
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                                >
+                                    <option value="product">Product</option>
+                                    <option value="division">Division</option>
+                                </select>
+                            </div>
+
 
                             {apiErrors && (
                                 <p className="text-red-500 text-sm">{apiErrors}</p>

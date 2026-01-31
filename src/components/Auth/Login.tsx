@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Warehouse, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import axios from 'axios';
+import baseUrl from '../../../api-endpoints/ApiUrls';
 
 export const Login: React.FC = () => {
   const { login } = useAuth();
@@ -8,6 +10,8 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // const [division, setDivision] = useState({ division_id: '' });
+  // const [divisionsOptions, setDivisionsOptions] = useState<any[]>([]);
 
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -28,12 +32,18 @@ export const Login: React.FC = () => {
   //   }
   // };
 
+  // useEffect(() => {
+  //   axios.get(`${baseUrl.divisions}/vendor/ec6b3315-13b2-4e65-8d73-03b97a184109`).then(r => setDivisionsOptions(r?.data?.data?.divisions || []));
+  // }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    const result = await login(username, password);
+    const result = await login(username, password
+      // ,division?.division_id
+    );
 
     if (result.success) {
       console.log('Login success:', result);
@@ -69,6 +79,33 @@ export const Login: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* <div>
+              <label className="block text-sm font-medium mb-1">
+                Division
+              </label>
+              <select
+                value={division.division_id}
+                onChange={(e) =>
+                  setDivision({ division_id: e.target.value })
+                }
+                className="w-full border px-3 py-2 rounded-lg bg-white"
+              >
+                <option value="">Select Division</option>
+
+                {divisionsOptions?.map((div: any) => (
+                  <option key={div.id} value={div.id} className="capitalize">
+                    {div.division_name}
+                  </option>
+                ))}
+              </select>
+
+
+            </div> */}
+
+            {/* Division */}
+
+
+
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
                 Username
