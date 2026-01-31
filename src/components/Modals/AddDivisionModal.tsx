@@ -22,6 +22,7 @@ export default function AddDivisionModal({
         // division_title: "",
         division_name: "",
         capacity: '',
+        division_code: '',
         division_type: "rack",
         // title: "",
         description: "",
@@ -58,6 +59,7 @@ export default function AddDivisionModal({
                 vendor_id: editDivision?.vendor_id || "",
                 hub_id: editDivision?.hub_id || "",
                 // division_title: editDivision?.division?.division_title || "",
+                division_code: editDivision?.division_code || "",
                 division_name: editDivision?.division_name || "",
                 division_type: editDivision?.division_type || "tray",
                 capacity: editDivision?.capacity || "tray",
@@ -147,20 +149,7 @@ export default function AddDivisionModal({
                     </div> */}
 
 
-                    {/* Division Title */}
-                    {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Division Title
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.division_title}
-                            onChange={(e) =>
-                                setFormData({ ...formData, division_title: e.target.value })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        />
-                    </div> */}
+
 
                     {/* Division Name */}
                     <div>
@@ -172,6 +161,21 @@ export default function AddDivisionModal({
                             value={formData.division_name}
                             onChange={(e) =>
                                 setFormData({ ...formData, division_name: e.target.value })
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        />
+                    </div>
+
+                    {/* Code */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Code
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.division_code}
+                            onChange={(e) =>
+                                setFormData({ ...formData, division_code: e.target.value })
                             }
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         />

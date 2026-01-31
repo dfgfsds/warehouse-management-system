@@ -7,6 +7,7 @@ import AddProductModal, { Select } from '../Modals/AddProductModal';
 import axios from 'axios';
 import baseUrl from '../../../api-endpoints/ApiUrls';
 import DeleteConfirmModal from '../Modals/DeleteConfirmModal';
+import BarcodePrintModal from '../../utils/BarcodePrint';
 
 export const InventoryManagement: React.FC = () => {
   const { user }: any = useAuth();
@@ -31,10 +32,14 @@ export const InventoryManagement: React.FC = () => {
   const [productStatuses, setProductStatuses] = useState<any[]>([]);
   // Warehouses
   const [warehousesData, setWarehousesData] = useState<any[]>()
-console.log(warehousesData)
+
   // 🔹 delete
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<any>(null);
+
+  const [barcodeModalOpen, setBarcodeModalOpen] = useState(false);
+  const [selectedBarcode, setSelectedBarcode] = useState("");
+  const [selectedProductName, setSelectedProductName] = useState("");
 
 
   const getProducts = async () => {
@@ -61,7 +66,7 @@ console.log(warehousesData)
   }, [user?.vendor_id]);
 
 
-    // Warehouses APIS 
+  // Warehouses APIS 
   const getWarehouses = async () => {
     try {
       const updatedAPi = await axios.get(`${baseUrl?.vendors}/${user?.vendor_id}/hubs`)
@@ -102,7 +107,7 @@ console.log(warehousesData)
       .then(r => setProductTypes(r?.data?.data?.product_types || []));
 
     axios
-      .get(baseUrl.productStatus)
+      .get(`${baseUrl.productStatus}/?vendor_id=${user?.vendor_id}&type=product`)
       .then(r => setProductStatuses(r?.data?.data?.statuses || []));
   }, [user?.vendor_id]);
 
@@ -342,13 +347,13 @@ console.log(warehousesData)
           label="Warehouse"
           value={hubFilter}
           onChange={setHubFilter}
-                    options={[
+          options={[
             ...(warehousesData || []).map((item: any) => ({
-              id: item?.id,  
+              id: item?.id,
               name: item?.title,
             })),
           ]}
-          // labelKey="title"
+        // labelKey="title"
         />
 
         {/* Product Type */}
@@ -486,6 +491,20 @@ console.log(warehousesData)
                       >
                         <Trash2 size={16} /> Delete
                       </button>
+
+                      {p?.barcode_value && (
+                        <button
+                          onClick={() => {
+                            setSelectedBarcode(p.barcode_value);
+                            setSelectedProductName(p.title);
+                            setBarcodeModalOpen(true);
+                          }}
+                          className="text-gray-700 underline text-sm"
+                        >
+                          Print Barcode
+                        </button>
+                      )}
+
                     </td>
 
                   </tr>
@@ -526,6 +545,14 @@ console.log(warehousesData)
         onCancel={() => setConfirmOpen(false)}
         onConfirm={handleDelete}
       />
+
+      <BarcodePrintModal
+        open={barcodeModalOpen}
+        barcode={selectedBarcode}
+        productName={selectedProductName}
+        onClose={() => setBarcodeModalOpen(false)}
+      />
+
 
     </div>
   );
