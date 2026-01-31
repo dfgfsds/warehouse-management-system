@@ -14,7 +14,8 @@ const productTypes = `${baseUrl}/product-types`;
 const products = `${baseUrl}/products`;
 const UserPermission = `${baseUrl}/users/with-permission`;
 const barcode = `${baseUrl}/products/barcode`;
-
+const divisionsBulk = `${baseUrl}/divisions/bulk`;
+const transferInventory = `${baseUrl}/inventory/transfer`;
 
 export default {
   signIn,
@@ -31,4 +32,6 @@ export default {
   products,
   UserPermission,
   barcode,
+  divisionsBulk,
+  transferInventory,
 };

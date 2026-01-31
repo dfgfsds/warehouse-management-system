@@ -1,18 +1,29 @@
 import axios from "axios";
-import { Package, PlusCircle, Search, Edit, Trash2 } from "lucide-react";
+import { Package, PlusCircle, Search, Edit, Trash2, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 import baseUrl from "../../../api-endpoints/ApiUrls";
 import AddDivisionModal from "../Modals/AddDivisionModal";
 import DeleteConfirmModal from "../Modals/DeleteConfirmModal";
 import { useAuth } from "../../hooks/useAuth";
+import AddTrayModal from "../Modals/AddTrayModa";
+import ViewTrayModal from "../Modals/ViewTrayModal";
 // import DivisionForm from "../Modals/AddDivisionModal";
 
 export default function Divisions() {
+      const { user }: any = useAuth();
     const [divisionData, setDivisionData] = useState<any[]>([]);
     const [openModal, setOpenModal] = useState(false);
     const [editDivision, setEditDivision] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [addTrayModal, setAddTrayModal] = useState(false);
+    const [viewTrayModal, setViewtrayModal] = useState(false);
+    const [divisionModalData, setDivisionModalData] = useState('');
+
+    const [hubs, setHubs] = useState<any[]>([]);
+
+    const [hubFilter, setHubFilter] = useState<string>("");
+    const [divisionFilter, setDivisionFilter] = useState<string>("");
 
     // Delete 
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -41,7 +52,7 @@ export default function Divisions() {
     const getDivisions = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(baseUrl?.divisions);
+            const res = await axios.get(`${baseUrl?.divisions}/vendor/${user?.vendor_id}`);
             if (res) {
                 setDivisionData(res?.data?.data?.divisions || []);
             }
@@ -55,6 +66,28 @@ export default function Divisions() {
     useEffect(() => {
         getDivisions();
     }, []);
+
+
+    const getHubs = async () => {
+  try {
+    const res = await axios.get(
+      `${baseUrl?.vendors}/${user?.vendor_id}/hubs`
+    );
+    if (res?.data?.data?.hubs) {
+      setHubs(res.data.data.hubs);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+useEffect(() => {
+  if (user?.vendor_id) {
+    getHubs();
+  }
+}, [user?.vendor_id]);
+
+
 
     // 🔹 Search filter
     const filteredDivisions = divisionData?.filter((item: any) => {
@@ -85,7 +118,7 @@ export default function Divisions() {
         <>
             <div className="p-6 space-y-6">
                 {/* Header */}
-                <div className="flex items-division?.center justify-between">
+                <div className="flex items-center justify-between">
                     <div className="flex items-division?.center space-x-3">
                         <Package className="h-8 w-8 text-blue-600" />
                         <h1 className="text-2xl font-bold text-gray-900">
@@ -99,7 +132,7 @@ export default function Divisions() {
 
                 {/* Filters */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between flex-wrap gap-2">
                         {/* Search */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -136,17 +169,20 @@ export default function Divisions() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                  
+
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Division Name
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Description
                                     </th>
-                                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Capacity
                                     </th>
-                                    
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Division
+                                    </th>
+
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Actions
                                     </th>
@@ -156,27 +192,42 @@ export default function Divisions() {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredDivisions.map((item: any) => (
                                     <tr key={item?.division?.id} className="hover:bg-gray-50">
-                                     
+
                                         <td className="px-6 py-4 text-sm text-gray-600">
                                             {item?.division_name}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600 capitalize">
-                                            {item?.description?.slice(0,50)}
+                                            {item?.description?.slice(0, 50)}
                                         </td>
-                                         <td className="px-6 py-4 text-sm text-gray-600 capitalize">
+                                        <td className="px-6 py-4 text-sm text-gray-600 capitalize">
                                             {item?.capacity}
                                         </td>
-                                        {/* <td className="px-6 py-4 text-sm font-medium">
-                                            <button
-                                                onClick={() => {
-                                                    setEditDivision(item);
-                                                    setOpenModal(true);
-                                                }}
-                                                className="text-blue-600 hover:text-blue-900 flex items-division?.center gap-2"
-                                            >
-                                                Edit <Edit className="h-4 w-4" />
-                                            </button>
-                                        </td> */}
+                                        <td className="px-6 py-4 text-sm font-medium">
+                                            {/* Add Button */}
+                                            <div className="flex gap-2 flex-wrap">
+
+                                                <button
+                                                    onClick={() => {
+                                                        setDivisionModalData(item);
+                                                        setViewtrayModal(!viewTrayModal);
+                                                    }}
+                                                    className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                    View
+                                                </button>
+
+                                                <div className="flex items-end">
+                                                    <button
+                                                        onClick={() => { setDivisionModalData(item), setAddTrayModal(!addTrayModal) }}
+                                                        className="px-2 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-division?.center gap-2"
+                                                    >
+                                                        {/* <PlusCircle className="h-4 w-4 my-auto" /> */}
+                                                        Add Tray
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
 
                                         <td className="px-6 py-4 text-sm font-medium flex gap-4">
                                             {/* Edit */}
@@ -254,7 +305,24 @@ export default function Divisions() {
                 onConfirm={handleDeleteDivision}
             />
 
+            {addTrayModal && (
+                <AddTrayModal
+                    onClose={() => setAddTrayModal(false)}
+                    onSave={(data) => {
+                        console.log("Tray payload:", data);
+                        setAddTrayModal(false);
+                    }}
+                    divisionModalData={divisionModalData}
+                />
+            )}
 
+            {viewTrayModal && (
+                <ViewTrayModal
+                    open={viewTrayModal}
+                    onClose={() => setViewtrayModal(!viewTrayModal)}
+                    data={divisionModalData}
+                />
+            )}
         </>
     );
 }

@@ -20,16 +20,16 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }) => {
   const { user } = useAuth();
-
+  // staff manager
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'warehouse_manager', 'operator', 'auditor'] },
-    { id: 'scan', label: 'Scan Asset', icon: QrCode, roles: ['operator', 'warehouse_manager', 'admin'] },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'staff',] },
+    { id: 'scan', label: 'Scan Asset', icon: QrCode, roles: ['operator', 'staff', 'admin'] },
     { id: 'brands', label: 'Brands', icon: Settings, roles: ['admin'] },
     { id: 'divisions', label: 'divisions', icon: BoldIcon, roles: ['admin'] },
-    { id: 'categorys', label: 'Categorys', icon: BoxIcon, roles: ['admin'] },
-    { id: 'inventory', label: 'Inventory', icon: Package, roles: ['admin', 'warehouse_manager', 'operator', 'auditor'] },
-    { id: 'history', label: 'Asset History', icon: History, roles: ['admin', 'warehouse_manager', 'auditor'] },
-    { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'warehouse_manager'] },
+    { id: 'categorys', label: 'Categories', icon: BoxIcon, roles: ['admin'] },
+    { id: 'inventory', label: 'Inventory', icon: Package, roles: ['admin', 'warehouse_manager', 'staff'] },
+    // { id: 'history', label: 'Asset History', icon: History, roles: ['admin', 'warehouse_manager', 'auditor'] },
+    // { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'warehouse_manager'] },
     { id: 'admin', label: 'Administration', icon: Settings, roles: ['admin'] },
   ];
 

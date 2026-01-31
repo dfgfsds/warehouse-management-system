@@ -99,7 +99,7 @@ export default function Brands() {
 
                 {/* Filters */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between flex-wrap gap-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                             <div className="relative">

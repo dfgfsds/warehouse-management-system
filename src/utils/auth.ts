@@ -116,6 +116,52 @@
 //   }
 // }
 
+// import { User, UserRole } from '../types';
+// import { StorageManager } from './storage';
+
+// export class AuthManager {
+
+//   // ✅ API LOGIN STORE
+//   static loginWithApi(user: User): void {
+//     StorageManager.setCurrentUser(user);
+//   }
+
+//   static logout(): void {
+//     StorageManager.clearCurrentUser();
+//     StorageManager.setCurrentScan(null);
+//   }
+
+//   static getCurrentUser(): User | null {
+//     return StorageManager.getCurrentUser();
+//   }
+
+//   static isAuthenticated(): boolean {
+//     return this.getCurrentUser() !== null;
+//   }
+
+//   static hasRole(requiredRole: UserRole): boolean {
+//     const user = this.getCurrentUser();
+//     if (!user) return false;
+
+//     const roleHierarchy: Record<UserRole, number> = {
+//       auditor: 1,
+//       operator: 2,
+//       warehouse_manager: 3,
+//       admin: 4,
+//     };
+
+//     return roleHierarchy[user.role] >= roleHierarchy[requiredRole];
+//   }
+
+//   static canAccessWarehouse(warehouseId: string): boolean {
+//     const user = this.getCurrentUser();
+//     if (!user) return false;
+//     if (user.role === 'admin') return true;
+//     return user.warehouseIds.includes(warehouseId);
+//   }
+// }
+
+
 import { User, UserRole } from '../types';
 import { StorageManager } from './storage';
 
@@ -124,6 +170,20 @@ export class AuthManager {
   // ✅ API LOGIN STORE
   static loginWithApi(user: User): void {
     StorageManager.setCurrentUser(user);
+  }
+
+  // 🔥 ADD THIS METHOD
+  static updateUser(partialUser: Partial<User>): User | null {
+    const existingUser = StorageManager.getCurrentUser();
+    if (!existingUser) return null;
+
+    const updatedUser: User = {
+      ...existingUser,
+      ...partialUser,
+    };
+
+    StorageManager.setCurrentUser(updatedUser);
+    return updatedUser;
   }
 
   static logout(): void {

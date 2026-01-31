@@ -4,7 +4,7 @@ import baseUrl from "../../../api-endpoints/ApiUrls";
 import { useAuth } from "../../hooks/useAuth";
 import { TrashIcon, X } from "lucide-react";
 
-export default function AddProductModal({
+export default function ScanAddProductModal({
   open,
   onCancel,
   editProduct,
@@ -27,7 +27,7 @@ export default function AddProductModal({
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
 
   const [barcodeLoading, setBarcodeLoading] = useState(false);
-
+console.log(user)
 
   /* ================= PRODUCT ================= */
   const [product, setProduct] = useState<any>({
@@ -43,10 +43,10 @@ export default function AddProductModal({
     product_kind: "",
     parent_id: null,
     unit_of_measure_id: "",
-    product_type_id: "",
+    product_type_id: user?.division_id,
     product_status_id: "",
     hsn_code: "",
-    hub_id: "",
+    hub_id: user?.vendor_id,
     division_id: "",
     product_expiry_date: null,
     amc_expiry_date: "",
@@ -351,7 +351,7 @@ export default function AddProductModal({
 
             <Input label="SKU" value={product.sku} onChange={(v: any) => setProduct({ ...product, sku: v })} />
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium mb-1">
                 Hub
               </label>
@@ -366,13 +366,13 @@ export default function AddProductModal({
 
                 {hubs?.map((hub: any) => (
                   <option key={hub.id} value={hub.id} className="capitalize">
-                    {hub.title} {/* or hub.name */}
+                    {hub.title} 
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium mb-1">
                 Division
               </label>
@@ -391,7 +391,7 @@ export default function AddProductModal({
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -738,10 +738,10 @@ export default function AddProductModal({
 
 
 
-          {/* INVENTORY */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-4">
 
-            {/* Header */}
+          {/* <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-4">
+
+
             <div className="flex items-center justify-between">
               <h4 className="text-base font-semibold text-gray-800">
                 Inventory Details
@@ -751,10 +751,10 @@ export default function AddProductModal({
               </span>
             </div>
 
-            {/* Divider */}
+       
             <div className="border-t border-gray-200" />
 
-            {/* Fields */}
+        
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Select
                 label="Inventory Status"
@@ -795,7 +795,7 @@ export default function AddProductModal({
                 }
               />
             </div>
-          </div>
+          </div> */}
 
 
           {apiErrors && <p className="text-red-500 text-sm text-right">{apiErrors}</p>}

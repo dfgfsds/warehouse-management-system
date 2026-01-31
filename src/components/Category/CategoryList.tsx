@@ -4,10 +4,12 @@ import { Package, PlusCircle, Search, Edit, Trash2 } from "lucide-react";
 import baseUrl from "../../../api-endpoints/ApiUrls";
 import DeleteConfirmModal from "../Modals/DeleteConfirmModal";
 import AddCategoryModal from "../Modals/AddCategoryModal";
+import { useAuth } from "../../hooks/useAuth";
 
 // import AddCategoryModal from "../Modals/AddCategoryModal";
 
 export default function CategoryList() {
+    const { user }: any = useAuth();
     const [categoryData, setCategoryData] = useState<any[]>([]);
     const [openModal, setOpenModal] = useState(false);
     const [editCategory, setEditCategory] = useState<any>(null);
@@ -23,7 +25,7 @@ export default function CategoryList() {
     const getCategories = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(baseUrl.categories);
+            const res = await axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}/?vendor=${user?.vendor_id}&type=product`);
             setCategoryData(res?.data?.data?.categories || []);
         } catch (error) {
             console.log(error);
