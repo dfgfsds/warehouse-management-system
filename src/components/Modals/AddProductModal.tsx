@@ -416,8 +416,8 @@ export default function AddProductModal({
                 ))}
               </select>
             </div> */}
-
-            {/* <div>
+  
+            <div>
               <label className="block text-sm font-medium mb-1">
                 Unit Of Measure
               </label>
@@ -436,7 +436,7 @@ export default function AddProductModal({
                   </option>
                 ))}
               </select>
-            </div> */}
+            </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
