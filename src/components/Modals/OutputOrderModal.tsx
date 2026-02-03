@@ -166,7 +166,7 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi }:
                             </select>
                         </div>
 
-                        <div>
+                        {/* <div>
                             <label className="text-xs font-semibold text-gray-500 uppercase">
                                 Payment Type
                             </label>
@@ -178,7 +178,7 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi }:
                                 <option value="full">Full</option>
                                 <option value="partial">Partial</option>
                             </select>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* PAID AMOUNT */}
