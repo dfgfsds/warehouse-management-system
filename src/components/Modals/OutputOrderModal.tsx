@@ -46,7 +46,7 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi }:
             tray_id: asset?.tray_id,
             vendor_id: asset?.vendor_id,
             status: asset?.status,
-            stock: asset?.stock,
+            stock: quantity,
             user_id: user?.user_id,
 
             order_type: "customer",
