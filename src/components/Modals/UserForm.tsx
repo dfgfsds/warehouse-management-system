@@ -26,8 +26,7 @@ export default function UserForm({ open, onCancel, editUser, getUser, warehouses
         division_id: "",
         password: "",
         hub_id: "",
-        permission_type: "both",
-        // permission_status: "",
+        permission_type: "read",
     });
 
     useEffect(() => {
@@ -329,7 +328,7 @@ export default function UserForm({ open, onCancel, editUser, getUser, warehouses
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
                         >
                             <option value="">Select Permission</option>
-                            <option value="both">Both</option>
+                            {/* <option value="both">Both</option> */}
                             <option value="read">Read</option>
                             <option value="write">Write</option>
                         </select>

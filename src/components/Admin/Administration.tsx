@@ -259,21 +259,18 @@ export const Administration: React.FC = () => {
 
           )}
 
-          <div className="text-center py-12" hidden={usersList?.length > 0}>
-            <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">User Management</h3>
-            <p className="mt-1 text-sm text-gray-500">No users found.</p>
-          </div>
+        
           {activeTab === 'users' && (
             <>
-              {usersList?.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center flex-wrap gap-2">
+            <div className="flex justify-between items-center flex-wrap gap-2">
                     <h2 className="text-lg font-semibold text-gray-900">Users ({usersList.length})</h2>
                     <button onClick={() => setShowUserModal(!showAddModal)} className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                       <UserPlus className="h-4 w-4" /> <span>Add User</span>
                     </button>
                   </div>
+              {usersList?.length > 0 && (
+                <div className="space-y-4">
+                  
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
@@ -323,6 +320,11 @@ export const Administration: React.FC = () => {
                   </div>
                 </div>
               )}
+                <div className="text-center py-12" hidden={usersList?.length > 0}>
+            <Users className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">User Management</h3>
+            <p className="mt-1 text-sm text-gray-500">No users found.</p>
+          </div>
             </>
           )}
 

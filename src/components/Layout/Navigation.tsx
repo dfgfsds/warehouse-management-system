@@ -22,16 +22,16 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
   const { user } = useAuth();
   // staff manager
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'staff',] },
-    { id: 'scan', label: 'Scan Asset', icon: QrCode, roles: ['operator', 'staff', 'admin'] },
-    { id: 'brands', label: 'Brands', icon: Settings, roles: ['admin'] },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'staff',"manager"] },
+    { id: 'scan', label: 'Scan Asset', icon: QrCode, roles: ['operator', 'staff', 'admin',"manager"] },
+    { id: 'brands', label: 'Brands', icon: Settings, roles: ['admin',"manager"] },
     // { id: 'divisions', label: 'divisions', icon: BoldIcon, roles: ['admin'] },
-    { id: 'categorys', label: 'Categories', icon: BoxIcon, roles: ['admin'] },
-    { id: 'inventory', label: 'Inventory', icon: Package, roles: ['admin', 'warehouse_manager', 'staff'] },
-    { id: 'productList', label: 'Product List', icon: BoldIcon, roles: ['admin'] },
+    { id: 'categorys', label: 'Categories', icon: BoxIcon, roles: ['admin',"manager"] },
+    { id: 'inventory', label: 'Inventory', icon: Package, roles: ['admin', '"manager"', 'staff'] },
+    { id: 'productList', label: 'Product List', icon: BoldIcon, roles: ['admin',"manager"] },
     // { id: 'history', label: 'Asset History', icon: History, roles: ['admin', 'warehouse_manager', 'auditor'] },
     // { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'warehouse_manager'] },
-    { id: 'admin', label: 'Administration', icon: Settings, roles: ['admin'] },
+    { id: 'admin', label: 'Administration', icon: Settings, roles: ['admin',"manager"] },
   ];
 
   const visibleItems = navigationItems.filter(item =>
