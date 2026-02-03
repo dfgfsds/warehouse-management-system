@@ -2276,7 +2276,7 @@ export const InventoryManagement: React.FC = () => {
                 >
                   <div className="flex items-center gap-2">
                     {expandedHub === hub.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    <MapPin className="h-4 w-4 opacity-70" />
+                    <MapPin className="h-4 w-4 opacity-70 capitalize" />
                     {hub.name}
                   </div>
                   <div className="flex items-center gap-1">
@@ -2294,7 +2294,7 @@ export const InventoryManagement: React.FC = () => {
                           className="p-1 text-amber-600 hover:bg-amber-100 rounded"
                           title="Edit"
                         >
-                          <PlusCircle className="h-3 w-3" />
+                          {/* <PlusCircle className="h-3 w-3" /> */}
                         </button>
                         <button
                           onClick={(e) => {
@@ -2304,7 +2304,7 @@ export const InventoryManagement: React.FC = () => {
                           className="p-1 text-red-600 hover:bg-red-100 rounded"
                           title="Delete"
                         >
-                          <X className="h-3 w-3" />
+                          {/* <X className="h-3 w-3" /> */}
                         </button>
                         <button
                           onClick={(e) => {
@@ -2334,7 +2334,7 @@ export const InventoryManagement: React.FC = () => {
                           onClick={(e) => { e.stopPropagation(); handleDivClick(div); }}
                           className={`w-full text-left px-3 py-2 rounded-lg flex items-center justify-between text-sm transition-colors ${expandedDiv === div.id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'hover:bg-gray-50 text-gray-600'}`}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 capitalize">
                             {expandedDiv === div.id ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                             {div.name}
                           </div>
@@ -2398,7 +2398,7 @@ export const InventoryManagement: React.FC = () => {
                                   onClick={(e) => { e.stopPropagation(); handleTrayClick(tray); }}
                                   className={`flex-1 text-left px-3 py-2 rounded-lg flex items-center justify-between text-sm transition-colors ${selectedTray?.id === tray.id ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-gray-50 text-gray-500'}`}
                                 >
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 capitalize">
                                     <Box className="h-3 w-3" />
                                     {tray.name}
                                   </div>
@@ -2664,7 +2664,7 @@ export const InventoryManagement: React.FC = () => {
                               className="hover:bg-gray-50/80 transition-colors group"
                             >
                               {/* BARCODE + SKU */}
-                              <td className="px-6 py-4">
+                              <td className="px-6 py-4 ">
                                 <div className="font-mono text-sm font-semibold text-gray-800">
                                   {product?.barcode_value}
                                 </div>
@@ -2674,7 +2674,7 @@ export const InventoryManagement: React.FC = () => {
                               </td>
 
                               {/* PRODUCT + BRAND + CATEGORY */}
-                              <td className="px-6 py-4">
+                              <td className="px-6 py-4 capitalize">
                                 <div className="text-sm font-semibold text-gray-900">
                                   {product?.title}
                                 </div>

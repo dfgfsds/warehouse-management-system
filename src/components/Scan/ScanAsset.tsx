@@ -197,46 +197,6 @@ export const ScanAsset: React.FC = () => {
   }, [toDiv]);
 
 
-  // Location Effect Hooks (From)
-  // useEffect(() => {
-  //   if (fromHub) {
-  //     setFromDivisions(StorageManager.getDivisions(fromHub));
-  //     setFromDiv('');
-  //     setFromTray('');
-  //   } else {
-  //     setFromDivisions([]);
-  //   }
-  // }, [fromHub]);
-
-  // useEffect(() => {
-  //   if (fromDiv) {
-  //     setFromTrays(StorageManager.getTrays(fromHub, fromDiv));
-  //     setFromTray('');
-  //   } else {
-  //     setFromTrays([]);
-  //   }
-  // }, [fromDiv]);
-
-  // Location Effect Hooks (To)
-  // useEffect(() => {
-  //   if (toHub) {
-  //     setToDivisions(StorageManager.getDivisions(toHub));
-  //     setToDiv('');
-  //     setToTray('');
-  //   } else {
-  //     setToDivisions([]);
-  //   }
-  // }, [toHub]);
-
-  // useEffect(() => {
-  //   if (toDiv) {
-  //     setToTrays(StorageManager.getTrays(toHub, toDiv));
-  //     setToTray('');
-  //   } else {
-  //     setToTrays([]);
-  //   }
-  // }, [toDiv]);
-
   const handleStartScanning = () => {
     if (!actionType) return;
     if (!toHub || !toDiv || !toTray) return;
@@ -244,133 +204,71 @@ export const ScanAsset: React.FC = () => {
     setStep('scanning');
   };
 
-  // const handleScan = (e?: React.FormEvent) => {
-  //   e?.preventDefault();
-  //   if (!qrInput.trim()) return;
-  //   const code = qrInput.trim();
-  //   setQrInput('');
+  const handleScan = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!qrInput.trim()) return;
 
-  //   if (statusMode === 'manual') {
-  //     setPendingScanCode(code);
-  //     setShowStatusModal(true);
-  //   } else {
-  //     processScan(code, autoStatus);
-  //   }
-  // };
+    const code = qrInput.trim();
+    setQrInput('');
+    setMessage('');
 
-  // const handleScan = async (e?: React.FormEvent) => {
-  //   e?.preventDefault();
-  //   if (!qrInput.trim()) return;
-  //   setShowAssetModalQrCode(qrInput)
-  //   const code = qrInput.trim();
-  //   setQrInput('');
-  //   setMessage('');
+    try {
+      setLoading(true);
 
-  //   try {
-  //     setLoading(true);
+      const res = await axios.get(`${baseUrl.barcode}/${code}`);
 
-  //     const res = await axios.get(`${baseUrl.barcode}/${code}`);
+      if (res?.data?.success) {
+        const asset = res.data.data;
 
-  //     if (res?.data?.success) {
-  //       const asset = res.data.data;
-
-  //       const resolvedStatus =
-  //         autoStatus && autoStatus.trim()
-  //           ? autoStatus
-  //           : autoStatus;
-  //       console.log(asset, resolvedStatus)
-  //       // AUTO ADD TO SCANNED LIST
-  //       addOrIncrementScannedItem(asset, resolvedStatus);
-
-  //     }
-  //     //  else {
-  //     //   // ❌ NOT FOUND → OPEN ADD MODAL
-  //     //   setNewAssetCode(code);
-  //     //   setNewAssetType('');
-  //     //   setNewAssetQuantity(1);
-  //     //   setNewAssetStatus('working');
-  //     //   setShowAddModal(true);
-  //     // }
-  //   } catch (err: any) {
-  //     if (err?.response?.data?.message === 'Product not found') {
-  //       setShowAddAssetModal(true)
-  //       // setNewAssetCode(code);
-  //       // setShowAddModal(true);
-  //     } else {
-  //       setMessage('Scan failed');
-  //     }
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-
-const handleScan = async (e?: React.FormEvent) => {
-  e?.preventDefault();
-  if (!qrInput.trim()) return;
-
-  const code = qrInput.trim();
-  setQrInput('');
-  setMessage('');
-
-  try {
-    setLoading(true);
-
-    const res = await axios.get(`${baseUrl.barcode}/${code}`);
-
-    if (res?.data?.success) {
-      const asset = res.data.data;
-
-      if (statusMode === 'manual') {
-        // ✅ SAVE FULL ASSET
-        setPendingAsset(asset);
-        setShowStatusModal(true);
-      } else {
-        // ✅ AUTO MODE
-        processScan(asset, autoStatus);
-      }
-    }
-  } catch (err: any) {
-    if (err?.response?.data?.message === 'Product not found') {
-      setShowAddAssetModal(true);
-      setShowAssetModalQrCode(code);
-    } else {
-      setMessage('Scan failed');
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-  const addOrIncrementScannedItem = (asset: any, status: string) => {
-    setScannedItems((prev: any) => {
-      const index = prev.findIndex(
-        (i: any) => i?.qrCode === asset?.qrCode
-      );
-      // already scanned → increment
-      if (index !== -1) {
-        const updated = [...prev];
-        updated[index].moveQuantity += 1;
-        return updated;
-      }
-      // new scan
-      return [
-        ...prev,
-        {
-          assetId: asset?.product?.id,
-          qrCode: asset?.product?.barcode_value,
-          productType: asset?.product?.product_kind,
-          spareName: asset?.product?.title,
-          status: status,
-          moveQuantity: 1,
-          brand: asset?.product?.brand?.name,
-          // maxQuantity: asset.quantity // used in transfer
+        if (statusMode === 'manual') {
+          setPendingAsset(asset);      // ✅ full asset
+          setShowStatusModal(true);
+        } else {
+          processScan(asset, autoStatus);
         }
-      ];
-    });
+
+      }
+    } catch (err: any) {
+      if (err?.response?.data?.message === 'Product not found') {
+        setShowAddAssetModal(true);
+        setShowAssetModalQrCode(code);
+      } else {
+        setMessage('Scan failed');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+
+
+  // const addOrIncrementScannedItem = (asset: any, status: string) => {
+  //   setScannedItems((prev: any) => {
+  //     const index = prev.findIndex(
+  //       (i: any) => i?.qrCode === asset?.qrCode
+  //     );
+  //     // already scanned → increment
+  //     if (index !== -1) {
+  //       const updated = [...prev];
+  //       updated[index].moveQuantity += 1;
+  //       return updated;
+  //     }
+  //     // new scan
+  //     return [
+  //       ...prev,
+  //       {
+  //         assetId: asset?.product?.id,
+  //         qrCode: asset?.product?.barcode_value,
+  //         productType: asset?.product?.product_kind,
+  //         spareName: asset?.product?.title,
+  //         status: status,
+  //         moveQuantity: 1,
+  //         brand: asset?.product?.brand?.name,
+  //         // maxQuantity: asset.quantity // used in transfer
+  //       }
+  //     ];
+  //   });
+  // };
 
 
   // const confirmManualStatus = (status: string) => {
@@ -396,216 +294,178 @@ const handleScan = async (e?: React.FormEvent) => {
   };
 
 
-  // Called after status is determined (either auto or manually selected)
-  // const processScan = (code: string, status: AssetStatus) => {
-  //   // Check if already in list with SAME Status
-  //   const existingIndex = scannedItems.findIndex(i => i.qrCode === code && i.status === status);
 
-  //   if (existingIndex >= 0) {
-  //     // Increment Quantity
-  //     setScannedItems(prev => {
-  //       const updated = [...prev];
-  //       const item = updated[existingIndex];
+  const lastScanRef = React.useRef<{
+    code: string | null;
+    time: number;
+  }>({ code: null, time: 0 });
 
-  //       // If constraint exists, check it. If undefined (unknown source), no limit.
-  //       if (actionType === 'transfer' && item.maxQuantity !== undefined && item.moveQuantity >= item.maxQuantity) {
-  //         // Ideally warn user, but for "no constraints" we might just allow over-transfer if that was the intent?
-  //         // User said: "allow products add in tray even it is not there, no constraints required"
-  //         // This implies strict constraints are OFF.
-  //         // However, if we KNOW the max quantity, it's safer to respect it? 
-  //         // Let's implement SOFT constraint: Only warn if we know for sure.
-  //         // But for "not found in source", maxQuantity will be undefined, so unlimited.
-  //       }
 
-  //       updated[existingIndex] = { ...item, moveQuantity: item.moveQuantity + 1 };
-  //       return updated;
-  //     });
+  const processScan = (asset: any, status: AssetStatus) => {
+    const code = asset?.product?.barcode_value;
+    const now = Date.now();
+
+    // 🚫 DUPLICATE SCAN GUARD (VERY IMPORTANT)
+    if (
+      lastScanRef.current.code === code &&
+      now - lastScanRef.current.time < 300
+    ) {
+      return; // ignore duplicate scan
+    }
+
+    lastScanRef.current = { code, time: now };
+
+    setScannedItems((prev: any[]) => {
+      const index = prev.findIndex(
+        (i) => i.qrCode === code && i.status === status
+      );
+
+      // ✅ increment ONLY by 1
+      if (index !== -1) {
+        return prev.map((item, i) =>
+          i === index
+            ? { ...item, moveQuantity: item.moveQuantity + 1 }
+            : item
+        );
+      }
+
+      // first time scan
+      return [
+        ...prev,
+        {
+          assetId: asset?.product?.id,
+          qrCode: code,
+          status,
+          moveQuantity: 1,
+          productType: asset?.product?.product_kind,
+          spareName: asset?.product?.title,
+          brand: asset?.product?.brand?.name,
+        },
+      ];
+    });
+  };
+
+
+
+  const handleManualStatusSelect = (status: any) => {
+    if (!pendingAsset) return;
+
+    processScan(pendingAsset, status.id);
+
+    // ✅ reset everything (no blank render)
+    setPendingAsset(null);
+    setShowStatusModal(false);
+  };
+
+
+
+  // const handleAddScan = (code: string, status: AssetStatus) => {
+  //   // 1. Check Dest for Merge Details
+  //   const existingInDest = StorageManager.getAssetAtLocation(code, toTray);
+  //   if (existingInDest) {
+  //     // Even if existing status is different, we are scanning THIS status.
+  //     // If dest has 'working' and we scan 'damaged', we add a 'damaged' row to scannedItems.
+  //     // If dest has 'working' and we scan 'working', we default to merging into that record logic eventually.
+  //     const item: ScannedItem = {
+  //       ...existingInDest,
+  //       status: status, // Use scanned status
+  //       // moveQuantity: 1,
+  //       isNewProduct: false
+  //     };
+  //     setScannedItems(prev => [...prev, item]);
+  //     return;
+  //   }
+
+  //   // 2. Check Global
+  //   const existingAnywhere = StorageManager.getAssetByQR(code);
+  //   if (existingAnywhere) {
+  //     const item: ScannedItem = {
+  //       ...existingAnywhere,
+  //       id: `new-entry-${Date.now()}`,
+  //       quantity: 0,
+  //       status: status,
+  //       // moveQuantity: 1,
+  //       isNewProduct: false
+  //     };
+  //     setScannedItems(prev => [...prev, item]);
   //   } else {
-  //     // Add New Row
-  //     if (actionType === 'add') {
-  //       handleAddScan(code, status);
+  //     // 3. Brand New
+  //     setNewAssetCode(code);
+  //     setNewAssetStatus(status);
+  //     setNewAssetQuantity(1);
+  //     setShowAddModal(true);
+  //   }
+  // };
+
+  // const handleTransferScan = (code: string, status: AssetStatus) => {
+  //   // Check Source
+  //   const sourceAsset = StorageManager.getAssetAtLocation(code, fromTray);
+
+  //   if (sourceAsset) {
+  //     // Exists in source
+  //     const item: ScannedItem = {
+  //       ...sourceAsset,
+  //       status: status,
+  //       moveQuantity: 1,
+  //       maxQuantity: sourceAsset.quantity, // Known limit
+  //       sourceAssetId: sourceAsset.id
+  //     };
+  //     setScannedItems(prev => [...prev, item]);
+  //   } else {
+  //     // Does NOT exist in source, but user wants to transfer anyway ("allow products add ... no constraints")
+  //     // We look up global info to get Product Type if possible
+  //     const globalInfo = StorageManager.getAssetByQR(code);
+
+  //     if (globalInfo) {
+  //       const item: ScannedItem = {
+  //         ...globalInfo,
+  //         id: `forced-transfer-${Date.now()}`,
+  //         warehouseId: fromHub, // Virtual source
+  //         sectionId: fromDiv,
+  //         trayId: fromTray,
+  //         quantity: 0, // Virtual 0
+  //         status: status,
+  //         moveQuantity: 1,
+  //         maxQuantity: undefined, // Unlimited
+  //         sourceAssetId: undefined
+  //       };
+  //       setScannedItems(prev => [...prev, item]);
   //     } else {
-  //       handleTransferScan(code, status);
+  //       // Unknown product entirely - Treat as New Asset Creation via Transfer
+  //       setNewAssetCode(code);
+  //       setNewAssetStatus(status);
+  //       setNewAssetQuantity(1);
+  //       setShowAddModal(true);
   //     }
   //   }
   // };
 
-const processScan = (asset: any, status: AssetStatus) => {
-  const code = asset?.product?.barcode_value;
+  // const handleAddNewAsset = () => {
+  //   const newAsset: ScannedItem = {
+  //     id: `new-${Date.now()}`,
+  //     qrCode: newAssetCode,
+  //     productType: newAssetType,
+  //     quantity: 0,
+  //     status: newAssetStatus, // Use the status initiated with
+  //     warehouseId: toHub,
+  //     sectionId: toDiv,
+  //     trayId: toTray,
+  //     // moveQuantity: newAssetQuantity,
+  //     isNewProduct: true,
+  //     childAssetIds: [],
+  //     isPacked: false,
+  //     isDispatched: false,
+  //     receivedAt: new Date().toISOString(),
+  //     lastMovedAt: new Date().toISOString(),
+  //     lastHandledBy: user?.id || 'unknown',
+  //     deviceId: 'local-device',
+  //     metadata: {}
+  //   };
 
-  setScannedItems((prev: any[]) => {
-    const index = prev.findIndex(
-      (i) => i.qrCode === code && i.status === status
-    );
-
-    // ✅ SAME BARCODE + SAME STATUS → +1
-    if (index !== -1) {
-      const updated = [...prev];
-      updated[index] = {
-        ...updated[index],
-        moveQuantity: updated[index].moveQuantity + 1,
-      };
-      return updated;
-    }
-
-    // ✅ NEW ROW WITH FULL DATA
-    return [
-      ...prev,
-      {
-        assetId: asset?.product?.id,
-        qrCode: code,
-        status,
-        moveQuantity: 1,
-
-        productType: asset?.product?.product_kind,
-        spareName: asset?.product?.title,
-        brand: asset?.product?.brand?.name,
-      },
-    ];
-  });
-};
-
-
-
-
-
-  // const handleManualStatusSelect = (status: AssetStatus) => {
-  //   if (pendingScanCode) {
-  //     processScan(pendingScanCode, status);
-  //     setPendingScanCode(null);
-  //     setShowStatusModal(false);
-  //   }
+  //   setScannedItems(prev => [...prev, newAsset]);
+  //   setShowAddModal(false);
+  //   setNewAssetCode('');
   // };
-
-  // const handleManualStatusSelect = (status: AssetStatus) => {
-  //   if (!pendingScanCode) return;
-
-  //   processScan(pendingScanCode, status); // status = "test"
-  //   setPendingScanCode(null);
-  //   setShowStatusModal(false);
-  // };
-
-
-const handleManualStatusSelect = (status: any) => {
-  if (!pendingAsset) return;
-
-  // ✅ PASS FULL ASSET
-  processScan(pendingAsset, status.id);
-
-  // ✅ RESET (blank page bug fix)
-  setPendingAsset(null);
-  setShowStatusModal(false);
-};
-
-
-
-  const handleAddScan = (code: string, status: AssetStatus) => {
-    // 1. Check Dest for Merge Details
-    const existingInDest = StorageManager.getAssetAtLocation(code, toTray);
-    if (existingInDest) {
-      // Even if existing status is different, we are scanning THIS status.
-      // If dest has 'working' and we scan 'damaged', we add a 'damaged' row to scannedItems.
-      // If dest has 'working' and we scan 'working', we default to merging into that record logic eventually.
-      const item: ScannedItem = {
-        ...existingInDest,
-        status: status, // Use scanned status
-        moveQuantity: 1,
-        isNewProduct: false
-      };
-      setScannedItems(prev => [...prev, item]);
-      return;
-    }
-
-    // 2. Check Global
-    const existingAnywhere = StorageManager.getAssetByQR(code);
-    if (existingAnywhere) {
-      const item: ScannedItem = {
-        ...existingAnywhere,
-        id: `new-entry-${Date.now()}`,
-        quantity: 0,
-        status: status,
-        moveQuantity: 1,
-        isNewProduct: false
-      };
-      setScannedItems(prev => [...prev, item]);
-    } else {
-      // 3. Brand New
-      setNewAssetCode(code);
-      setNewAssetStatus(status);
-      setNewAssetQuantity(1);
-      setShowAddModal(true);
-    }
-  };
-
-  const handleTransferScan = (code: string, status: AssetStatus) => {
-    // Check Source
-    const sourceAsset = StorageManager.getAssetAtLocation(code, fromTray);
-
-    if (sourceAsset) {
-      // Exists in source
-      const item: ScannedItem = {
-        ...sourceAsset,
-        status: status,
-        moveQuantity: 1,
-        maxQuantity: sourceAsset.quantity, // Known limit
-        sourceAssetId: sourceAsset.id
-      };
-      setScannedItems(prev => [...prev, item]);
-    } else {
-      // Does NOT exist in source, but user wants to transfer anyway ("allow products add ... no constraints")
-      // We look up global info to get Product Type if possible
-      const globalInfo = StorageManager.getAssetByQR(code);
-
-      if (globalInfo) {
-        const item: ScannedItem = {
-          ...globalInfo,
-          id: `forced-transfer-${Date.now()}`,
-          warehouseId: fromHub, // Virtual source
-          sectionId: fromDiv,
-          trayId: fromTray,
-          quantity: 0, // Virtual 0
-          status: status,
-          moveQuantity: 1,
-          maxQuantity: undefined, // Unlimited
-          sourceAssetId: undefined
-        };
-        setScannedItems(prev => [...prev, item]);
-      } else {
-        // Unknown product entirely - Treat as New Asset Creation via Transfer
-        setNewAssetCode(code);
-        setNewAssetStatus(status);
-        setNewAssetQuantity(1);
-        setShowAddModal(true);
-      }
-    }
-  };
-
-  const handleAddNewAsset = () => {
-    const newAsset: ScannedItem = {
-      id: `new-${Date.now()}`,
-      qrCode: newAssetCode,
-      productType: newAssetType,
-      quantity: 0,
-      status: newAssetStatus, // Use the status initiated with
-      warehouseId: toHub,
-      sectionId: toDiv,
-      trayId: toTray,
-      moveQuantity: newAssetQuantity,
-      isNewProduct: true,
-      childAssetIds: [],
-      isPacked: false,
-      isDispatched: false,
-      receivedAt: new Date().toISOString(),
-      lastMovedAt: new Date().toISOString(),
-      lastHandledBy: user?.id || 'unknown',
-      deviceId: 'local-device',
-      metadata: {}
-    };
-
-    setScannedItems(prev => [...prev, newAsset]);
-    setShowAddModal(false);
-    setNewAssetCode('');
-  };
 
   const generateBarcode = () => {
     const prefix = newAssetType.substring(0, 2).toUpperCase();
@@ -778,20 +638,20 @@ const handleManualStatusSelect = (status: any) => {
                 <div className="grid grid-cols-3 gap-4">
                   <select className="input-field" value={fromHub} onChange={e => setFromHub(e.target.value)}>
                     <option value="">Select Hub...</option>
-                    {hubs?.map((h: any) => <option key={h.id} value={h.id}>{h?.title || h.name}</option>)}
+                    {hubs?.map((h: any) => <option key={h.id} value={h.id} className='capitalize'>{h?.title || h.name}</option>)}
                   </select>
                   <select className="input-field" value={fromDiv} onChange={e => setFromDiv(e.target.value)} disabled={!fromHub}>
                     <option value="">Select Division...</option>
                     {/* {toDivisions?.map((d: any) => <option key={d.id} value={d.id}>{d?.division_name}</option>)} */}
                     {fromDivisions.map((d: any) => (
-                      <option key={d.id} value={d.id}>{d.division_name}</option>
+                      <option key={d.id} value={d.id} className='capitalize'>{d.division_name}</option>
                     ))}
                   </select>
                   <select className="input-field" value={fromTray} onChange={e => setFromTray(e.target.value)} disabled={!fromDiv}>
                     <option value="">Select Tray...</option>
                     {/* {toTrays?.map((t: any) => <option key={t.id} value={t.id}>{t.division_name || t.name}</option>)} */}
                     {fromTrays.map((t: any) => (
-                      <option key={t.id} value={t.id}>{t.division_name}</option>
+                      <option key={t.id} value={t.id} className='capitalize'>{t.division_name}</option>
                     ))}
                   </select>
                 </div>
@@ -843,7 +703,7 @@ const handleManualStatusSelect = (status: any) => {
                     </option>
                   ))} */}
                   {toDivisions.map((d: any) => (
-                    <option key={d.id} value={d.id}>{d.division_name}</option>
+                    <option key={d.id} value={d.id} className='capitalize'>{d.division_name}</option>
                   ))}
                 </select>
 
@@ -861,7 +721,7 @@ const handleManualStatusSelect = (status: any) => {
                     </option>
                   ))} */}
                   {toTrays?.map((t: any) => (
-                    <option key={t.id} value={t.id}>{t.division_name}</option>
+                    <option key={t.id} value={t.id} className='capitalize'>{t.division_name}</option>
                   ))}
                 </select>
               </div>
@@ -1012,8 +872,9 @@ const handleManualStatusSelect = (status: any) => {
                 ))}
               </div>
               <div className="mt-4 text-xs text-center text-gray-400">
-                For item: {pendingScanCode}
+                For item: {pendingAsset?.product?.barcode_value}
               </div>
+
             </div>
           </div>
         )}
@@ -1026,7 +887,7 @@ const handleManualStatusSelect = (status: any) => {
               <div className="gap-2"><input className="input-field w-full" value={newAssetCode} onChange={e => setNewAssetCode(e.target.value)} /></div>
               <select className="input-field w-full" value={newAssetType} onChange={e => setNewAssetType(e.target.value)}>{PRODUCT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>
               <div><label>Initial Quantity</label><input type="number" result="1" className="input-field w-full" value={newAssetQuantity} onChange={e => setNewAssetQuantity(parseInt(e.target.value))} /></div>
-              <div className="flex gap-3"><button onClick={() => setShowAddModal(false)} className="flex-1 py-2 bg-gray-100 rounded">Cancel</button><button onClick={handleAddNewAsset} className="flex-1 py-2 bg-blue-600 text-white rounded">Add</button></div>
+              {/* <div className="flex gap-3"><button onClick={() => setShowAddModal(false)} className="flex-1 py-2 bg-gray-100 rounded">Cancel</button><button onClick={handleAddNewAsset} className="flex-1 py-2 bg-blue-600 text-white rounded">Add</button></div> */}
             </div>
           </div>
         )}

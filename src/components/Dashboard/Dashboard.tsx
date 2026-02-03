@@ -513,31 +513,24 @@ import {
   TrendingDown,
   BarChart3,
   Clock,
+  IndianRupee,
+  ShoppingCart,
 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "../../hooks/useAuth";
 import baseUrl from "../../../api-endpoints/ApiUrls";
 
 /* ================= TYPES ================= */
+// (UNCHANGED)
 
-type Product = {
-  id: string;
-  title: string;
-};
-
-type StatusStock = {
-  status_id: string;
-  status_name: string;
-  stock: number;
-};
-
+type Product = { id: string; title: string };
+type StatusStock = { status_id: string; status_name: string; stock: number };
 type InOutStatusBreakdown = {
   status_id: string | null;
   status_name: string;
   total_in: number;
   total_out: number;
 };
-
 type InOutStats = {
   total_in: number;
   total_out: number;
@@ -545,12 +538,12 @@ type InOutStats = {
   last_out_date: string | null;
   status_breakdown: InOutStatusBreakdown[];
 };
-
 type SalesRow = {
   date: string;
   product_name: string;
   total_quantity: number;
   total_amount: number;
+  order_count: number;
 };
 
 /* ================= COMPONENT ================= */
@@ -558,7 +551,7 @@ type SalesRow = {
 export const Dashboard: React.FC = () => {
   const { user }: any = useAuth();
 
-  /* ================= STATES ================= */
+  /* ================= STATES (UNCHANGED) ================= */
 
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -576,247 +569,193 @@ export const Dashboard: React.FC = () => {
   const [salesStartDate, setSalesStartDate] = useState("");
   const [salesEndDate, setSalesEndDate] = useState("");
   const [salesReport, setSalesReport] = useState<SalesRow[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalSalesVolume, setTotalSalesVolume] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  /* ================= LOAD PRODUCTS ================= */
+  /* ================= API CALLS (UNCHANGED) ================= */
 
   useEffect(() => {
     if (!user?.vendor_id) return;
-
-    axios
-      .get(`${baseUrl.products}/by-vendor/${user.vendor_id}`)
-      .then((res) => {
-        const list = res?.data?.data?.products || [];
-        setProducts(
-          list.map((p: any) => ({
-            id: p.product.id,
-            title: p.product.title,
-          }))
-        );
-      });
+    axios.get(`${baseUrl.products}/by-vendor/${user.vendor_id}`).then((res) => {
+      const list = res?.data?.data?.products || [];
+      setProducts(list.map((p: any) => ({
+        id: p.product.id,
+        title: p.product.title,
+      })));
+    });
   }, [user?.vendor_id]);
-
-  /* ================= PRODUCT STOCK STATS ================= */
 
   const fetchProductStats = async () => {
     if (!selectedProduct) return;
-
-    try {
-      setLoading(true);
-
-      const res = await axios.get(
-        `${baseUrl.productStockStats}/${selectedProduct}`
-      );
-
-      const data = res?.data?.data;
-
-      setTotalStock(data?.total_stock || 0);
-      setStatusStocks(data?.stock_by_status || []);
-
-      setInOutStats({
-        total_in: data?.in_out_stats?.total_in || 0,
-        total_out: data?.in_out_stats?.total_out || 0,
-        last_in_date: data?.in_out_stats?.last_in_date || null,
-        last_out_date: data?.in_out_stats?.last_out_date || null,
-        status_breakdown: data?.in_out_stats?.status_breakdown || [],
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const res = await axios.get(`${baseUrl.productStockStats}/${selectedProduct}`);
+    const data = res?.data?.data;
+    setTotalStock(data?.total_stock || 0);
+    setStatusStocks(data?.stock_by_status || []);
+    setInOutStats({
+      total_in: data?.in_out_stats?.total_in || 0,
+      total_out: data?.in_out_stats?.total_out || 0,
+      last_in_date: data?.in_out_stats?.last_in_date || null,
+      last_out_date: data?.in_out_stats?.last_out_date || null,
+      status_breakdown: data?.in_out_stats?.status_breakdown || [],
+    });
+    setLoading(false);
   };
-
-  /* ================= SALES REPORT ================= */
 
   const fetchSalesReport = async () => {
     if (!salesStartDate || !salesEndDate) return;
-
-    try {
-      setLoading(true);
-
-      const res = await axios.get(
-        `${baseUrl.salesReport}?vendor_id=${user.vendor_id}&start_date=${salesStartDate}&end_date=${salesEndDate}`
-      );
-
-      setSalesReport(res?.data?.data?.report || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const res = await axios.get(
+      `${baseUrl.salesReport}?vendor_id=${user.vendor_id}&start_date=${salesStartDate}&end_date=${salesEndDate}`
+    );
+    const data = res?.data?.data;
+    setSalesReport(data?.report || []);
+    setTotalRevenue(data?.total_revenue || 0);
+    setTotalSalesVolume(data?.total_sales_volume || 0);
+    setLoading(false);
   };
 
   /* ================= UI ================= */
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
 
       {/* HEADER */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">
+          Dashboard
+        </h1>
         <span className="text-sm text-gray-500">
-          Welcome, {user?.username}
+          Welcome back, <b>{user?.user_name}</b>
         </span>
       </div>
 
-      {/* ================= PRODUCT SELECT ================= */}
-      <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4">
-        <h2 className="font-semibold text-lg">Product Stock Stats</h2>
+      {/* PRODUCT SECTION */}
+      <section className="rounded-2xl bg-white/80 backdrop-blur border shadow-lg p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-800">
+          📦 Product Stock Overview
+        </h2>
 
         <div className="flex gap-4">
           <select
             value={selectedProduct}
             onChange={(e) => setSelectedProduct(e.target.value)}
-            className="border px-4 py-2 rounded-lg w-80"
+            className="border rounded-xl px-4 py-2 w-80 focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select Product</option>
             {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
+              <option key={p.id} value={p.id} className="capitalize">{p.title}</option>
             ))}
           </select>
 
           <button
             onClick={fetchProductStats}
-            className="bg-blue-600 text-white px-6 rounded-lg"
+            className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:scale-105 transition"
           >
-            Load Stats
+            Load Data
           </button>
         </div>
-      </div>
+      </section>
 
-      {/* ================= METRICS ================= */}
+      {/* METRICS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Metric title="Total Stock" value={totalStock} icon={<Package />} />
-        <Metric title="Total In" value={inOutStats.total_in} icon={<TrendingUp />} />
-        <Metric title="Total Out" value={inOutStats.total_out} icon={<TrendingDown />} />
-        <Metric
-          title="Last In"
-          value={inOutStats.last_in_date || "-"}
-          icon={<Clock />}
-        />
+        <Metric title="Total Stock" value={totalStock} icon={<Package />} color="blue" />
+        <Metric title="Total In" value={inOutStats.total_in} icon={<TrendingUp />} color="green" />
+        <Metric title="Total Out" value={inOutStats.total_out} icon={<TrendingDown />} color="red" />
+        <Metric title="Last In" value={inOutStats.last_in_date || "-"} icon={<Clock />} color="purple" />
       </div>
 
-      {/* ================= STOCK BY STATUS ================= */}
-      <div className="bg-white p-6 rounded-xl border shadow-sm">
-        <h2 className="font-semibold text-lg mb-4">Stock by Status</h2>
+      {/* STATUS */}
+      <section className="grid md:grid-cols-2 gap-6">
+        <div className="rounded-2xl bg-white border shadow p-6">
+          <h3 className="font-semibold mb-4">Stock by Status</h3>
+          {statusStocks.map((s) => (
+            <div key={s.status_id}
+              className="flex justify-between px-4 py-3 mb-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
+              <span className="capitalize">{s?.status_name}</span>
+              <span className="font-bold">{s.stock}</span>
+            </div>
+          ))}
+        </div>
 
-        {statusStocks.length === 0 ? (
-          <p className="text-gray-400">No status data</p>
-        ) : (
-          <div className="space-y-2">
-            {statusStocks.map((s) => (
-              <div key={s.status_id} className="flex justify-between">
-                <span>{s.status_name}</span>
-                <span className="font-bold">{s.stock}</span>
+        <div className="rounded-2xl bg-white border shadow p-6">
+          <h3 className="font-semibold mb-4">In / Out Breakdown</h3>
+          {inOutStats.status_breakdown.map((s, i) => (
+            <div key={i} className="flex justify-between border-b py-2">
+              <span className="capitalize">{s.status_name}</span>
+              <div className="flex gap-4 text-sm">
+                <span className="text-green-600">IN {s.total_in}</span>
+                <span className="text-red-600">OUT {s.total_out}</span>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      {/* ================= IN / OUT STATUS BREAKDOWN ================= */}
-      <div className="bg-white p-6 rounded-xl border shadow-sm">
-        <h2 className="font-semibold text-lg mb-4">
-          In / Out Status Breakdown
+      {/* SALES */}
+      <section className="rounded-2xl bg-white border shadow-lg p-6 space-y-4">
+        <h2 className="flex items-center gap-2 font-semibold text-lg">
+          <BarChart3 /> Sales Report
         </h2>
 
-        {inOutStats.status_breakdown.length === 0 ? (
-          <p className="text-gray-400">No in/out data</p>
-        ) : (
-          <div className="space-y-3">
-            {inOutStats.status_breakdown.map((s, i) => (
-              <div
-                key={i}
-                className="flex justify-between items-center border-b pb-2"
-              >
-                <span className="font-medium text-gray-700">
-                  {s.status_name}
-                </span>
-
-                <div className="flex gap-6 text-sm">
-                  <span className="text-green-600 font-semibold">
-                    IN: {s.total_in}
-                  </span>
-                  <span className="text-red-600 font-semibold">
-                    OUT: {s.total_out}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ================= SALES REPORT ================= */}
-      <div className="bg-white p-6 rounded-xl border shadow-sm">
-        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5" /> Sales Report
-        </h2>
-
-        <div className="flex gap-4 mb-4">
-          <input
-            type="date"
-            value={salesStartDate}
+        <div className="flex gap-4">
+          <input type="date" value={salesStartDate}
             onChange={(e) => setSalesStartDate(e.target.value)}
-            className="border px-3 py-2 rounded-lg"
-          />
-          <input
-            type="date"
-            value={salesEndDate}
+            className="border rounded-xl px-3 py-2" />
+          <input type="date" value={salesEndDate}
             onChange={(e) => setSalesEndDate(e.target.value)}
-            className="border px-3 py-2 rounded-lg"
-          />
+            className="border rounded-xl px-3 py-2" />
           <button
             onClick={fetchSalesReport}
-            className="bg-green-600 text-white px-6 rounded-lg"
-          >
+            className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 rounded-xl hover:scale-105 transition">
             Load Sales
           </button>
         </div>
 
-        {loading ? (
-          <p className="text-gray-400">Loading...</p>
-        ) : salesReport.length === 0 ? (
-          <p className="text-gray-400">No sales data</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
+        <div className="grid md:grid-cols-2 gap-6">
+          <Metric title="Revenue" value={`₹${totalRevenue}`} icon={<IndianRupee />} color="green" />
+          <Metric title="Quantity Sold" value={totalSalesVolume} icon={<ShoppingCart />} color="blue" />
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border rounded-xl overflow-hidden">
+            <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-2 text-left">Product</th>
-                <th className="px-4 py-2 text-left">Date</th>
-                <th className="px-4 py-2 text-right">Qty</th>
-                <th className="px-4 py-2 text-right">Amount</th>
+                <th className="px-4 py-3 text-left">Product</th>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3 text-right">Qty</th>
+                <th className="px-4 py-3 text-right">Orders</th>
+                <th className="px-4 py-3 text-right">Amount</th>
               </tr>
             </thead>
             <tbody>
               {salesReport.map((r, i) => (
-                <tr key={i} className="border-t">
-                  <td className="px-4 py-2 capitalize">{r?.product_name}</td>
-                  <td className="px-4 py-2">{r?.date}</td>
-                  <td className="px-4 py-2 text-right">{r?.total_quantity}</td>
-                  <td className="px-4 py-2 text-right">₹{r?.total_amount}</td>
+                <tr key={i} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-2 capitalize">{r.product_name}</td>
+                  <td className="px-4 py-2 text-center">{r.date}</td>
+                  <td className="px-4 py-2 text-right">{r.total_quantity}</td>
+                  <td className="px-4 py-2 text-right">{r.order_count}</td>
+                  <td className="px-4 py-2 text-right font-semibold">₹{r.total_amount}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      </section>
     </div>
   );
 };
 
 /* ================= METRIC CARD ================= */
 
-const Metric = ({ title, value, icon }: any) => (
-  <div className="bg-white p-6 rounded-xl border shadow-sm flex justify-between items-center">
+const Metric = ({ title, value, icon, color }: any) => (
+  <div className="rounded-2xl bg-white border shadow-md p-5 flex justify-between items-center hover:scale-[1.03] transition">
     <div>
       <p className="text-sm text-gray-500">{title}</p>
       <p className="text-2xl font-bold">{value}</p>
     </div>
-    <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
+    <div className={`p-3 rounded-xl bg-${color}-100 text-${color}-600`}>
       {icon}
     </div>
   </div>

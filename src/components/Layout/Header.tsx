@@ -137,10 +137,10 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
   const getRoleLabel = (role: string) => {
     switch (role) {
       // case 'super_admin': return 'Super Admin';
-      case 'admin': return 'Super Admin'
-      case 'warehouse_manager': return 'Manager';
+      case 'admin': return 'Admin'
+      case 'staff': return 'Staff';
       case 'operator': return 'Operator';
-      case 'auditor': return 'Auditor';
+      case 'manager': return 'Manager';
       default: return role;
     }
   };
@@ -179,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
 
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <User className="h-4 w-4" />
-              <span className="font-medium">{user?.full_name}</span>
+              <span className="font-medium capitalize">{user?.user_name}</span>
               <span className="text-gray-400">•</span>
               <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                 {getRoleLabel(user?.role || '')}

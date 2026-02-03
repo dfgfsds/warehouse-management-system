@@ -15,7 +15,7 @@ export default function Category() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <Package className="h-8 w-8 text-blue-600" />
-                        <h1 className="text-2xl font-bold text-gray-900">Categories and Categories Groups</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Categories </h1>
                     </div>
                     <div className="text-sm text-gray-600">
                         {/* Total Brands: {brandData?.length} */}
