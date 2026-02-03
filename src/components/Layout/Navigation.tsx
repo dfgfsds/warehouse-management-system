@@ -27,7 +27,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
     { id: 'brands', label: 'Brands', icon: Settings, roles: ['admin',"manager"] },
     // { id: 'divisions', label: 'divisions', icon: BoldIcon, roles: ['admin'] },
     { id: 'categorys', label: 'Categories', icon: BoxIcon, roles: ['admin',"manager"] },
-    { id: 'inventory', label: 'Inventory', icon: Package, roles: ['admin', '"manager"', 'staff'] },
+    { id: 'inventory', label: 'Inventory', icon: Package, roles: ['admin', "manager", 'staff'] },
     { id: 'productList', label: 'Product List', icon: BoldIcon, roles: ['admin',"manager"] },
     // { id: 'history', label: 'Asset History', icon: History, roles: ['admin', 'warehouse_manager', 'auditor'] },
     // { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'warehouse_manager'] },
