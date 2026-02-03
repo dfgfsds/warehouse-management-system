@@ -43,7 +43,7 @@ export const Login: React.FC = () => {
 
     const result = await login(username, password
       // ,division?.division_id
-    );
+    );  
 
     if (result.success) {
       console.log('Login success:', result);

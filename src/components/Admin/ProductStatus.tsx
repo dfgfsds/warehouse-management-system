@@ -41,7 +41,7 @@ export default function ProductStatus() {
     const getStatuses = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(baseUrl.productStatus);
+            const res = await axios.get(`${baseUrl.productStatus}`);
             setData(res?.data?.data?.statuses || []);
         } catch (error) {
             console.log(error);
