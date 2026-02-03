@@ -143,7 +143,7 @@ export const Administration: React.FC = () => {
     { id: 'users', label: 'Users', icon: Users },
     { id: 'products', label: 'Product Types', icon: Package2 },
     { id: 'productStatus', label: 'Status', icon: Stamp },
-    // { id: 'productUnit', label: 'Product Units', icon: Box },
+    { id: 'productUnit', label: 'Product Units', icon: Box },
   ];
 
   // Helper to get all sections flattened
