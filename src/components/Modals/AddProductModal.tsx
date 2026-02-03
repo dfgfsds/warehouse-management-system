@@ -314,6 +314,13 @@ export default function AddProductModal({
     }
   };
 
+  const PRICING_TYPES = [
+    { id: "cost", name: "Cost" },
+    { id: "selling", name: "Selling" },
+    { id: "mrp", name: "MRP" },
+  ];
+
+
   /* ================= UI ================= */
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -650,13 +657,13 @@ export default function AddProductModal({
             </div>
 
             {/* Add Button */}
-            <button
+            {/* <button
               type="button"
               onClick={addCategory}
               className="text-white bg-blue-600 rounded-md text-sm font-medium p-2"
             >
               + Add another category
-            </button>
+            </button> */}
           </div>
 
 
@@ -691,7 +698,7 @@ export default function AddProductModal({
 
                 {/* Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Select
+                  {/* <Select
                     label="Type"
                     value={p.title}
                     onChange={(v: any) => {
@@ -704,6 +711,23 @@ export default function AddProductModal({
                       { id: "selling", name: "Selling" },
                       { id: "mrp", name: "MRP" },
                     ]}
+                  /> */}
+
+                  <Select
+                    label="Type"
+                    value={p.title}
+                    onChange={(v: any) => {
+                      const a = [...pricing];
+                      a[i].title = v;
+                      setPricing(a);
+                    }}
+                    options={PRICING_TYPES.filter(
+                      (opt) =>
+                        // show if not used OR it's the current row value
+                        !pricing.some(
+                          (row, idx) => idx !== i && row.title === opt.id
+                        )
+                    )}
                   />
 
                   <Input
@@ -713,17 +737,6 @@ export default function AddProductModal({
                     onChange={(v: any) => {
                       const a = [...pricing];
                       a[i].value = v;
-                      setPricing(a);
-                    }}
-                  />
-
-                  <Input
-                    label="Tax %"
-                    type="number"
-                    value={p.tax || ""}
-                    onChange={(v: any) => {
-                      const a = [...pricing];
-                      a[i].tax = v;
                       setPricing(a);
                     }}
                   />
@@ -741,6 +754,19 @@ export default function AddProductModal({
                       { id: "true", name: "Yes" },
                     ]}
                   />
+
+                  <Input
+                    label="Tax %"
+                    type="number"
+                    value={p.tax || ""}
+                    onChange={(v: any) => {
+                      const a = [...pricing];
+                      a[i].tax = v;
+                      setPricing(a);
+                    }}
+                  />
+
+
                 </div>
               </div>
             ))}
