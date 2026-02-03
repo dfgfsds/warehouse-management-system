@@ -25,7 +25,7 @@ export default function CategoryList() {
     const getCategories = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}/?vendor=${user?.vendor_id}&type=division`);
+            const res = await axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}/?vendor=${user?.vendor_id}`);
             setCategoryData(res?.data?.data?.categories || []);
         } catch (error) {
             console.log(error);

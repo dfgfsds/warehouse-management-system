@@ -23,7 +23,7 @@ export default function UserForm({ open, onCancel, editUser, getUser, warehouses
         mobile_number: "",
         email: "",
         vendor_id: user?.vendor_id,
-        division_id: "",
+        // division_id: "",
         password: "",
         hub_id: "",
         permission_type: "read",
