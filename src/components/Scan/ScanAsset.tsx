@@ -548,7 +548,7 @@ export const ScanAsset: React.FC = () => {
   //   setStep('complete');
   // };
 
-
+console.log(scannedItems)
   const confirmMove = async () => {
     if (scannedItems.length === 0) return;
 

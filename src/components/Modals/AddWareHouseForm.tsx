@@ -16,7 +16,7 @@ export default function AddWarehouseModal({
     const { user }: any = useAuth();
     const [formData, setFormData] = useState({
         type: "hub",        // vendor | hub
-        parentId: user?.vendor_id,
+        parent_id: user?.vendor_id,
         title: "",
         description: "",
         lat: "",
@@ -30,7 +30,7 @@ export default function AddWarehouseModal({
         if (editWarehouse) {
             setFormData({
                 type: editWarehouse?.type || "hub",
-                parentId: editWarehouse?.parentId || "",
+                parent_id: editWarehouse?.parentId || "",
                 title: editWarehouse?.title || "",
                 description: editWarehouse?.description || "",
                 lat: editWarehouse?.lat || "",
