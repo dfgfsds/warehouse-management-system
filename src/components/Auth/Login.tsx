@@ -145,14 +145,14 @@ export const Login: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          {/* <div className="mt-6 text-center">
             <div className="text-sm text-gray-500 mb-2">Demo Credentials:</div>
             <div className="text-xs text-gray-400 space-y-1">
               <div>Admin: admin / admin123</div>
               <div>Manager: manager / manager123</div>
               <div>Operator: operator / operator123</div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
