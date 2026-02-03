@@ -85,58 +85,142 @@ export default function AddTrayModal({
     };
 
     console.log(editTrayData)
+    // const handleSubmit = async () => {
+    //     setLoading(true);
+    //     setApiErrors("");
+    //     try {
+    //         const payload = {
+    //             vendor_id: user?.vendor_id,
+    //             hub_id: divisionModalData?.hub_id,
+    //             parent_id: divisionModalData?.id,
+    //             division_type: "tray",
+    //             divisions: divisions.map((d) => ({
+    //                 division_name: d.division_name,
+    //                 division_code: d.division_code,
+    //                 capacity: d.capacity,
+    //                 description: d.description,
+    //                 latitude: Number(d.latitude) || 0,
+    //                 longitude: Number(d.longitude) || 0,
+    //                 address: d.address,
+    //             })),
+    //         };
+    //         const editData={
+    //              division_name: editTrayData?.name,
+    //                 division_code: editTrayData?.code,
+    //                 capacity: editTrayData?.capacity,
+    //                 description: editTrayData?.description,
+    //                 latitude: Number(editTrayData?.latitude) || 0,
+    //                 longitude: Number(editTrayData?.longitude) || 0,
+    //                 address: editTrayData?.address,
+    //         }
+    //         if (editTrayData) {
+    //             const updatedApi = await axios.put(`${baseUrl?.divisions}/${editTrayData.id}`, editData)
+    //             if (updatedApi) {
+    //                 reload();
+    //                 onClose();
+    //             }
+    //         } else {
+    //             const updatedApi = await axios.post(baseUrl?.divisionsBulk, payload)
+    //             if (updatedApi) {
+    //                 reload();
+    //                 onClose();
+    //             }
+    //         }
+
+    //         // onSave(payload);
+    //     } catch (error: any) {
+    //         let message = "Something went wrong";
+    //         const data = error?.response?.data?.data;
+    //         if (data?.errors && typeof data.errors === "object") {
+    //             const [field, value] = Object.entries(data.errors)[0] || [];
+    //             message = `${field}: ${Array.isArray(value) ? value[0] : value
+    //                 }`;
+    //         } else if (data?.message) {
+    //             message = data.message;
+    //         }
+
+    //         setApiErrors(message);
+    //         return error?.response;
+    //     } finally {
+    //         setLoading(false);
+    //     }
+
+    // };
+
+
     const handleSubmit = async () => {
-        setLoading(true);
-        setApiErrors("");
-        try {
-            const payload = {
-                vendor_id: user?.vendor_id,
-                hub_id: divisionModalData?.hub_id,
-                parent_id: divisionModalData?.id,
-                division_type: "tray",
-                divisions: divisions.map((d) => ({
-                    division_name: d.division_name,
-                    division_code: d.division_code,
-                    capacity: d.capacity,
-                    description: d.description,
-                    latitude: Number(d.latitude) || 0,
-                    longitude: Number(d.longitude) || 0,
-                    address: d.address,
-                })),
-            };
-            if (editTrayData) {
-                const updatedApi = await axios.put(`${baseUrl?.divisions}/${editTrayData.id}`, payload)
-                if (updatedApi) {
-                    reload();
-                    onClose();
-                }
-            } else {
-                const updatedApi = await axios.post(baseUrl?.divisionsBulk, payload)
-                if (updatedApi) {
-                    reload();
-                    onClose();
-                }
-            }
+  setLoading(true);
+  setApiErrors("");
 
-            // onSave(payload);
-        } catch (error: any) {
-            let message = "Something went wrong";
-            const data = error?.response?.data?.data;
-            if (data?.errors && typeof data.errors === "object") {
-                const [field, value] = Object.entries(data.errors)[0] || [];
-                message = `${field}: ${Array.isArray(value) ? value[0] : value
-                    }`;
-            } else if (data?.message) {
-                message = data.message;
-            }
+  try {
+    if (editTrayData) {
+      // ✅ TAKE DATA FROM FORM STATE
+      const d = divisions[0];
 
-            setApiErrors(message);
-            return error?.response;
-        } finally {
-            setLoading(false);
-        }
+      const editPayload = {
+        division_name: d.division_name,
+        division_code: d.division_code,
+        capacity: d.capacity,
+        description: d.description,
+        latitude: Number(d.latitude) || 0,
+        longitude: Number(d.longitude) || 0,
+        address: d.address,
+      };
 
-    };
+      const updatedApi = await axios.put(
+        `${baseUrl.divisions}/${editTrayData.id}`,
+        editPayload
+      );
+
+      if (updatedApi) {
+        reload();
+        onClose();
+      }
+    } else {
+      // 🟢 POST BULK (UNCHANGED)
+      const payload = {
+        vendor_id: user?.vendor_id,
+        hub_id: divisionModalData?.hub_id,
+        parent_id: divisionModalData?.id,
+        division_type: "tray",
+        divisions: divisions.map((d) => ({
+          division_name: d.division_name,
+          division_code: d.division_code,
+          capacity: d.capacity,
+          description: d.description,
+          latitude: Number(d.latitude) || 0,
+          longitude: Number(d.longitude) || 0,
+          address: d.address,
+        })),
+      };
+
+      const updatedApi = await axios.post(
+        baseUrl?.divisionsBulk,
+        payload
+      );
+
+      if (updatedApi) {
+        reload();
+        onClose();
+      }
+    }
+  } catch (error: any) {
+    let message = "Something went wrong";
+    const data = error?.response?.data?.data;
+
+    if (data?.errors && typeof data.errors === "object") {
+      const [field, value] = Object.entries(data.errors)[0] || [];
+      message = `${field}: ${Array.isArray(value) ? value[0] : value}`;
+    } else if (data?.message) {
+      message = data.message;
+    }
+
+    setApiErrors(message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     /* ================= UI ================= */
     return (

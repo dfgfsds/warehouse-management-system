@@ -60,8 +60,8 @@ export default function ProductTypes() {
     const s = search.toLowerCase();
     return (
       item?.name?.toLowerCase().includes(s) ||
-      item?.code?.toLowerCase().includes(s) ||
-      item?.category?.toLowerCase().includes(s)
+      item?.code?.toLowerCase().includes(s)
+      // item?.category?.toLowerCase().includes(s)
     );
   });
 
@@ -94,7 +94,7 @@ export default function ProductTypes() {
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <PlusCircle size={18} />
-            <span>Add Warehouse</span>
+            <span>Add Product Type</span>
           </button>
         </div>
 
@@ -116,17 +116,37 @@ export default function ProductTypes() {
           {filteredData?.map((productType) => (
             <div key={productType?.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-gray-900 capitalize">{productType?.name}</h3>
-                <button
-                  onClick={() => {
-                    setEditData(productType);
-                    setOpenModal(true);
-                  }}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
+                <h3 className="font-semibold text-gray-900 capitalize">
+                  {productType?.name}
+                </h3>
+
+                <div className="flex gap-2">
+                  {/* EDIT */}
+                  <button
+                    onClick={() => {
+                      setEditData(productType);
+                      setOpenModal(true);
+                    }}
+                    className="text-blue-600 hover:text-blue-800"
+                    title="Edit"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+
+                  {/* DELETE */}
+                  <button
+                    onClick={() => {
+                      setDeleteItem(productType);
+                      setConfirmOpen(true);
+                    }}
+                    className="text-red-600 hover:text-red-800"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
+
               <p className="text-sm text-gray-600 mb-1">Code: {productType?.code}</p>
               <p className="text-sm text-gray-600 mb-2">Category: {productType.category?.title}</p>
               <p className="text-xs text-gray-500">

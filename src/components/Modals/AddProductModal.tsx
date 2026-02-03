@@ -410,7 +410,7 @@ export default function AddProductModal({
               </select>
             </div> */}
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium mb-1">
                 Unit Of Measure
               </label>
@@ -425,11 +425,11 @@ export default function AddProductModal({
 
                 {units?.map((Unit: any) => (
                   <option key={Unit.id} value={Unit.id} className="capitalize">
-                    {Unit?.value} {/* or hub.name */}
+                    {Unit?.value} 
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-medium mb-1">

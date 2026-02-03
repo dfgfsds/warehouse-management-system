@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Search, Filter, Plus, Eye, CreditCard as Edit, Trash2, MapPin, Calendar, PlusCircle, Edit2 } from 'lucide-react';
+import { Package, Search, Filter, Plus, Eye, CreditCard as Edit, Trash2, MapPin, Calendar, PlusCircle, Edit2, Printer } from 'lucide-react';
 import { StorageManager } from '../../utils/storage';
 import { Asset, Warehouse, AssetStatus } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
@@ -624,9 +624,10 @@ export const ProductList: React.FC = () => {
                                                         setSelectedProductName(p.title);
                                                         setBarcodeModalOpen(true);
                                                     }}
-                                                    className="text-gray-700 underline text-sm"
+                                                    className="text-gray-700 underline text-sm flex gap-2"
                                                 >
-                                                    Print Barcode
+                                                    {/* Print Barcode */}
+                                                       <Printer className="h-4 w-4" /> Print Barcode
                                                 </button>
                                             )}
 
