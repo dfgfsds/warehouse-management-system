@@ -26,12 +26,10 @@ export default function AddProductModal({
   const [hubs, setHubs] = useState<any[]>([]);
   const [divisions, setDivisions] = useState<any[]>([]);
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
-
   const [barcodeLoading, setBarcodeLoading] = useState(false);
-
-
   const [productTypes, setProductTypes] = useState<any[]>([]);
   const [productStatuses, setProductStatuses] = useState<any[]>([]);
+  const [trayOption, setTrayOption] = useState([])
 
   useEffect(() => {
     if (!user?.vendor_id) return;
@@ -43,9 +41,15 @@ export default function AddProductModal({
     axios
       .get(`${baseUrl.productStatus}/?vendor_id=${user?.vendor_id}&type=division`)
       .then(r => setProductStatuses(r?.data?.data?.statuses || []));
+
+    axios
+      .get(`${baseUrl.divisions}/?vendor=${user?.vendor_id}/tray-codes`)
+      .then(r => setTrayOption(r?.data?.data?.divisions || []));
+
   }, [user?.vendor_id]);
 
-  console.log(editProduct)
+  // divisions
+
   /* ================= PRODUCT ================= */
   const [product, setProduct] = useState<any>({
     title: "",
@@ -56,18 +60,19 @@ export default function AddProductModal({
     vendor_id: user?.vendor_id,
     brand_id: "",
     barcode_value: qrInput,
-    meta_data: {},
+    // meta_data: {},
     product_kind: "",
     parent_id: null,
     unit_of_measure_id: "",
     product_type_id: "",
-    product_status_id: "",
+    // product_status_id: "",
     hsn_code: "",
-    hub_id: selectedHubData,
-    division_id: selectedDivData,
-    product_expiry_date: null,
-    amc_expiry_date: "",
-    insurance_expiry_date: "",
+    // hub_id: selectedHubData,
+    // division_id: selectedDivData,
+    // product_expiry_date: null,
+    // amc_expiry_date: "",
+    // insurance_expiry_date: "",
+    tray_codes: '',
   });
 
   /* ================= CATEGORIES (ARRAY) ================= */
@@ -87,13 +92,13 @@ export default function AddProductModal({
   ]);
 
   /* ================= INVENTORY ================= */
-  const [inventory, setInventory] = useState<any>({
-    status: "in_stock",
-    stock: "",
-    min_required_stock: "",
-    max_stock: "",
-    vendor_id: user?.vendor_id,
-  });
+  // const [inventory, setInventory] = useState<any>({
+  //   status: "in_stock",
+  //   stock: "",
+  //   min_required_stock: "",
+  //   max_stock: "",
+  //   vendor_id: user?.vendor_id,
+  // });
 
   const inventoryStatusOptions = [
     { id: "in_stock", name: "In Stock" },
@@ -115,7 +120,7 @@ export default function AddProductModal({
       short_description: p.short_description || "",
       detailed_description: p.detailed_description || "",
       barcode_value: p.barcode_value || "",
-      meta_data: p.meta_data || {},
+      // meta_data: p.meta_data || {},
       product_kind: p.product_kind || "product",
       parent_id: p.parent_id || null,
       hsn_code: p.hsn_code || "",
@@ -124,23 +129,23 @@ export default function AddProductModal({
       brand_id: p.brand?.id ?? "",
       unit_of_measure_id: p.unit_of_measure?.id ?? "",
       product_type_id: p.product_type?.id ?? "",
-      product_status_id: p.status?.id ?? "",
-      division_id: p.division?.id ?? "",
+      // product_status_id: p.status?.id ?? "",
+      // division_id: p.division?.id ?? "",
       hub_id: p.hub?.id ?? "",
-
+      tray_codes: p?.tray_codes || [],
 
       // 📅 dates (YYYY-MM-DD format)
-      product_expiry_date: p.product_expiry_date
-        ? p.product_expiry_date.split("T")[0]
-        : null,
+      // product_expiry_date: p.product_expiry_date
+      //   ? p.product_expiry_date.split("T")[0]
+      //   : null,
 
-      amc_expiry_date: p.amc_expiry_date
-        ? p.amc_expiry_date.split("T")[0]
-        : "",
+      // amc_expiry_date: p.amc_expiry_date
+      //   ? p.amc_expiry_date.split("T")[0]
+      //   : "",
 
-      insurance_expiry_date: p.insurance_expiry_date
-        ? p.insurance_expiry_date.split("T")[0]
-        : "",
+      // insurance_expiry_date: p.insurance_expiry_date
+      //   ? p.insurance_expiry_date.split("T")[0]
+      //   : "",
     });
 
     /* ================= CATEGORIES ================= */
@@ -163,15 +168,15 @@ export default function AddProductModal({
     );
 
     /* ================= INVENTORY ================= */
-    if (editProduct.inventory) {
-      setInventory({
-        status: editProduct.inventory?.status || "in_stock",
-        stock: editProduct.inventory.stock ?? "",
-        min_required_stock: editProduct.inventory.min_required_stock ?? "",
-        max_stock: editProduct.inventory.max_stock ?? "",
-        vendor_id: user?.vendor_id,
-      });
-    }
+    // if (editProduct.inventory) {
+    //   setInventory({
+    //     status: editProduct.inventory?.status || "in_stock",
+    //     stock: editProduct.inventory.stock ?? "",
+    //     min_required_stock: editProduct.inventory.min_required_stock ?? "",
+    //     max_stock: editProduct.inventory.max_stock ?? "",
+    //     vendor_id: user?.vendor_id,
+    //   });
+    // }
   }, [editProduct, user?.vendor_id]);
 
 
@@ -268,13 +273,14 @@ export default function AddProductModal({
           tax: p.tax === "" ? null : Number(p.tax),
           currency: "INR"
         })),
-        inventory: {
-          ...inventory,
-          stock: Number(inventory.stock),
-          min_required_stock: Number(inventory.min_required_stock),
-          max_stock: Number(inventory.max_stock),
-          vendor_id: user.vendor_id,
-        },
+        // inventory: {
+        //   ...inventory,
+        //   stock: Number(inventory.stock),
+        //   min_required_stock: Number(inventory.min_required_stock),
+        //   max_stock: Number(inventory.max_stock),
+        //   vendor_id: user.vendor_id,
+        // },
+        tray_codes: [product?.tray_codes]
       };
 
       // ✅ FormData
@@ -336,6 +342,72 @@ export default function AddProductModal({
 
           {/* BASIC */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Categorie
+              </label>
+              <select
+                value={categories[0]?.category_id || ""}
+                onChange={(e) =>
+                  setCategories([
+                    {
+                      category_id: e.target.value,
+                      vendor_id: user?.vendor_id,
+                    },
+                  ])
+                }
+                className="w-full border px-3 py-2 rounded-md bg-white"
+              >
+                <option value="">Select Category</option>
+                {categoriesList?.map((x: any) => (
+                  <option key={x.id} value={x.id}>
+                    {x.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Product Type
+              </label>
+              <select
+                value={product.product_type_id}
+                onChange={(e) =>
+                  setProduct({ ...product, product_type_id: e.target.value })
+                }
+                className="w-full border px-3 py-2 rounded-lg bg-white"
+              >
+                <option value="">Select Type</option>
+
+                {productTypes?.map((productType: any) => (
+                  <option key={productType.id} value={productType.id} className="capitalize">
+                    {productType?.name} {/* or hub.name */}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Brand
+              </label>
+              <select
+                value={product.brand_id}
+                onChange={(e) =>
+                  setProduct({ ...product, brand_id: e.target.value })
+                }
+                className="w-full border px-3 py-2 rounded-lg bg-white"
+              >
+                <option value="">Select Brand</option>
+
+                {brands?.map((brand: any) => (
+                  <option key={brand.id} value={brand.id} className="capitalize">
+                    {brand?.brand_name} {/* or hub.name */}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <Input label="Title" value={product?.title} onChange={(v: any) => setProduct({ ...product, title: v })} />
             {/* <Input label="Product kind" value={product?.product_kind} onChange={(v: any) => setProduct({ ...product, product_kind: v })} /> */}
 
@@ -374,7 +446,28 @@ export default function AddProductModal({
             <Input label="Hsn Code" value={product.hsn_code} onChange={(v: any) => setProduct({ ...product, hsn_code: v })} />
 
             <Input label="SKU" value={product.sku} onChange={(v: any) => setProduct({ ...product, sku: v })} />
+            {/* <Input label="Tray codes" value={product.tray_codes} onChange={(v: any) => setProduct({ ...product, tray_codes: v })} /> */}
 
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Tray codes
+              </label>
+              <select
+                value={product.tray_codes}
+                onChange={(e) =>
+                  setProduct({ ...product, tray_codes: e.target.value })
+                }
+                className="w-full border px-3 py-2 rounded-lg bg-white"
+              >
+                <option value="">Select tray_codes</option>
+
+                {trayOption?.map((tray: any) => (
+                  <option key={tray?.division_code} value={tray?.division_code} className="capitalize">
+                    {tray?.division_name} {/* or hub.name */}
+                  </option>
+                ))}
+              </select>
+            </div>
             {/* <div>
               <label className="block text-sm font-medium mb-1">
                 Hub
@@ -416,7 +509,7 @@ export default function AddProductModal({
                 ))}
               </select>
             </div> */}
-  
+
             <div>
               <label className="block text-sm font-medium mb-1">
                 Unit Of Measure
@@ -432,34 +525,15 @@ export default function AddProductModal({
 
                 {units?.map((Unit: any) => (
                   <option key={Unit.id} value={Unit.id} className="capitalize">
-                    {Unit?.value} 
+                    {Unit?.value}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Product Type
-              </label>
-              <select
-                value={product.product_type_id}
-                onChange={(e) =>
-                  setProduct({ ...product, product_type_id: e.target.value })
-                }
-                className="w-full border px-3 py-2 rounded-lg bg-white"
-              >
-                <option value="">Select Type</option>
 
-                {productTypes?.map((productType: any) => (
-                  <option key={productType.id} value={productType.id} className="capitalize">
-                    {productType?.name} {/* or hub.name */}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium mb-1">
                 Status
               </label>
@@ -474,32 +548,13 @@ export default function AddProductModal({
 
                 {productStatuses?.map((Unit: any) => (
                   <option key={Unit.id} value={Unit.id} className="capitalize">
-                    {Unit?.name} {/* or hub.name */}
+                    {Unit?.name}
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Brand
-              </label>
-              <select
-                value={product.brand_id}
-                onChange={(e) =>
-                  setProduct({ ...product, brand_id: e.target.value })
-                }
-                className="w-full border px-3 py-2 rounded-lg bg-white"
-              >
-                <option value="">Select Brand</option>
 
-                {brands?.map((brand: any) => (
-                  <option key={brand.id} value={brand.id} className="capitalize">
-                    {brand?.brand_name} {/* or hub.name */}
-                  </option>
-                ))}
-              </select>
-            </div>
 
             {/* <Select label="Brand" value={product.brand_id} onChange={(v: any) => setProduct({ ...product, brand_id: v })} options={brands} /> */}
             {/* <Select label="Unit" value={product.unit_of_measure_id} onChange={(v: any) => setProduct({ ...product, unit_of_measure_id: v })} options={units} labelKey="value" /> */}
@@ -516,8 +571,8 @@ export default function AddProductModal({
           <div>
             {/* <h4 className="font-semibold mb-3">Expiry Details</h4> */}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Product Expiry */}
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Product Expiry Date
@@ -535,7 +590,6 @@ export default function AddProductModal({
                 />
               </div>
 
-              {/* AMC Expiry */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   AMC Expiry Date
@@ -553,7 +607,7 @@ export default function AddProductModal({
                 />
               </div>
 
-              {/* Insurance Expiry */}
+          
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Insurance Expiry Date
@@ -570,7 +624,8 @@ export default function AddProductModal({
                   className="w-full border px-3 py-2 rounded-lg"
                 />
               </div>
-            </div>
+            </div> */}
+
           </div>
 
           {/* CATEGORIES */}
@@ -597,9 +652,9 @@ export default function AddProductModal({
           </div> */}
 
           {/* ================= CATEGORIES ================= */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-4">
+          {/* <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-4">
 
-            {/* Header */}
+        
             <div className="flex items-center justify-between">
               <h4 className="text-base font-semibold text-gray-800">
                 Categories
@@ -609,22 +664,22 @@ export default function AddProductModal({
               </span>
             </div>
 
-            {/* Divider */}
+            
             <div className="border-t border-gray-200" />
 
-            {/* Category Rows */}
+         
             <div className="space-y-3">
               {categories.map((c, i) => (
                 <div
                   key={i}
                   className="flex items-center gap-3 bg-white border rounded-lg px-4 py-3"
                 >
-                  {/* Index */}
+           
                   <div className="text-sm font-medium text-gray-500 w-20">
                     Category {i + 1}
                   </div>
 
-                  {/* Select */}
+           
                   <select
                     value={c.category_id}
                     onChange={(e) => {
@@ -642,7 +697,7 @@ export default function AddProductModal({
                     ))}
                   </select>
 
-                  {/* Remove */}
+            
                   {categories.length > 1 && (
                     <button
                       onClick={() => removeCategory(i)}
@@ -656,15 +711,15 @@ export default function AddProductModal({
               ))}
             </div>
 
-            {/* Add Button */}
-            {/* <button
+            Add Button
+            <button
               type="button"
               onClick={addCategory}
               className="text-white bg-blue-600 rounded-md text-sm font-medium p-2"
             >
               + Add another category
-            </button> */}
-          </div>
+            </button>
+          </div> */}
 
 
           {/* ================= PRICING ================= */}
