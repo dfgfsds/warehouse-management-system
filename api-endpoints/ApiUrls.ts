@@ -23,6 +23,10 @@ const productStockStats=`${baseUrl}/stats/product-stock-stats`;
 const salesReport=`${baseUrl}/stats/sales-report`;
 const divisionInventory=`${baseUrl}/division-inventory`;
 const orders =`${baseUrl}/orders`
+const statsCategoryLogReport=`${baseUrl}/stats/category-log-report`;
+const hubDivisionInventory =`${baseUrl}/stats/hub-division-inventory`;
+
+
 
 export default {
   signIn,
@@ -48,4 +52,6 @@ export default {
   salesReport,
   divisionInventory,
   orders,
+  statsCategoryLogReport,
+  hubDivisionInventory,
 };

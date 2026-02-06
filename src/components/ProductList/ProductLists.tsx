@@ -178,8 +178,9 @@ export const ProductList: React.FC = () => {
     const loadData = () => {
         setSearchTerm('');
         setStatusFilter('all');
-        setHubFilter('all');
+        setCategoryFilter('all')
         setProductTypeFilter('all');
+        setBrandFilter('all');
     }
     // const loadData = () => {
     //   const allAssets = StorageManager.getAssets();
@@ -316,30 +317,63 @@ export const ProductList: React.FC = () => {
         );
     };
 
+    // const filteredProducts = (productData || []).filter((item: any) => {
+    //     const p = item.product;
+    //     if (!p) return false;
+
+    //     const search = searchTerm.toLowerCase();
+
+    //     const matchSearch =
+    //         p.title?.toLowerCase().includes(search) ||
+    //         p.sku?.toLowerCase().includes(search) ||
+    //         p.barcode_value?.toLowerCase().includes(search);
+
+
+
+    //     const matchHub =
+    //         hubFilter === "all" || p.hub?.id === hubFilter;
+
+    //     const matchProductType =
+    //         productTypeFilter === "all" ||
+    //         p.product_type?.id === productTypeFilter;
+
+    //     return matchSearch  && matchHub && matchProductType;
+    // });
+
+
     const filteredProducts = (productData || []).filter((item: any) => {
         const p = item.product;
         if (!p) return false;
-
-        const search = searchTerm.toLowerCase();
+        console.log(p?.product_type?.id)
+        const search = searchTerm.toLowerCase().trim();
 
         const matchSearch =
+            !search ||
             p.title?.toLowerCase().includes(search) ||
             p.sku?.toLowerCase().includes(search) ||
             p.barcode_value?.toLowerCase().includes(search);
 
-        const matchStatus =
-            statusFilter === "all" || p.status?.id === statusFilter;
-
-        const matchHub =
-            hubFilter === "all" || p.hub?.id === hubFilter;
-
         const matchProductType =
             productTypeFilter === "all" ||
-            p.product_type?.id === productTypeFilter;
+            p?.product_type?.id === productTypeFilter;
 
-        return matchSearch && matchStatus && matchHub && matchProductType;
+        const matchBrand =
+            brandFilter === "all" ||
+            p.brand?.id === brandFilter;
+
+        const matchCategory =
+            categoryFilter === "all" ||
+            item?.categories?.some(
+                (c: any) => c.category_id === categoryFilter
+            );
+
+        return (
+            matchSearch &&
+            matchProductType &&
+            matchBrand &&
+            matchCategory
+        );
     });
-
 
 
 
@@ -433,31 +467,10 @@ export const ProductList: React.FC = () => {
 
 
                 {/* Status */}
-                <Select
-                    label="Status"
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    options={[
-                        ...(productStatuses || [])?.map((productType: any) => ({
-                            id: productType.id,
-                            name: productType.name,
-                        })),
-                    ]}
-                />
+
 
                 {/* Warehouse */}
-                {/* <Select
-                    label="Warehouse"
-                    value={hubFilter}
-                    onChange={setHubFilter}
-                    options={[
-                        ...(warehousesData || []).map((item: any) => ({
-                            id: item?.id,
-                            name: item?.title,
-                        })),
-                    ]}
-                // labelKey="title"
-                /> */}
+
 
                 {/* <div className="flex items-end gap-5">
                     <button
@@ -476,6 +489,13 @@ export const ProductList: React.FC = () => {
                     </button>
 
                 </div> */}
+                <button
+                    onClick={() => setShowAddAssetModal(true)}
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors flex items-center justify-center gap-2"
+                >
+                    <PlusCircle className="h-4 w-4" />
+                    Add Asset
+                </button>
                 <div className="flex items-end gap-3">
                     <button
                         onClick={loadData}
@@ -506,17 +526,17 @@ export const ProductList: React.FC = () => {
                                     Product
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    SKU / Barcode
+                                    Tray / Barcode
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Status
-                                </th>
+                                </th> */}
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Hub
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    AMC / Insurance
-                                </th>
+                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        AMC / Insurance
+                                    </th> */}
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Actions
                                 </th>
@@ -543,6 +563,12 @@ export const ProductList: React.FC = () => {
                                                         {p.brand.name}
                                                     </div>
                                                 )}
+                                                {p?.product_type?.name && (
+                                                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                                                        <span className="font-medium text-gray-600">Product Type:</span>
+                                                        {p?.product_type?.name}
+                                                    </div>
+                                                )}
                                                 {/* Brand */}
                                                 {item?.categories?.[0]?.name && (
                                                     <div className="text-xs text-gray-500 flex items-center gap-1">
@@ -562,18 +588,27 @@ export const ProductList: React.FC = () => {
 
                                         {/* SKU / Barcode */}
                                         <td className="px-6 py-4 text-sm">
-                                            <div>{p?.sku}</div>
+                                            <div className="flex items-center gap-0">
+                                                <span className="text-xs text-gray-500 font-medium">
+                                                    Tray
+                                                </span>
+
+                                                <span className="px-2.5 py-1 rounded-md  text-indigo-700 text-sm font-semibold">
+                                                    {item?.trays?.[0]?.code || "-"}
+                                                </span>
+                                            </div>
+
                                             <div className="font-mono text-xs text-gray-500">
                                                 {p?.barcode_value}
                                             </div>
                                         </td>
 
                                         {/* Status */}
-                                        <td className="px-6 py-4">
+                                        {/* <td className="px-6 py-4">
                                             <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
                                                 {p.status?.name}
                                             </span>
-                                        </td>
+                                        </td> */}
 
                                         {/* Hub */}
                                         <td className="px-6 py-4 text-sm text-gray-700">
@@ -581,7 +616,7 @@ export const ProductList: React.FC = () => {
                                         </td>
 
                                         {/* AMC / Insurance */}
-                                        <td className="px-6 py-4 text-sm">
+                                        {/* <td className="px-6 py-4 text-sm">
                                             <div>
                                                 AMC:{" "}
                                                 <span className="font-medium">
@@ -594,7 +629,7 @@ export const ProductList: React.FC = () => {
                                                     {p.insurance_expiry_date || "-"}
                                                 </span>
                                             </div>
-                                        </td>
+                                        </td> */}
 
                                         <td className="px-6 py-4 flex gap-4">
                                             <button
@@ -624,10 +659,10 @@ export const ProductList: React.FC = () => {
                                                         setSelectedProductName(p.title);
                                                         setBarcodeModalOpen(true);
                                                     }}
-                                                    className="text-gray-700 underline text-sm flex gap-2"
+                                                    className="text-gray-700 underline text-sm"
                                                 >
                                                     {/* Print Barcode */}
-                                                       <Printer className="h-4 w-4" /> Print Barcode
+                                                    <Printer className="h-4 w-4" />
                                                 </button>
                                             )}
 
@@ -657,7 +692,7 @@ export const ProductList: React.FC = () => {
             {showAddAssetModal &&
                 <AddProductModal
                     open={showAddAssetModal}
-                    onCancel={() => (setShowAddAssetModal(!showAddAssetModal))}
+                    onCancel={() => (setShowAddAssetModal(!showAddAssetModal), setEditData(''))}
                     editProduct={editData}
                     refresh={getProducts}
                     productTypes={productTypes}

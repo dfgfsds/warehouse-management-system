@@ -51,9 +51,9 @@ export const ScanAsset: React.FC = () => {
     sourceAssetId?: string; // ID of the asset record we are moving FROM (if found)
     maxQuantity?: number; // Unlimited if unknown source
   }
-
+  console.log(toDivisions)
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
-
+console.log(scannedItems)
   // Modal State
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAssetCode, setNewAssetCode] = useState('');
@@ -69,7 +69,7 @@ export const ScanAsset: React.FC = () => {
 
   const [PRODUCT_TYPES, setProductTypes] = useState<any[]>([]);
   const [STATUSES, setProductStatuses] = useState<any[]>([]);
-
+console.log(STATUSES)
   const [showAddAssetModal, setShowAddAssetModal] = useState(false);
   const [showAssetModalQrCode, setShowAssetModalQrCode] = useState('');
 
@@ -88,8 +88,9 @@ export const ScanAsset: React.FC = () => {
       .then(r => setProductTypes(r?.data?.data?.product_types || []));
 
     axios
-      .get(`${baseUrl.productStatus}/?vendor_id=${user?.vendor_id}&type=division`)
-      .then(r => setProductStatuses(r?.data?.data?.statuses || []));
+      // .get(`${baseUrl.productStatus}/?vendor_id=${user?.vendor_id}&type=division`)
+      .get(`${baseUrl.divisions}/vendor/${user?.vendor_id}/hierarchy`)
+      .then(r => setProductStatuses(r?.data?.data?.divisions || []));
   }, [user?.vendor_id]);
 
 
@@ -99,7 +100,7 @@ export const ScanAsset: React.FC = () => {
       .then(r => setHubs(r?.data?.data?.hubs || []));
 
     axios
-      .get(`${baseUrl.divisions}/hub/${toHub}`)
+      .get(`${baseUrl.divisions}/vendor/${toHub}`)
       .then(r => setToDivisions(r?.data?.data?.divisions || []));
   }, [user?.vendor_id, toHub]);
 
@@ -199,8 +200,8 @@ export const ScanAsset: React.FC = () => {
 
   const handleStartScanning = () => {
     if (!actionType) return;
-    if (!toHub || !toDiv || !toTray) return;
-    if (actionType === 'transfer' && (!fromHub || !fromDiv || !fromTray)) return;
+    // if (!toHub || !toDiv || !toTray) return;
+    // if (actionType === 'transfer' && (!fromHub || !fromDiv || !fromTray)) return;
     setStep('scanning');
   };
 
@@ -548,7 +549,6 @@ export const ScanAsset: React.FC = () => {
   //   setStep('complete');
   // };
 
-console.log(scannedItems)
   const confirmMove = async () => {
     if (scannedItems.length === 0) return;
 
@@ -563,17 +563,17 @@ console.log(scannedItems)
 
         // DESTINATION
         hub_id: toHub,
-        division_id: toDiv,
-        tray_id: toTray,
+        division_id: item?.status,
+        // tray_id: toTray,
 
-        status: item?.status,
+        // status: item?.status,
         stock: item?.moveQuantity,
-        action_type: actionType, // "add" | "transfer"
+        action_type: actionType, 
 
         // SOURCE (ONLY FOR TRANSFER)
         previous_hub_id: actionType === 'transfer' ? fromHub : null,
         previous_division_id: actionType === 'transfer' ? fromDiv : null,
-        previous_tray_id: actionType === 'transfer' ? fromTray : null
+        // previous_tray_id: actionType === 'transfer' ? fromTray : null
       }));
 
       await axios.post(
@@ -605,8 +605,8 @@ console.log(scannedItems)
 
   const statusMap = useMemo(() => {
     const map: Record<string, string> = {};
-    STATUSES.forEach(s => {
-      map[s.id] = s.name;
+    STATUSES?.forEach(s => {
+      map[s.id] = s.division_name;
     });
     return map;
   }, [STATUSES]);
@@ -640,20 +640,20 @@ console.log(scannedItems)
                     <option value="">Select Hub...</option>
                     {hubs?.map((h: any) => <option key={h.id} value={h.id} className='capitalize'>{h?.title || h.name}</option>)}
                   </select>
-                  <select className="input-field" value={fromDiv} onChange={e => setFromDiv(e.target.value)} disabled={!fromHub}>
-                    <option value="">Select Division...</option>
-                    {/* {toDivisions?.map((d: any) => <option key={d.id} value={d.id}>{d?.division_name}</option>)} */}
-                    {fromDivisions.map((d: any) => (
-                      <option key={d.id} value={d.id} className='capitalize'>{d.division_name}</option>
-                    ))}
-                  </select>
-                  <select className="input-field" value={fromTray} onChange={e => setFromTray(e.target.value)} disabled={!fromDiv}>
+                    <select className="input-field" value={fromDiv} onChange={e => setFromDiv(e.target.value)} disabled={!fromHub}>
+                      <option value="">Select Division...</option>
+                      {/* {toDivisions?.map((d: any) => <option key={d.id} value={d.id}>{d?.division_name}</option>)} */}
+                      {STATUSES.map((d: any) => (
+                        <option key={d.id} value={d.id} className='capitalize'>{d.division_name}</option>
+                      ))}
+                    </select>
+                  {/* <select className="input-field" value={fromTray} onChange={e => setFromTray(e.target.value)} disabled={!fromDiv}>
                     <option value="">Select Tray...</option>
-                    {/* {toTrays?.map((t: any) => <option key={t.id} value={t.id}>{t.division_name || t.name}</option>)} */}
+                    {toTrays?.map((t: any) => <option key={t.id} value={t.id}>{t.division_name || t.name}</option>)}
                     {fromTrays.map((t: any) => (
                       <option key={t.id} value={t.id} className='capitalize'>{t.division_name}</option>
                     ))}
-                  </select>
+                  </select> */}
                 </div>
               </div>
             )}
@@ -690,44 +690,38 @@ console.log(scannedItems)
                 </select>
 
                 {/* DIVISION */}
-                <select
+                {/* <select
                   className="input-field"
                   value={toDiv}
                   onChange={e => setToDiv(e.target.value)}
                   disabled={!toHub}
                 >
                   <option value="">Select Division...</option>
-                  {/* {toDivisions?.map((d: any) => (
-                    <option key={d.id} value={d.id} className='capitalize'>
-                      {d.division_name || d.name}
-                    </option>
-                  ))} */}
+                
                   {toDivisions.map((d: any) => (
                     <option key={d.id} value={d.id} className='capitalize'>{d.division_name}</option>
                   ))}
-                </select>
+                </select> */}
 
                 {/* TRAY */}
-                <select
+                {/* <select
                   className="input-field"
                   value={toTray}
                   onChange={e => setToTray(e.target.value)}
                   disabled={!toDiv}
                 >
                   <option value="">Select Tray...</option>
-                  {/* {toTrays?.map((t: any) => (
-                    <option key={t.id} value={t.id} className='capitalize'>
-                      {t.division_name || t.name}
-                    </option>
-                  ))} */}
+                
                   {toTrays?.map((t: any) => (
                     <option key={t.id} value={t.id} className='capitalize'>{t.division_name}</option>
                   ))}
-                </select>
+                </select> */}
               </div>
 
             </div>
-            <button onClick={handleStartScanning} disabled={!toTray || (actionType === 'transfer' && !fromTray)} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold disabled:opacity-50">
+            <button onClick={handleStartScanning}
+              // disabled={!toTray || (actionType === 'transfer' && !fromTray)}
+              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold disabled:opacity-50">
               Start Scanning
             </button>
           </div>
@@ -763,7 +757,7 @@ console.log(scannedItems)
               >
                 {STATUSES?.map((s: any) => (
                   <option key={s?.id} value={s?.id}>
-                    {s?.name}
+                    {s?.division_name}
                   </option>
                 ))}
               </select>
@@ -795,7 +789,7 @@ console.log(scannedItems)
             <thead className="bg-gray-50 text-left text-sm text-gray-500">
               <tr>
                 <th className="p-4">Product / QR</th>
-                <th className="p-4">Product name</th>
+                <th className="p-4">Product Type / brand</th>
                 <th className="p-4 text-center">Quantity</th>
                 <th className="p-4 text-center">Status</th>
                 <th className="p-4 text-right">Remove</th>
@@ -809,8 +803,10 @@ console.log(scannedItems)
                   <tr key={idx} className="hover:bg-gray-50">
                     <td className="p-4">
                       <div className="font-medium capitalize">{item?.productType}</div>
-                      {/* <div className="font-medium">{item?.spareName}</div> */}
+                      <div className="text-sm font-bold">tray {idx + 1}</div>
                       <div className="text-gray-500 text-sm">{item?.qrCode}</div>
+                      <div className="text-gray-500 text-sm">{item?.categories?.[0]?.name}</div>
+
                       {item?.maxQuantity === undefined && actionType === 'transfer' && (
                         <span className="text-xs text-orange-500 flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" /> Not in source
@@ -819,6 +815,7 @@ console.log(scannedItems)
                     </td>
                     <td className="p-4">
                       <div className="font-medium capitalize">{item?.spareName}</div>
+                     
                       <div className="font-light text-sm">{item?.brand}</div>
 
                     </td>
@@ -867,7 +864,7 @@ console.log(scannedItems)
                     onClick={() => handleManualStatusSelect(s)}
                     className={`p-3 rounded-lg text-sm font-bold capitalize transition-colors ${getStatusColor(s?.name)} hover:opacity-80`}
                   >
-                    {s?.name?.replace('_', ' ')}
+                    {s?.division_name?.replace('_', ' ')}
                   </button>
                 ))}
               </div>

@@ -46,11 +46,11 @@
 //     const agingStats = assets.reduce((acc, asset) => {
 //       const lastMoved = new Date(asset.lastMovedAt);
 //       const daysDiff = Math.floor((now.getTime() - lastMoved.getTime()) / (1000 * 60 * 60 * 24));
-      
+
 //       if (daysDiff <= 2) acc.days0to2++;
 //       else if (daysDiff <= 7) acc.days3to7++;
 //       else acc.days7plus++;
-      
+
 //       return acc;
 //     }, { days0to2: 0, days3to7: 0, days7plus: 0 });
 
@@ -287,11 +287,11 @@
 //       // Calculate aging statistics (based on lastMovedAt)
 //       const now = new Date();
 //       const aging_stats = { days_0_to_2: 0, days_3_to_7: 0, days_7_plus: 0 };
-      
+
 //       assets.forEach((asset) => {
 //         const lastMoved = new Date(asset.lastMovedAt);
 //         const daysDiff = Math.floor((now.getTime() - lastMoved.getTime()) / (1000 * 60 * 60 * 24));
-        
+
 //         if (daysDiff <= 2) {
 //           aging_stats.days_0_to_2++;
 //         } else if (daysDiff <= 7) {
@@ -572,6 +572,94 @@ export const Dashboard: React.FC = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalSalesVolume, setTotalSalesVolume] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [selectedHubId, setSelectedHubId] = useState<string>("");
+  const [hubInventory, setHubInventory] = useState<any[]>([]);
+  const [hubInventoryLoading, setHubInventoryLoading] = useState(false);
+  const [warehousesData, setWarehousesData] = useState<any[]>()
+  const [productSearch, setProductSearch] = useState("");
+  const [productData, setProductData] = useState<any[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState("");
+
+
+  const getProducts = async () => {
+    try {
+      setLoading(true); // 🔥 start loading
+      const updateApi = await axios.get(`${baseUrl?.products}/by-vendor/${user?.vendor_id}`);
+      if (updateApi) {
+        console.log(updateApi)
+        setProductData(updateApi?.data?.data?.products || []);
+      }
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    if (user?.vendor_id) {
+      getProducts();
+    }
+  }, [user?.vendor_id]);
+
+  const filteredHubInventory = hubInventory.filter((item: any) => {
+    if (!selectedProductId) return true;
+
+    return item.product_id === selectedProductId;
+  });
+
+
+
+  const fetchHubInventory = async (hubId: string) => {
+    if (!hubId) {
+      setHubInventory([]);
+      return;
+    }
+
+    setHubInventoryLoading(true);
+    try {
+      const res = await axios.get(
+        `${baseUrl.hubDivisionInventory}?hub_id=${hubId}&division_id=335f1aea-42f2-48e9-81b6-12d2e4f5c480`
+      );
+
+      setHubInventory(res?.data?.data?.inventory_stats || []);
+    } catch (error) {
+      console.error("Hub inventory error", error);
+    } finally {
+      setHubInventoryLoading(false);
+    }
+  };
+
+
+
+
+  useEffect(() => {
+    if (selectedHubId) {
+      fetchHubInventory(selectedHubId);
+    }
+  }, [selectedHubId]);
+
+
+
+  // Warehouses APIS 
+  const getWarehouses = async () => {
+    try {
+      const updatedAPi = await axios.get(`${baseUrl?.vendors}/${user?.vendor_id}/hubs`)
+      console.log(updatedAPi?.data)
+      if (updatedAPi) {
+        setWarehousesData(updatedAPi?.data?.data?.hubs)
+      }
+    } catch (error) {
+
+    }
+  }
+
+  useEffect(() => {
+    getWarehouses();
+  }, []);
+
 
   /* ================= API CALLS (UNCHANGED) ================= */
 
@@ -618,6 +706,14 @@ export const Dashboard: React.FC = () => {
 
   /* ================= UI ================= */
 
+  const getStockStyle = (stock: number) => {
+    if (stock <= 5)
+      return "bg-red-50 text-red-700 border-red-200";
+    if (stock <= 20)
+      return "bg-yellow-50 text-yellow-700 border-yellow-200";
+    return "bg-green-50 text-green-700 border-green-200";
+  };
+
   return (
     <div className="p-6 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
 
@@ -630,6 +726,122 @@ export const Dashboard: React.FC = () => {
           Welcome back, <b>{user?.user_name}</b>
         </span>
       </div>
+
+
+      <section className="rounded-2xl bg-white border shadow-lg p-6 space-y-4">
+
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            🏬 Hub Inventory Available Stock
+          </h2>
+
+          <div className="flex gap-3">
+
+            {/* HUB SELECT */}
+            <select
+              value={selectedHubId}
+              onChange={(e) => setSelectedHubId(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm w-56 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Hub</option>
+              {warehousesData?.map((hub: any) => (
+                <option key={hub.id} value={hub.id}>
+                  {hub.title}
+                </option>
+              ))}
+            </select>
+
+            {/* PRODUCT SEARCH */}
+            <select
+              value={selectedProductId}
+              onChange={(e) => setSelectedProductId(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-64 bg-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Products</option>
+
+              {productData?.map((item: any) => (
+                <option
+                  key={item?.product?.id}
+                  value={item?.product?.id}
+                  className="capitalize"
+                >
+                  {item?.product?.title} ({item?.product?.sku})
+                </option>
+              ))}
+            </select>
+
+
+
+          </div>
+        </div>
+
+        {/* STATES */}
+        {hubInventoryLoading ? (
+          <div className="py-10 text-center text-gray-400">
+            Loading inventory…
+          </div>
+        ) : !selectedHubId ? (
+          <div className="py-10 text-center text-gray-400">
+            Please select a hub to view inventory
+          </div>
+        ) : filteredHubInventory.length === 0 ? (
+          <div className="py-10 text-center text-gray-400">
+            No matching products found
+          </div>
+        ) : (
+          /* TABLE */
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border rounded-xl overflow-hidden">
+              <thead className="bg-gray-100 text-xs uppercase text-gray-600">
+                <tr>
+                  <th className="px-4 py-3 text-left">Product</th>
+                  <th className="px-4 py-3 text-center">SKU</th>
+                  <th className="px-4 py-3 text-right">Available Stock</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y">
+                {filteredHubInventory.map((item: any) => (
+                  <tr
+                    key={item.product_id}
+                    className="hover:bg-gray-50 transition"
+                  >
+                    {/* PRODUCT */}
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-gray-900 capitalize">
+                        {item.product_name}
+                      </div>
+                    </td>
+
+                    {/* SKU */}
+                    <td className="px-4 py-3 text-center font-mono text-gray-600">
+                      {item.sku}
+                    </td>
+
+                    {/* AVAILABLE STOCK */}
+                    <td className="px-4 py-3 text-right">
+                      <div
+                        className={`inline-flex flex-col items-center justify-center px-3 py-1.5 rounded-lg border font-bold ${getStockStyle(
+                          item.current_stock
+                        )}`}
+                      >
+                        <span className="text-xl leading-none">
+                          {item.current_stock}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wide">
+                          Available
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
 
       {/* PRODUCT SECTION */}
       <section className="rounded-2xl bg-white/80 backdrop-blur border shadow-lg p-6 space-y-4">
@@ -742,29 +954,29 @@ export const Dashboard: React.FC = () => {
             </tbody> */}
 
             <tbody>
-  {salesReport.length === 0 ? (
-    <tr>
-      <td
-        colSpan={5}
-        className="px-6 py-10 text-center text-gray-400 font-medium"
-      >
-        No sales data found for the selected date range
-      </td>
-    </tr>
-  ) : (
-    salesReport?.map((r:any, i:number) => (
-      <tr key={i} className="border-t hover:bg-gray-50">
-        <td className="px-4 py-2 capitalize">{r?.product_name}</td>
-        <td className="px-4 py-2 text-center">{r?.date}</td>
-        <td className="px-4 py-2 text-right">{r?.total_quantity}</td>
-        <td className="px-4 py-2 text-right">{r?.order_count}</td>
-        <td className="px-4 py-2 text-right font-semibold">
-          ₹{r?.total_amount}
-        </td>
-      </tr>
-    ))
-  )}
-</tbody>
+              {salesReport.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-10 text-center text-gray-400 font-medium"
+                  >
+                    No sales data found for the selected date range
+                  </td>
+                </tr>
+              ) : (
+                salesReport?.map((r: any, i: number) => (
+                  <tr key={i} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-2 capitalize">{r?.product_name}</td>
+                    <td className="px-4 py-2 text-center">{r?.date}</td>
+                    <td className="px-4 py-2 text-right">{r?.total_quantity}</td>
+                    <td className="px-4 py-2 text-right">{r?.order_count}</td>
+                    <td className="px-4 py-2 text-right font-semibold">
+                      ₹{r?.total_amount}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
 
           </table>
         </div>

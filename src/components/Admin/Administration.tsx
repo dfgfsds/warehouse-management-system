@@ -15,7 +15,7 @@ import SectionManagerModal from '../Modals/SectionManagerModal';
 
 export const Administration: React.FC = () => {
   const { user }: any = useAuth();
-  const [activeTab, setActiveTab] = useState('warehouses');
+  const [activeTab, setActiveTab] = useState('users');
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -142,7 +142,7 @@ export const Administration: React.FC = () => {
       : []),
     { id: 'users', label: 'Users', icon: Users },
     { id: 'products', label: 'Product Types', icon: Package2 },
-    { id: 'productStatus', label: 'Status', icon: Stamp },
+    // { id: 'productStatus', label: 'Status', icon: Stamp },
     { id: 'productUnit', label: 'Product Units', icon: Box },
   ];
 

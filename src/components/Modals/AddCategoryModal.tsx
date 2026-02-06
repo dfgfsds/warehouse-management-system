@@ -21,6 +21,8 @@ export default function AddCategoryModal({
         short_description: "",
         detailed_description: "",
         vendor_id: user?.vendor_id,
+        parent_id: user?.vendor_id,
+        type: "product",
     });
 
     // 🔹 Edit mode set values
@@ -32,6 +34,8 @@ export default function AddCategoryModal({
                 short_description: editCategory?.short_description || "",
                 detailed_description: editCategory?.detailed_description || "",
                 vendor_id: editCategory?.vendor_id || user?.vendor_id,
+                parent_id: editCategory?.parent_id || user?.vendor_id,
+                type: editCategory?.type || "product",
             });
         }
     }, [editCategory, user]);
