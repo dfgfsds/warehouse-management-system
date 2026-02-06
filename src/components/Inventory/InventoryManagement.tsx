@@ -1440,7 +1440,8 @@ import DeleteConfirmModal from '../Modals/DeleteConfirmModal';
 import AddProductModal from '../Modals/AddProductModal';
 import AssetHistoryModal from '../Modals/AssetHistoryModal';
 import OutputOrderModal from '../Modals/OutputOrderModal';
-
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const PRODUCT_TYPES = [
   'Washing Machine',
@@ -1506,6 +1507,7 @@ export const InventoryManagement: React.FC = () => {
   const [newTrayCode, setNewTrayCode] = useState('');
   const [newTrayCapacity, setNewTrayCapacity] = useState(100);
 
+  console.log(expandedDiv,'expandedDiv----')
   const [newProductTypeName, setNewProductTypeName] = useState('');
   const [newProductTypeCode, setNewProductTypeCode] = useState('');
   const [newProductTypeCategory, setNewProductTypeCategory] = useState('');
@@ -1528,6 +1530,7 @@ export const InventoryManagement: React.FC = () => {
   const [divisionConfirmOpen, setdDvisionConfirmOpen] = useState(false);
   const [divisionConfirmLoading, setDivisionConfirmLoading] = useState(false);
   const [selectedDivision, setSelectedDivision] = useState<any>(null);
+
 
   // Tray
   const [addTrayModal, setAddTrayModal] = useState(false);
@@ -1553,6 +1556,69 @@ export const InventoryManagement: React.FC = () => {
   // OUTPUT
   const [showOutputModal, setShowOutputModal] = useState(false);
   const [selectedOutputAsset, setSelectedOutputAsset] = useState<any>(null);
+
+
+
+      /* ================= LOAD DROPDOWNS ================= */
+    useEffect(() => {
+        if (!user?.vendor_id) return;
+
+        axios
+            .get(`${baseUrl.productTypes}/by-vendor/${user.vendor_id}`)
+            .then(r => setProductTypes(r?.data?.data?.product_types || []));
+
+      //           axios
+      // .get(`${baseUrl.divisions}/?vendor=${user?.vendor_id}/tray-codes`)
+      // .then(r => setTrayOption(r?.data?.data?.divisions || []));
+
+    }, [user?.vendor_id]);
+
+  // const [categoryData, setCategoryData] = useState<any[]>([]);
+
+  // console.log(categoryData)
+
+  // 🔹 GET categories
+  // const getCategories = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const res = await axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}/?vendor=${user?.vendor_id}`);
+  //     setCategoryData(res?.data?.data?.categories || []);
+  //     console.log(res?.data?.data?.categories)
+
+  //     const divisions = res?.data?.data?.categories || [];
+  //     const mappedSections: Section[] = divisions
+  //       .filter((d: any) => d?.vendor_id === hub?.id)
+  //       .map((d: any) => ({
+  //         id: d?.id,
+  //         name: d?.title,
+  //         code: d?.title,
+  //         parent_id: d?.parent_id,
+  //         vendor_id: d?.vendor_id,
+  //         division_type: d?.division_type,
+  //         capacity: d?.capacity,
+  //         description: d?.description,
+  //         latitude: d?.latitude,
+  //         longitude: d?.longitude,
+  //         address: d?.address,
+  //         trays: []
+  //       }));
+
+  //     setHubs((prev: any) =>
+  //       prev?.map((h: any) =>
+  //         h.id === hub.id ? { ...h, sections: mappedSections } : h
+  //       )
+  //     );
+
+  //   } catch (error) {
+  //     console.log(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   getCategories();
+  // }, []);
 
 
 
@@ -1606,7 +1672,7 @@ export const InventoryManagement: React.FC = () => {
     }
 
     const types = StorageManager.getProductTypes();
-    setProductTypes(types);
+    // setProductTypes(types);
 
     if (types.length > 0 && !newAssetType) {
       setNewAssetType(types[0].name);
@@ -1623,18 +1689,18 @@ export const InventoryManagement: React.FC = () => {
     setSelectedTray(null);
 
     try {
-      const res = await axios.get(
-        `${baseUrl.divisions}/vendor/${user?.vendor_id}`
-      );
+      // const res = await axios.get(
+      //   `${baseUrl.divisions}/vendor/${user?.vendor_id}`
+      // );
 
-      const divisions = res?.data?.data?.divisions || [];
-      console.log(divisions)
+      const res = await axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}/?vendor=${user?.vendor_id}`);
+      const divisions = res?.data?.data?.categories || [];
       const mappedSections: Section[] = divisions
-        .filter((d: any) => d?.hub_id === hub?.id)
+        .filter((d: any) => d?.vendor_id === user?.vendor_id)
         .map((d: any) => ({
           id: d?.id,
-          name: d?.division_name,
-          code: d?.division_code,
+          name: d?.title,
+          code: d?.title,
           parent_id: d?.parent_id,
           vendor_id: d?.vendor_id,
           division_type: d?.division_type,
@@ -1665,12 +1731,17 @@ export const InventoryManagement: React.FC = () => {
     setSelectedTray(null);
 
     try {
-      const res = await axios.get(
-        `${baseUrl.divisions}/${div.id}/hierarchy`
-      );
+      // const res = await axios.get(
+      //   `${baseUrl.divisions}/${div.id}/hierarchy`
+      // );
 
-      const trays = res?.data?.data?.division?.children || [];
-      const mappedTrays: Tray[] = trays.map((t: any) => ({
+      const res = await axios.get(
+        `${baseUrl.divisions}/vendor/${user?.vendor_id}/hierarchy`
+      );
+      console.log(res?.data?.data)
+      const divisions = res?.data?.data?.divisions || [];
+      console.log(divisions)
+      const mappedTrays: Tray[] = divisions?.map((t: any) => ({
         id: t?.id,
         name: t?.division_name,
         code: t?.division_code,
@@ -1735,7 +1806,7 @@ export const InventoryManagement: React.FC = () => {
         let sTotal = 0;
         s.trays.forEach(t => {
           const assets = StorageManager.getAssetsByTray(t.id) || [];
-          const count = assets.reduce(
+          const count = assets?.reduce(
             (acc, curr) => acc + (curr.quantity || 1),
             0
           );
@@ -2124,25 +2195,127 @@ export const InventoryManagement: React.FC = () => {
   // ======================================================
   // 🔒 JSX RETURN (UNCHANGED – EXACT SAME AS FIRST CODE)
   // ======================================================
+  const [productData, setProductData] = useState<any[]>([]);
 
+
+  // filters
+  const today = new Date().toISOString().split("T")[0];
+
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+
+
+  // const getCategoryLogReport = async () => {
+  //   if (!expandedHub || !expandedDiv) return;
+
+  //   setLoading(true);
+
+  //   try {
+  //     const params: any = {
+  //       category_id: expandedDiv,
+  //       hub_id: expandedHub,
+  //     };
+
+  //     if (selectedDivision) params.division_id = selectedDivision;
+  //     if (startDate) params.start_date = startDate;
+  //     if (endDate) params.end_date = endDate;
+  //     if (filterBrand !== "all") params.brand_id = filterBrand;
+  //     if (filterProductType !== "all") params.product_type_id = filterProductType;
+
+  //     const res = await axios.get(baseUrl.statsCategoryLogReport, { params });
+
+  //     setProductData(res?.data?.data || []);
+  //   } catch (err) {
+  //     console.error("Category log error", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   getCategoryLogReport();
+  // }, [
+  //   expandedDiv,
+  //   expandedHub,
+  //   selectedDivision,
+  //   filterBrand,
+  //   filterProductType,
+  //   startDate,
+  //   endDate
+  // ]);
+
+  // useEffect(() => {
+  //   getCategoryLogReport();
+  // }, [expandedDiv,
+  //   expandedHub,])
+
+
+  // const getTrayProductsApi = async () => {
+  //   try {
+  //     // const res = await axios.get(`${baseUrl?.trayProducts}/${selectedTray?.id}`);
+  //     // 
+  //     // const res = await axios.get(`${baseUrl?.statsCategoryLogReport}?category_id=7593aacd-831c-4494-b091-5e680cba7943&hub_id=${expandedHub}&division_id=63d5836d-32ae-4e9c-9bbd-49cb940d0ce0`)
+
+  //     const res = await axios.get(`${baseUrl?.statsCategoryLogReport}?category_id=${expandedDiv}&hub_id=${expandedHub}&division_id=${selectedTray?.id}`)
+  //     https://inventory-fastapi.justvy.in/stats/category-log-report?category_id=80acb1c8-4eb4-47bc-8eb5-a5a726cdd0a7&hub_id=15b48a47-7578-4691-92a8-cecf55d42fd9&division_id=63d5836d-32ae-4e9c-9bbd-49cb940d0ce0
+  //     console.log(res?.data?.data)
+  //     if (res) {
+  //       setProductData(res?.data?.data)
+  //     }
+  //   } catch (error) {
+
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   if (expandedDiv) {
+  //     getTrayProductsApi();
+  //   }
+  // }, [expandedDiv, expandedHub, selectedTray?.id])
+
+  // filters
+  // const today = new Date().toISOString().split("T")[0];
+
+  // const [startDate, setStartDate] = useState(today);
+  // const [endDate, setEndDate] = useState(today);
 
   const getTrayProductsApi = async () => {
     try {
-      const res = await axios.get(`${baseUrl?.trayProducts}/${selectedTray?.id}`);
+      const res = await axios.get(
+        `${baseUrl?.statsCategoryLogReport}`,
+        {
+          params: {
+            category_id: expandedDiv,
+            hub_id: expandedHub,
+            division_id: selectedTray?.id,
+            start_date: startDate,
+            end_date: endDate,
+          },
+        }
+      );
 
-      if (res) {
-        setAssets(res?.data?.data?.division_inventories)
+      console.log(res?.data?.data);
+
+      if (res?.data?.data) {
+        setProductData(res.data.data);
       }
     } catch (error) {
-
+      console.error("Tray products fetch error", error);
     }
-  }
+  };
 
   useEffect(() => {
-    if (selectedTray?.id) {
+    if (expandedDiv && expandedHub && selectedTray?.id) {
       getTrayProductsApi();
     }
-  }, [selectedTray?.id])
+  }, [expandedDiv, expandedHub, selectedTray?.id, startDate, endDate]);
+
+
+  // useEffect(() => {
+  //   if (selectedTray?.id) {
+  //     getTrayProductsApi();
+  //   }
+  // }, [selectedTray?.id])
 
 
   const [brands, setBrands] = useState<any[]>([]);
@@ -2158,7 +2331,7 @@ export const InventoryManagement: React.FC = () => {
   }, []);
 
 
-  const filteredAssets = assets.filter((asset: any) => {
+  const filteredAssets = productData?.filter((asset: any) => {
     const product = asset?.product_details?.product;
     const category = asset?.product_details?.categories?.[0];
 
@@ -2199,8 +2372,70 @@ export const InventoryManagement: React.FC = () => {
       matchStatus
     );
   });
-
+  console.log(filteredAssets)
   // 🔹 delete Tray
+
+  const tableRows = filteredAssets?.flatMap((item: any) => {
+    if (!item.tracking || item.tracking.length === 0) {
+      return [{
+        id: item.id,
+        productName: item.name,
+        trayName: "-",
+        barcode: item.id,
+        brand: item.brand_name,
+        productType: item.category_name,
+        inStock: 0,
+        availableStock: 0,
+        divisionName: "-",
+        totalOut: 0,
+      }];
+    }
+
+    return item.tracking.map((track: any) => ({
+      id: `${item.id}-${track.division_id}`,
+      productName: item.name,
+      trayName: track.tray_name || "-",
+      barcode: item.id,
+      brand: item.brand_name,
+      productType: item.category_name,
+      inStock: track.total_in,
+      availableStock: track.available_stock,
+      divisionName: track.division_name,
+      totalOut: track.total_out,
+    }));
+  });
+
+  const trackingHeaders = Array.from(
+    new Set(
+      filteredAssets?.flatMap((item: any) =>
+        item?.tracking?.flatMap((t: any) => [
+          ...(t?.in_track?.map((i: any) => i.division_name) || []),
+          ...(t?.out_track?.map((o: any) => o.division_name) || []),
+        ])
+      )
+    )
+  );
+
+  const getInCount = (track: any, division: string) => {
+    if (!track?.in_track) return 0;
+
+    return track.in_track
+      .filter((i: any) => i.division_name === division)
+      .reduce((sum: number, i: any) => sum + (i.count || 0), 0);
+  };
+
+  const getOutCount = (track: any, division: string) => {
+    if (!track?.out_track) return 0;
+
+    return track.out_track
+      .filter((o: any) => o.division_name === division)
+      .reduce((sum: number, o: any) => sum + (o.count || 0), 0);
+  };
+
+
+
+
+
   const [trayconfirmOpenDelete, setTrayConfirmOpenDelete] = useState(false);
   const [traydeleteItem, setTrayDeleteItem] = useState<any>(null);
 
@@ -2216,6 +2451,68 @@ export const InventoryManagement: React.FC = () => {
       console.log(error);
     }
   };
+
+  const trayOptions = Array.from({ length: 200 }, (_, i) => ({
+    id: i + 1,
+    name: `Tray ${i + 1}`,
+  }));
+
+  // const [selectedTray, setSelectedTray] = useState<string>("");
+
+  const downloadExcel = () => {
+    if (!productData || productData.length === 0) return;
+
+    const rows = productData.map((item: any) => {
+      const firstTracking = item?.tracking?.[0] || {};
+
+      const baseRow: any = {
+        "Product Name": item.name,
+        "Category": item.category_name,
+        "Brand": item.brand_name,
+        "Tray": firstTracking?.tray_name || "-",
+        "Barcode": item.id,
+        "Total In": firstTracking?.total_in || 0,
+        "Available Stock": firstTracking?.available_stock || 0,
+      };
+
+      // 🔥 dynamic OUT columns
+      trackingHeaders?.forEach((division: string) => {
+        const track = item?.tracking?.find(
+          (t: any) => t.division_name === division
+        );
+
+        baseRow[`${division} OUT`] = track?.total_out ?? 0;
+      });
+
+      return baseRow;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+
+    // ✅ Sheet name fix
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      selectedDivData?.name || "Assets"
+    );
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const file = new Blob([excelBuffer], {
+      type: "application/octet-stream",
+    });
+
+    saveAs(
+      file,
+      `Assets_Report_${selectedDivData?.name || "All"}_${startDate}_to_${endDate}.xlsx`
+    );
+  };
+
+
 
   return (
     <div className="flex h-[calc(100vh-5rem)]">
@@ -2264,7 +2561,7 @@ export const InventoryManagement: React.FC = () => {
         <div className="p-2 space-y-1">
           {/* {getFilteredHubs().map(hub => ( */}
           {hubs
-            .filter(hub =>
+            ?.filter(hub =>
               hub?.name?.toLowerCase().includes(searchQuery.toLowerCase())
             )
             .map(hub => (
@@ -2281,30 +2578,30 @@ export const InventoryManagement: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{hub?.sections.length || 0}</span>
-                    {expandedHub === hub.id && (
+                    {/* {expandedHub === hub.id && (
                       <div className="flex gap-1">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            // handleEditWarehouse(hub);
-                            // setShowAddSectionModal(true);
-                            // setSelectHubId(hub?.id)
-                            // setEditDivision(hub)
+                            handleEditWarehouse(hub);
+                            setShowAddSectionModal(true);
+                            setSelectHubId(hub?.id)
+                            setEditDivision(hub)
                           }}
                           className="p-1 text-amber-600 hover:bg-amber-100 rounded"
                           title="Edit"
                         >
-                          {/* <PlusCircle className="h-3 w-3" /> */}
+                          <PlusCircle className="h-3 w-3" />
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            // handleDeleteWarehouse(hub.id, hub.name);
+                            handleDeleteWarehouse(hub.id, hub.name);
                           }}
                           className="p-1 text-red-600 hover:bg-red-100 rounded"
                           title="Delete"
                         >
-                          {/* <X className="h-3 w-3" /> */}
+                          <X className="h-3 w-3" />
                         </button>
                         <button
                           onClick={(e) => {
@@ -2318,7 +2615,7 @@ export const InventoryManagement: React.FC = () => {
                           <PlusCircle className="h-3 w-3" />
                         </button>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </button>
 
@@ -2340,13 +2637,13 @@ export const InventoryManagement: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-1">
                             {/* <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{hub?.sections?.trays?.length || 0}</span> */}
-                            {expandedDiv === div.id && (
+                            {/* {expandedDiv === div.id && (
                               <div className="flex gap-1">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    // setSelectedHubData(hub);
-                                    // handleEditSection(div);
+                                    setSelectedHubData(hub);
+                                    handleEditSection(div);
                                     setShowAddSectionModal(true);
                                     setSelectHubId(div?.id)
                                     setEditDivision(div)
@@ -2359,7 +2656,7 @@ export const InventoryManagement: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    // handleDeleteSection(div.id, div.name);
+                                    handleDeleteSection(div.id, div.name);
                                     setdDvisionConfirmOpen(!divisionConfirmOpen);
                                     setSelectedDivision(div);
 
@@ -2372,11 +2669,11 @@ export const InventoryManagement: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    // setSelectedDivData(div);
-                                    // setShowAddTrayModal(true);
-                                    // setShowAddSectionModal(true);
-                                    // setSelectHubId(div?.id)
-                                    // setEditDivision(div)
+                                    setSelectedDivData(div);
+                                    setShowAddTrayModal(true);
+                                    setShowAddSectionModal(true);
+                                    setSelectHubId(div?.id)
+                                    setEditDivision(div)
                                     setAddTrayModal(!addTrayModal)
                                     setDivisionModalData(div)
                                   }}
@@ -2386,7 +2683,7 @@ export const InventoryManagement: React.FC = () => {
                                   <PlusCircle className="h-3 w-3" />
                                 </button>
                               </div>
-                            )}
+                            )} */}
                           </div>
                         </button>
 
@@ -2406,11 +2703,12 @@ export const InventoryManagement: React.FC = () => {
                                     {trayCounts[tray.id] || 0}
                                   </span>
                                 </button>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+
+                                {/* <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      // handleEditTray(tray);
+                                      handleEditTray(tray);
                                       setEditTrayData(tray)
                                       setAddTrayModal(!addTrayModal)
                                     }}
@@ -2424,14 +2722,15 @@ export const InventoryManagement: React.FC = () => {
                                       e.stopPropagation();
                                       setTrayDeleteItem(tray);
                                       setTrayConfirmOpenDelete(true);
-                                      // handleDeleteTray(tray.id, tray.name);
+                                      handleDeleteTray(tray.id, tray.name);
                                     }}
                                     className="p-1 text-red-600 hover:bg-red-100 rounded"
                                     title="Delete"
                                   >
                                     <X className="h-3 w-3" />
                                   </button>
-                                </div>
+                                </div> */}
+
                               </div>
                             ))}
                           </div>
@@ -2464,19 +2763,19 @@ export const InventoryManagement: React.FC = () => {
                   {selectedHubData?.name} <ChevronRight className="h-3 w-3" /> {selectedDivData?.name}
                 </p>
               </div>
-              <button
-                // onClick={() => setShowAddModal(true)}
+              {/* <button
+                onClick={() => setShowAddModal(true)}
                 onClick={() => setShowAddAssetModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition-colors font-medium"
               >
                 <PlusCircle className="h-5 w-5" />
                 Add Product
-              </button>
+              </button> */}
             </div>
 
             {/* Asset List */}
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-              <div className="p-4 border-b flex justify-between items-center bg-gray-50/50">
+              <div className="p-4 border-b gap-5  bg-gray-50/50">
                 <h3 className="font-semibold text-gray-700">Assets ({filteredAssets?.length})</h3>
                 {/* <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -2486,9 +2785,9 @@ export const InventoryManagement: React.FC = () => {
                     className="pl-9 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-100 outline-none w-64"
                   />
                 </div> */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
+                {/* <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mt-4">
 
-                  {/* Search */}
+                
                   <input
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
@@ -2496,7 +2795,7 @@ export const InventoryManagement: React.FC = () => {
                     className="border px-3 py-2 rounded-lg text-sm"
                   />
 
-                  {/* Product Type */}
+                 
                   <select
                     value={filterProductType}
                     onChange={(e) => setFilterProductType(e.target.value)}
@@ -2510,7 +2809,7 @@ export const InventoryManagement: React.FC = () => {
                     ))}
                   </select>
 
-                  {/* Brand */}
+                 
                   <select
                     value={filterBrand}
                     onChange={(e) => setFilterBrand(e.target.value)}
@@ -2524,33 +2823,73 @@ export const InventoryManagement: React.FC = () => {
                     ))}
                   </select>
 
-                  {/* Category */}
+              
+                </div> */}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+
                   <select
-                    value={filterCategory}
-                    onChange={(e) => setFilterCategory(e.target.value)}
+                    value={selectedTray}
+                    onChange={(e) => setSelectedTray(e.target.value)}
                     className="border px-3 py-2 rounded-lg text-sm"
                   >
-                    <option value="all">All Categories</option>
-                    {categoriesList?.map((c: any) => (
-                      <option key={c?.id} value={c?.id}>
-                        {c?.title}
+                    <option value="">All Trays</option>
+
+                    {trayOptions.map((tray) => (
+                      <option key={tray.id} value={tray.id}>
+                        {tray.name}
                       </option>
                     ))}
                   </select>
 
-                  {/* Status */}
+                  {/* Brand */}
                   <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
+                    value={filterBrand}
+                    onChange={(e) => setFilterBrand(e.target.value)}
                     className="border px-3 py-2 rounded-lg text-sm"
                   >
-                    <option value="all">All Status</option>
-                    {productStatuses?.map((s: any) => (
-                      <option key={s.id} value={s.id}>
-                        {s?.name}
-                      </option>
+                    <option value="all">All Brands</option>
+                    {brands?.map((b: any) => (
+                      <option key={b.id} value={b.id}>{b.brand_name}</option>
                     ))}
                   </select>
+
+                  {/* Product Type */}
+                  <select
+                    value={filterProductType}
+                    onChange={(e) => setFilterProductType(e.target.value)}
+                    className="border px-3 py-2 rounded-lg text-sm"
+                  >
+                    <option value="all">All Product Types</option>
+                    {productTypes?.map((pt: any) => (
+                      <option key={pt.id} value={pt.id}>{pt.name}</option>
+                    ))}
+                  </select>
+
+                  {/* Division / Tray */}
+
+                  {/* Start Date */}
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="border px-3 py-2 rounded-lg text-sm"
+                  />
+
+                  {/* End Date */}
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="border px-3 py-2 rounded-lg text-sm"
+                  />
+
+                  <button
+                    onClick={downloadExcel}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700"
+                  >
+                    ⬇ Download Excel
+                  </button>
                 </div>
 
               </div>
@@ -2558,95 +2897,97 @@ export const InventoryManagement: React.FC = () => {
               {loading ? (
                 <div className="p-12 text-center text-gray-400">Loading assets...</div>
               ) : (
-                // <div className="overflow-x-auto">
-                //   <table className="w-full">
-                //     <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500 font-medium">
-                //       <tr>
-                //         <th className="px-6 py-4">QR Code / Sku</th>
-                //         <th className="px-6 py-4">Product Type</th>
-                //         <th className="px-6 py-4">Product Name</th>
-                //         <th className="px-6 py-4 text-center">Quantity</th>
-                //         <th className="px-6 py-4">Status</th>
-                //         <th className="px-6 py-4">Last Moved</th>
-                //         <th className="px-6 py-4 text-right">Actions</th>
-                //       </tr>
-                //     </thead>
-                //     <tbody className="divide-y divide-gray-100">
-                //       {filteredAssets?.length === 0 ? (
-                //         <tr>
-                //           <td colSpan={6} className="p-12 text-center text-gray-400">
-                //             <Box className="h-12 w-12 mx-auto mb-3 text-gray-200" />
-                //             This tray is empty.
-                //           </td>
-                //         </tr>
-                //       ) : (
-                //         filteredAssets?.map(asset => (
-                //           <tr key={asset.id} className="hover:bg-gray-50/80 transition-colors group">
-                //             <td className="px-6 py-4 font-mono text-sm font-medium text-gray-700">{asset?.product_details?.product?.barcode_value}</td>
-                //             <td className="px-6 py-4 text-sm text-gray-800">{asset.productType}</td>
-                //             <td className="px-6 py-4 text-sm text-gray-800">{asset?.products?.title}</td>
-                //             <td className="px-6 py-4 text-center">
-                //               <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md font-bold text-sm">
-                //                 {asset?.stock}
-                //               </span>
-                //             </td>
-                //             <td className="px-6 py-4">
-                //               <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(asset?.status_name)}`}>
-                //                 {asset?.status_name.replace('_', ' ').toUpperCase()}
-                //               </span>
-                //             </td>
-                //             <td className="px-6 py-4 text-sm text-gray-500">
-                //               {new Date(asset?.updated_at).toLocaleDateString()}
-                //             </td>
-                //             <td className="px-6 py-4 text-right">
-                //               <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                //                 <button
-                //                   onClick={() => handleEditAsset(asset)}
-                //                   className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg tooltip"
-                //                   title="Edit Product"
-                //                 >
-                //                   <Package className="h-4 w-4" />
-                //                 </button>
-                //                 <button
-                //                   onClick={() => handleViewHistory(asset)}
-                //                   className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg tooltip"
-                //                   title="View History"
-                //                 >
-                //                   <History className="h-4 w-4" />
-                //                 </button>
-                //                 <button
-                //                   onClick={() => handlePrintBarcode(asset)}
-                //                   className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg tooltip"
-                //                   title="Print Barcode"
-                //                 >
-                //                   <Printer className="h-4 w-4" />
-                //                 </button>
-                //               </div>
-                //             </td>
-                //           </tr>
-                //         ))
-                //       )}
-                //     </tbody>
-                //   </table>
-                // </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
-
-                    {/* ================= TABLE HEAD ================= */}
-                    <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500 font-semibold">
+                    <thead className="bg-gray-100 text-xs uppercase text-gray-600 font-semibold">
                       <tr>
-                        <th className="px-6 py-4">Barcode / SKU</th>
-                        <th className="px-6 py-4">Product</th>
-                        <th className="px-6 py-4 text-center">Quantity</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4">Last Moved</th>
-                        <th className="px-6 py-4">Output</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
+                        <th className="px-4 py-3">Product / Tray / Barcode</th>
+                        <th className="px-4 py-3">Product Type / Brand</th>
+                        <th className="px-4 py-3 text-center">In Stock</th>
+                        <th className="px-4 py-3 text-center">Available Stock</th>
+                        <th className="px-4 py-3 text-center">Out Stock</th>
+
+                        {trackingHeaders.map((division) => (
+                          <React.Fragment key={division}>
+                            <th className="px-4 py-3 text-center">{division} IN</th>
+                            {/* <th className="px-4 py-3 text-center">{division} OUT</th> */}
+                          </React.Fragment>
+                        ))}
                       </tr>
                     </thead>
 
-                    {/* ================= TABLE BODY ================= */}
-                    <tbody className="divide-y divide-gray-100">
+
+                    <tbody className="divide-y divide-gray-200">
+                      {productData?.map((item: any) => {
+                        const firstTracking = item?.tracking?.[0]; // one tracking per product
+
+                        return (
+                          <tr key={item.id} className="hover:bg-gray-50">
+
+                            {/* Product */}
+                            <td className="px-4 py-3">
+                              <div className="font-semibold text-gray-900">
+                                {item.name}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Tray: {firstTracking?.tray_name || "-"}
+                              </div>
+                              <div className="text-xs font-mono text-gray-600">
+                                Barcode: {item.id}
+                              </div>
+                            </td>
+
+                            {/* Product Type / Brand */}
+                            <td className="px-4 py-3">
+                              <div className="text-sm font-medium">
+                                {item.category_name}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Brand: {item.brand_name}
+                              </div>
+                            </td>
+
+                            {/* Normal In */}
+                            <td className="px-4 py-3 text-center font-bold text-blue-700">
+                              {firstTracking?.total_in || 0}
+                            </td>
+
+                            {/* Available */}
+                            <td className="px-4 py-3 text-center font-bold text-green-700">
+                              {firstTracking?.available_stock || 0}
+                            </td>
+
+                            {/* Normal Out */}
+                            <td className="px-4 py-3 text-center font-bold text-red-700">
+                              {firstTracking?.total_out || 0}
+                            </td>
+
+                            {/* Tracking-wise IN / OUT */}
+                            {trackingHeaders.map((division) => (
+                              <React.Fragment key={division}>
+                                {/* IN from in_track */}
+                                <td className="px-4 py-3 text-center font-semibold text-blue-600">
+                                  {getInCount(firstTracking, division)}
+                                </td>
+
+                                {/* OUT from out_track */}
+                                {/* <td className="px-4 py-3 text-center font-semibold text-red-600">
+                                  {getOutCount(firstTracking, division)}
+                                </td> */}
+                              </React.Fragment>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+
+
+                  </table>
+                </div>
+
+              )}
+            </div>
+            {/* <tbody className="divide-y divide-gray-100">
                       {filteredAssets?.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="p-12 text-center text-gray-400">
@@ -2654,16 +2995,15 @@ export const InventoryManagement: React.FC = () => {
                           </td>
                         </tr>
                       ) : (
-                        filteredAssets.map((asset: any) => {
+                        filteredAssets?.map((asset: any) => {
                           const product = asset?.product_details?.product;
                           const category = asset?.product_details?.categories?.[0];
 
                           return (
                             <tr
-                              key={asset.id}
+                              key={asset?.id}
                               className="hover:bg-gray-50/80 transition-colors group"
                             >
-                              {/* BARCODE + SKU */}
                               <td className="px-6 py-4 ">
                                 <div className="font-mono text-sm font-semibold text-gray-800">
                                   {product?.barcode_value}
@@ -2673,7 +3013,6 @@ export const InventoryManagement: React.FC = () => {
                                 </div>
                               </td>
 
-                              {/* PRODUCT + BRAND + CATEGORY */}
                               <td className="px-6 py-4 capitalize">
                                 <div className="text-sm font-semibold text-gray-900">
                                   {product?.title}
@@ -2694,14 +3033,12 @@ export const InventoryManagement: React.FC = () => {
                                 </div>
                               </td>
 
-                              {/* QUANTITY */}
                               <td className="px-6 py-4 text-center">
                                 <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-md font-bold text-sm">
                                   {asset?.stock}
                                 </span>
                               </td>
 
-                              {/* STATUS */}
                               <td className="px-6 py-4">
                                 <span
                                   className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
@@ -2723,12 +3060,7 @@ export const InventoryManagement: React.FC = () => {
                                 </button>
                               </td>
 
-                              {/* LAST MOVED */}
-                              {/* <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(
-                        asset?.updated_at || asset?.created_at
-                      ).toLocaleDateString()}
-                    </td> */}
+
 
                               <td className="px-6 py-4 text-sm text-gray-500">
                                 {new Date(asset?.updated_at || asset?.created_at).toLocaleString("en-IN", {
@@ -2742,11 +3074,9 @@ export const InventoryManagement: React.FC = () => {
                               </td>
 
 
-                              {/* ACTIONS */}
                               <td className="px-6 py-4 text-right">
                                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
-                                    // onClick={() => handleEditAsset(asset)}
                                     onClick={() => {
                                       setShowAddAssetModal(true)
                                       setEditProductData(asset?.product_details)
@@ -2779,13 +3109,10 @@ export const InventoryManagement: React.FC = () => {
                           );
                         })
                       )}
-                    </tbody>
-                  </table>
-                </div>
-
-              )}
-            </div>
+                    </tbody> */}
           </div>
+
+
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-gray-400">
             <Folder className="h-16 w-16 text-gray-200 mb-4" />
