@@ -37,7 +37,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
   );
 
   return (
-    <nav className="bg-gray-50 border-r border-gray-200 w-64 h-full overflow-y-auto">
+    <nav className="bg-gray-50 border-r border-gray-200 w-48 h-full overflow-y-auto">
       <div className="p-4">
         <ul className="space-y-2">
           {visibleItems?.map((item) => {
