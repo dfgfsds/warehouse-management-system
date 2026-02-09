@@ -25,7 +25,7 @@ export default function CategoryList() {
     const getCategories = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}/?vendor=${user?.vendor_id}`);
+            const res = await axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}/?vendor=${user?.vendor_id}&type=product`);
             setCategoryData(res?.data?.data?.categories || []);
         } catch (error) {
             console.log(error);
@@ -133,6 +133,9 @@ export default function CategoryList() {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        S.No
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Title
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -149,8 +152,13 @@ export default function CategoryList() {
 
 
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredCategories?.map((item: any) => (
+                                {filteredCategories?.map((item: any, index: number) => (
                                     <tr key={item.id} className="hover:bg-gray-50">
+
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-900 capitalize">
+                                            {index + 1}
+                                        </td>
+
 
                                         {/* Title */}
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900 capitalize">

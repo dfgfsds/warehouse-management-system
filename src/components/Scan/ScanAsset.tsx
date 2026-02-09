@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Package, MapPin, ArrowRight, CheckCircle, Plus, Trash2, Box, X, AlertCircle } from 'lucide-react';
+import { Package, MapPin, ArrowRight, CheckCircle, Plus, Trash2, Box, X, AlertCircle, CreditCard } from 'lucide-react';
 import { StorageManager } from '../../utils/storage';
 import { Asset, Warehouse, Section, Tray, AssetStatus } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import baseUrl from '../../../api-endpoints/ApiUrls';
 import axios from 'axios';
 import AddProductModal from '../Modals/AddProductModal';
+import OutputOrderModal from '../Modals/OutputOrderModal';
 
 // const PRODUCT_TYPES = ['Washing Machine', 'AC Unit', 'LED TV', 'Microwave', 'Refrigerator', 'Dishwasher'];
 // const STATUSES: AssetStatus[] = ['working', 'needs_fix', 'scrap', 'reserved', 'damaged', 'testing'];
@@ -13,7 +14,7 @@ import AddProductModal from '../Modals/AddProductModal';
 export const ScanAsset: React.FC = () => {
   const { user }: any = useAuth();
   // Workflow State
-  const [actionType, setActionType] = useState<'add' | 'transfer' | ''>('');
+  const [actionType, setActionType] = useState<'add' | 'transfer' | 'sale' | ''>('');
   const [step, setStep] = useState<'setup' | 'scanning' | 'complete'>('setup');
 
   // Location State
@@ -44,6 +45,8 @@ export const ScanAsset: React.FC = () => {
   // const [pendingScanCode, setPendingScanCode] = useState<string | null>(null);
   const [pendingAsset, setPendingAsset] = useState<any>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const checkingArea = '';
+  const Sales = '';
 
   interface ScannedItem extends Asset {
     moveQuantity: number;
@@ -51,9 +54,8 @@ export const ScanAsset: React.FC = () => {
     sourceAssetId?: string; // ID of the asset record we are moving FROM (if found)
     maxQuantity?: number; // Unlimited if unknown source
   }
-  console.log(toDivisions)
+
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
-console.log(scannedItems)
   // Modal State
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAssetCode, setNewAssetCode] = useState('');
@@ -65,17 +67,21 @@ console.log(scannedItems)
 
   // Completion State
   const [movedItems, setMovedItems] = useState<ScannedItem[]>([]);
-
-
   const [PRODUCT_TYPES, setProductTypes] = useState<any[]>([]);
   const [STATUSES, setProductStatuses] = useState<any[]>([]);
-console.log(STATUSES)
   const [showAddAssetModal, setShowAddAssetModal] = useState(false);
   const [showAssetModalQrCode, setShowAssetModalQrCode] = useState('');
 
+  const [showOutputModal, setShowOutputModal] = useState(false);
+  const [outputData, setOutputData] = useState<any>(null);
+
   useEffect(() => {
-    if (STATUSES?.length > 0) {
-      setAutoStatus(STATUSES[0].id as AssetStatus);
+    if (actionType === 'sale') {
+      setAutoStatus(STATUSES[5].id as AssetStatus);
+    } else {
+      if (STATUSES?.length > 0) {
+        setAutoStatus(STATUSES[0].id as AssetStatus);
+      }
     }
   }, [STATUSES]);
 
@@ -200,8 +206,6 @@ console.log(STATUSES)
 
   const handleStartScanning = () => {
     if (!actionType) return;
-    // if (!toHub || !toDiv || !toTray) return;
-    // if (actionType === 'transfer' && (!fromHub || !fromDiv || !fromTray)) return;
     setStep('scanning');
   };
 
@@ -209,7 +213,7 @@ console.log(STATUSES)
     e?.preventDefault();
     if (!qrInput.trim()) return;
 
-    const code = qrInput.trim();
+    const code = qrInput.trim().toUpperCase();
     setQrInput('');
     setMessage('');
 
@@ -241,50 +245,6 @@ console.log(STATUSES)
     }
   };
 
-
-
-  // const addOrIncrementScannedItem = (asset: any, status: string) => {
-  //   setScannedItems((prev: any) => {
-  //     const index = prev.findIndex(
-  //       (i: any) => i?.qrCode === asset?.qrCode
-  //     );
-  //     // already scanned → increment
-  //     if (index !== -1) {
-  //       const updated = [...prev];
-  //       updated[index].moveQuantity += 1;
-  //       return updated;
-  //     }
-  //     // new scan
-  //     return [
-  //       ...prev,
-  //       {
-  //         assetId: asset?.product?.id,
-  //         qrCode: asset?.product?.barcode_value,
-  //         productType: asset?.product?.product_kind,
-  //         spareName: asset?.product?.title,
-  //         status: status,
-  //         moveQuantity: 1,
-  //         brand: asset?.product?.brand?.name,
-  //         // maxQuantity: asset.quantity // used in transfer
-  //       }
-  //     ];
-  //   });
-  // };
-
-
-  // const confirmManualStatus = (status: string) => {
-  //   if (!pendingAsset) return;
-
-  //   addOrIncrementScannedItem(pendingAsset, status);
-
-  //   setPendingAsset(null);
-  //   setPendingScanCode('');
-  //   setShowStatusModal(false);
-  // };
-
-  // const handleRemoveItem = (index: number) => {
-  //   setScannedItems(prev => prev.filter((_, i) => i !== index));
-  // };
 
   const handleUpdateQuantity = (index: number, qty: number) => {
     setScannedItems(prev => {
@@ -337,6 +297,26 @@ console.log(STATUSES)
           assetId: asset?.product?.id,
           qrCode: code,
           status,
+          ...(actionType === 'add' && {
+            tray_id: asset?.trays?.find(
+              (t: any) => t?.parent_division_id === status
+            )?.id,
+          }),
+          ...(actionType === 'transfer' && {
+            tray_id: asset?.trays?.find(
+              (t: any) => t?.parent_division_id === status
+            )?.id,
+          }),
+          ...(actionType === 'transfer' && {
+            previous_tray_id: asset?.trays?.find(
+              (t: any) => t?.parent_division_id === fromDiv
+            )?.id,
+          }),
+          ...(actionType === 'sale' && {
+            tray_id: asset?.trays?.find(
+              (t: any) => t?.parent_division_id === status
+            )?.id,
+          }),
           moveQuantity: 1,
           productType: asset?.product?.product_kind,
           spareName: asset?.product?.title,
@@ -358,116 +338,6 @@ console.log(STATUSES)
     setShowStatusModal(false);
   };
 
-
-
-  // const handleAddScan = (code: string, status: AssetStatus) => {
-  //   // 1. Check Dest for Merge Details
-  //   const existingInDest = StorageManager.getAssetAtLocation(code, toTray);
-  //   if (existingInDest) {
-  //     // Even if existing status is different, we are scanning THIS status.
-  //     // If dest has 'working' and we scan 'damaged', we add a 'damaged' row to scannedItems.
-  //     // If dest has 'working' and we scan 'working', we default to merging into that record logic eventually.
-  //     const item: ScannedItem = {
-  //       ...existingInDest,
-  //       status: status, // Use scanned status
-  //       // moveQuantity: 1,
-  //       isNewProduct: false
-  //     };
-  //     setScannedItems(prev => [...prev, item]);
-  //     return;
-  //   }
-
-  //   // 2. Check Global
-  //   const existingAnywhere = StorageManager.getAssetByQR(code);
-  //   if (existingAnywhere) {
-  //     const item: ScannedItem = {
-  //       ...existingAnywhere,
-  //       id: `new-entry-${Date.now()}`,
-  //       quantity: 0,
-  //       status: status,
-  //       // moveQuantity: 1,
-  //       isNewProduct: false
-  //     };
-  //     setScannedItems(prev => [...prev, item]);
-  //   } else {
-  //     // 3. Brand New
-  //     setNewAssetCode(code);
-  //     setNewAssetStatus(status);
-  //     setNewAssetQuantity(1);
-  //     setShowAddModal(true);
-  //   }
-  // };
-
-  // const handleTransferScan = (code: string, status: AssetStatus) => {
-  //   // Check Source
-  //   const sourceAsset = StorageManager.getAssetAtLocation(code, fromTray);
-
-  //   if (sourceAsset) {
-  //     // Exists in source
-  //     const item: ScannedItem = {
-  //       ...sourceAsset,
-  //       status: status,
-  //       moveQuantity: 1,
-  //       maxQuantity: sourceAsset.quantity, // Known limit
-  //       sourceAssetId: sourceAsset.id
-  //     };
-  //     setScannedItems(prev => [...prev, item]);
-  //   } else {
-  //     // Does NOT exist in source, but user wants to transfer anyway ("allow products add ... no constraints")
-  //     // We look up global info to get Product Type if possible
-  //     const globalInfo = StorageManager.getAssetByQR(code);
-
-  //     if (globalInfo) {
-  //       const item: ScannedItem = {
-  //         ...globalInfo,
-  //         id: `forced-transfer-${Date.now()}`,
-  //         warehouseId: fromHub, // Virtual source
-  //         sectionId: fromDiv,
-  //         trayId: fromTray,
-  //         quantity: 0, // Virtual 0
-  //         status: status,
-  //         moveQuantity: 1,
-  //         maxQuantity: undefined, // Unlimited
-  //         sourceAssetId: undefined
-  //       };
-  //       setScannedItems(prev => [...prev, item]);
-  //     } else {
-  //       // Unknown product entirely - Treat as New Asset Creation via Transfer
-  //       setNewAssetCode(code);
-  //       setNewAssetStatus(status);
-  //       setNewAssetQuantity(1);
-  //       setShowAddModal(true);
-  //     }
-  //   }
-  // };
-
-  // const handleAddNewAsset = () => {
-  //   const newAsset: ScannedItem = {
-  //     id: `new-${Date.now()}`,
-  //     qrCode: newAssetCode,
-  //     productType: newAssetType,
-  //     quantity: 0,
-  //     status: newAssetStatus, // Use the status initiated with
-  //     warehouseId: toHub,
-  //     sectionId: toDiv,
-  //     trayId: toTray,
-  //     // moveQuantity: newAssetQuantity,
-  //     isNewProduct: true,
-  //     childAssetIds: [],
-  //     isPacked: false,
-  //     isDispatched: false,
-  //     receivedAt: new Date().toISOString(),
-  //     lastMovedAt: new Date().toISOString(),
-  //     lastHandledBy: user?.id || 'unknown',
-  //     deviceId: 'local-device',
-  //     metadata: {}
-  //   };
-
-  //   setScannedItems(prev => [...prev, newAsset]);
-  //   setShowAddModal(false);
-  //   setNewAssetCode('');
-  // };
-
   const generateBarcode = () => {
     const prefix = newAssetType.substring(0, 2).toUpperCase();
     const random = Math.floor(1000 + Math.random() * 9000);
@@ -478,97 +348,36 @@ console.log(STATUSES)
     setScannedItems(prev => prev.filter((_, i) => i !== index));
   };
 
-  // const handleUpdateQuantity = (index: number, newQty: number) => {
-  //   setScannedItems(prev => {
-  //     const updated = [...prev];
-  //     const item = updated[index];
-
-  //     if (newQty <= 0) return prev;
-  //     // Soft check: You can prevent validation here if 'no constraints' is absolute, 
-  //     // but logically you can't satisfy existing logic if > max. 
-  //     // For known sources, we keep the limit. For unknown, it's unlimited.
-  //     if (actionType === 'transfer' && item.maxQuantity && newQty > item.maxQuantity) {
-  //       // Warn?
-  //     }
-
-  //     updated[index] = { ...item, moveQuantity: newQty };
-  //     return updated;
-  //   });
-  // };
-
-  // const confirmMove = () => {
-  //   if (scannedItems.length === 0) return;
-
-  //   scannedItems.forEach(item => {
-  //     // Logic is almost same for add/transfer regarding DESTINATION
-  //     // DIFFERENCE is Source handling.
-
-  //     if (actionType === 'transfer' && item.sourceAssetId) {
-  //       const source = StorageManager.getAssetById(item.sourceAssetId);
-  //       if (source) {
-  //         const newSourceQty = source.quantity - item.moveQuantity;
-  //         StorageManager.updateAsset(source.id, { quantity: newSourceQty });
-  //       }
-  //     }
-  //     // If transfer but sourceAssetId is undefined (Forced transfer), we ignore source decrement.
-
-  //     // DESTINATION Logic (Identical for Add/Transfer)
-  //     // Check if exact match (QR + Status) exists in Dest
-  //     // Note: 'getAssetAtLocation' matches QR only. We must manually check status match if we want to separate 'working' vs 'damaged'.
-  //     // However, typical WMS might merge same SKU same Location?
-  //     // Usually: same SKU + Same Location + Same Status = Merge. 
-  //     // If diff status, separate record?
-  //     // For our Asset model, we store `status` on the Asset. So yes, separate records.
-
-  //     // We'll iterate all assets at location to find exact match
-  //     const assetsAtDest = StorageManager.getAssetsByTray(toTray);
-  //     const exactMatch = assetsAtDest.find(a => a.qrCode === item.qrCode && a.status === item.status);
-
-  //     if (exactMatch) {
-  //       StorageManager.updateAsset(exactMatch.id, {
-  //         quantity: exactMatch.quantity + item.moveQuantity,
-  //         lastMovedAt: new Date().toISOString()
-  //       });
-  //     } else {
-  //       const { moveQuantity, isNewProduct, sourceAssetId, maxQuantity, ...baseAsset } = item;
-  //       const newAsset: Asset = {
-  //         ...baseAsset,
-  //         quantity: moveQuantity,
-  //         warehouseId: toHub,
-  //         sectionId: toDiv,
-  //         trayId: toTray,
-  //         // Ensure unique ID
-  //         id: baseAsset.id.startsWith('new-') || baseAsset.id.startsWith('forced-') ? `final-${Date.now()}-${Math.random()}` : `moved-${Date.now()}-${Math.random()}`
-  //       };
-  //       StorageManager.addAsset(newAsset);
-  //     }
-  //   });
-
-  //   setMovedItems(scannedItems);
-  //   setScannedItems([]);
-  //   setStep('complete');
-  // };
-
   const confirmMove = async () => {
     if (scannedItems.length === 0) return;
-
+    console.log(scannedItems)
     try {
       setLoading(true);
 
       const payload = scannedItems?.map((item: any) => ({
-        parent_id: user?.vendor_id,        // source asset id
-        product_id: item.assetId,               // REQUIRED
+        parent_id: user?.vendor_id,
+        product_id: item?.assetId,               // REQUIRED
         vendor_id: user?.vendor_id,
         user_id: user?.user_id,
 
         // DESTINATION
         hub_id: toHub,
-        division_id: item?.status,
+        ...(actionType === "add" && {
+          division_id: autoStatus,
+        }),
+        ...(actionType === "transfer" && {
+          division_id: item?.status,
+        }),
+        ...(actionType === "sale" && {
+          division_id: item?.status,
+        }),
+        tray_id: item?.tray_id,
+        previous_tray_id: item?.previous_tray_id,
         // tray_id: toTray,
 
         // status: item?.status,
         stock: item?.moveQuantity,
-        action_type: actionType, 
+        action_type: actionType,
 
         // SOURCE (ONLY FOR TRANSFER)
         previous_hub_id: actionType === 'transfer' ? fromHub : null,
@@ -576,15 +385,21 @@ console.log(STATUSES)
         // previous_tray_id: actionType === 'transfer' ? fromTray : null
       }));
 
-      await axios.post(
-        `${baseUrl.divisionInventoryBulk}`,
-        payload
-      );
-
+      if (actionType === 'sale') {
+        setShowOutputModal(true);
+        setOutputData(payload)
+      } else {
+        const updateApi = await axios.post(
+          `${baseUrl.divisionInventoryBulk}`,
+          payload
+        );
+        if (updateApi) {
+          setMovedItems(scannedItems);
+          setScannedItems([]);
+          setStep('complete');
+        }
+      }
       // ✅ SUCCESS
-      setMovedItems(scannedItems);
-      setScannedItems([]);
-      setStep('complete');
     } catch (err: any) {
       console.error(err);
       alert(err?.response?.data?.message || 'Move failed');
@@ -612,6 +427,7 @@ console.log(STATUSES)
   }, [STATUSES]);
 
 
+
   if (step === 'setup') {
     return (
       <div className="p-6 max-w-4xl mx-auto space-y-8">
@@ -619,7 +435,7 @@ console.log(STATUSES)
           <Package className="h-6 w-6 text-blue-600" />
           Scan & Manage Stock
         </h1>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <button onClick={() => setActionType('add')} className={`p-6 border-2 rounded-xl text-center transition-all ${actionType === 'add' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-200'}`}>
             <Plus className="h-8 w-8 mx-auto mb-2 text-blue-600" />
             <div className="font-semibold">Add / Update Stock</div>
@@ -627,6 +443,10 @@ console.log(STATUSES)
           <button onClick={() => setActionType('transfer')} className={`p-6 border-2 rounded-xl text-center transition-all ${actionType === 'transfer' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'}`}>
             <ArrowRight className="h-8 w-8 mx-auto mb-2 text-purple-600" />
             <div className="font-semibold">Transfer Stock</div>
+          </button>
+          <button onClick={() => setActionType('sale')} className={`p-6 border-2 rounded-xl text-center transition-all ${actionType === 'sale' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-200'}`}>
+            <CreditCard className="h-8 w-8 mx-auto mb-2 text-green-600" />
+            <div className="font-semibold">Sale</div>
           </button>
         </div>
 
@@ -640,40 +460,17 @@ console.log(STATUSES)
                     <option value="">Select Hub...</option>
                     {hubs?.map((h: any) => <option key={h.id} value={h.id} className='capitalize'>{h?.title || h.name}</option>)}
                   </select>
-                    <select className="input-field" value={fromDiv} onChange={e => setFromDiv(e.target.value)} disabled={!fromHub}>
-                      <option value="">Select Division...</option>
-                      {/* {toDivisions?.map((d: any) => <option key={d.id} value={d.id}>{d?.division_name}</option>)} */}
-                      {STATUSES.map((d: any) => (
-                        <option key={d.id} value={d.id} className='capitalize'>{d.division_name}</option>
-                      ))}
-                    </select>
-                  {/* <select className="input-field" value={fromTray} onChange={e => setFromTray(e.target.value)} disabled={!fromDiv}>
-                    <option value="">Select Tray...</option>
-                    {toTrays?.map((t: any) => <option key={t.id} value={t.id}>{t.division_name || t.name}</option>)}
-                    {fromTrays.map((t: any) => (
-                      <option key={t.id} value={t.id} className='capitalize'>{t.division_name}</option>
+                  <select className="input-field" value={fromDiv} onChange={e => setFromDiv(e.target.value)} disabled={!fromHub}>
+                    <option value="">Select Division...</option>
+                    {STATUSES.map((d: any) => (
+                      <option key={d.id} value={d.id} className='capitalize'>{d.division_name}</option>
                     ))}
-                  </select> */}
+                  </select>
                 </div>
               </div>
             )}
             <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
               <h3 className="font-semibold mb-4 text-blue-800">Destination Location</h3>
-              {/* <div className="grid grid-cols-3 gap-4">
-                <select className="input-field" value={toHub} onChange={e => setToHub(e.target.value)}>
-                  <option value="">Select Hub...</option>
-                  {hubs.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
-                </select>
-                <select className="input-field" value={toDiv} onChange={e => setToDiv(e.target.value)} disabled={!toHub}>
-                  <option value="">Select Division...</option>
-                  {toDivisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
-                <select className="input-field" value={toTray} onChange={e => setToTray(e.target.value)} disabled={!toDiv}>
-                  <option value="">Select Tray...</option>
-                  {toTrays.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-              </div> */}
-
               <div className="grid grid-cols-3 gap-4">
                 {/* HUB */}
                 <select
@@ -688,39 +485,12 @@ console.log(STATUSES)
                     </option>
                   ))}
                 </select>
-
-                {/* DIVISION */}
-                {/* <select
-                  className="input-field"
-                  value={toDiv}
-                  onChange={e => setToDiv(e.target.value)}
-                  disabled={!toHub}
-                >
-                  <option value="">Select Division...</option>
-                
-                  {toDivisions.map((d: any) => (
-                    <option key={d.id} value={d.id} className='capitalize'>{d.division_name}</option>
-                  ))}
-                </select> */}
-
-                {/* TRAY */}
-                {/* <select
-                  className="input-field"
-                  value={toTray}
-                  onChange={e => setToTray(e.target.value)}
-                  disabled={!toDiv}
-                >
-                  <option value="">Select Tray...</option>
-                
-                  {toTrays?.map((t: any) => (
-                    <option key={t.id} value={t.id} className='capitalize'>{t.division_name}</option>
-                  ))}
-                </select> */}
               </div>
 
             </div>
             <button onClick={handleStartScanning}
               // disabled={!toTray || (actionType === 'transfer' && !fromTray)}
+              disabled={!toHub || (actionType === 'transfer' && !fromDiv)}
               className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold disabled:opacity-50">
               Start Scanning
             </button>
@@ -735,36 +505,69 @@ console.log(STATUSES)
       <div className="p-6 max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">{actionType === 'add' ? 'Adding Stock' : 'Transferring Stock'}</h2>
-            <p className="text-sm text-gray-500">Target: {toDivisions?.find((d: any) => d?.id === toDiv)?.division_name} / {toTrays?.find((t: any) => t?.id === toTray)?.division_name}</p>
+            <h2 className="text-xl font-bold text-gray-800">{actionType === 'add' ? 'Adding Stock' : actionType === 'transfer' ? 'Transferring Stock' : actionType === 'sale' ? 'Sale' : ""}</h2>
+            <div className="space-y-1">
+              {actionType === "add" && (
+                <p className="text-sm text-gray-600 font-semibold">
+                  Target Division:
+                  <span className="ml-1 text-blue-600">Checking Area</span>
+                </p>
+              )}
+
+              {actionType === "transfer" && (
+                <p className="text-sm text-gray-600 font-semibold">
+                  Transfer From:
+                  <span className="ml-1 text-indigo-600">
+                    {
+                      STATUSES?.find((d: any) => d?.id === fromDiv)
+                        ?.division_name || "-"
+                    }
+                  </span>
+                </p>
+              )}
+
+              {actionType === "sale" && (
+                <p className="text-sm text-gray-600 font-semibold flex items-center gap-1">
+                  <span className="text-red-600">Sale</span>
+                  <span className="text-xs text-gray-400">(Stock will be reduced)</span>
+                </p>
+              )}
+            </div>
+
           </div>
           <div className="flex gap-4">
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <button onClick={() => setStatusMode('auto')} className={`px-3 py-1 rounded-md text-sm font-medium ${statusMode === 'auto' ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}>Auto Status</button>
-              <button onClick={() => setStatusMode('manual')} className={`px-3 py-1 rounded-md text-sm font-medium ${statusMode === 'manual' ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}>Manual</button>
-            </div>
-            {/* {statusMode === 'auto' && (
-              <select className="text-sm border-gray-300 rounded-lg" value={autoStatus} onChange={(e) => setAutoStatus(e.target.value as AssetStatus)}>
-                {STATUSES?.map(s => <option key={s?.id} value={s?.id}>{s?.name}</option>)}
-              </select>
-            )} */}
-
-            {statusMode === 'auto' && (
-              <select
-                className="text-sm border-gray-300 rounded-lg"
-                value={autoStatus}
-                onChange={(e) => setAutoStatus(e.target.value as AssetStatus)}
-              >
-                {STATUSES?.map((s: any) => (
-                  <option key={s?.id} value={s?.id}>
-                    {s?.division_name}
-                  </option>
-                ))}
-              </select>
+            {actionType !== 'sale' && actionType !== 'add' && (
+              <>
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button onClick={() => setStatusMode('auto')} className={`px-3 py-1 rounded-md text-sm font-medium ${statusMode === 'auto' ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}>Auto Status</button>
+                  <button onClick={() => setStatusMode('manual')} className={`px-3 py-1 rounded-md text-sm font-medium ${statusMode === 'manual' ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}>Manual</button>
+                </div>
+                {statusMode === 'auto' && (
+                  <select
+                    className="text-sm border-gray-300 rounded-lg"
+                    value={autoStatus}
+                    onChange={(e) => setAutoStatus(e.target.value as AssetStatus)}
+                  >
+                    {STATUSES?.slice(1, 6)?.map((s: any) => (
+                      <option key={s?.id} value={s?.id}>
+                        {s?.division_name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </>
             )}
 
-
-            <button onClick={() => setStep('setup')} className="text-gray-500 font-medium">Cancel</button>
+            <button onClick={() => {
+              setStep('setup');
+              setStatusMode('auto');
+              setScannedItems([]);
+              setToHub('');
+              setFromHub('');
+              setFromDiv('');
+              setAutoStatus('');
+              // window.location.reload();
+            }} className="text-gray-500 font-medium">Cancel</button>
           </div>
         </div>
 
@@ -815,7 +618,7 @@ console.log(STATUSES)
                     </td>
                     <td className="p-4">
                       <div className="font-medium capitalize">{item?.spareName}</div>
-                     
+
                       <div className="font-light text-sm">{item?.brand}</div>
 
                     </td>
@@ -834,8 +637,6 @@ console.log(STATUSES)
                       <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(statusMap[item?.status])}`}>
                         {statusMap[item?.status] || item?.status}
                       </span>
-
-                      {/* <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(item?.status)}`}>{item?.status}</span> */}
                     </td>
                     <td className="p-4 text-right">
                       <button onClick={() => handleRemoveItem(idx)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg">
@@ -858,7 +659,7 @@ console.log(STATUSES)
                 <button onClick={() => setShowStatusModal(false)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {STATUSES?.map(s => (
+                {STATUSES?.slice(1, 6).map(s => (
                   <button
                     key={s?.id}
                     onClick={() => handleManualStatusSelect(s)}
@@ -884,7 +685,6 @@ console.log(STATUSES)
               <div className="gap-2"><input className="input-field w-full" value={newAssetCode} onChange={e => setNewAssetCode(e.target.value)} /></div>
               <select className="input-field w-full" value={newAssetType} onChange={e => setNewAssetType(e.target.value)}>{PRODUCT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>
               <div><label>Initial Quantity</label><input type="number" result="1" className="input-field w-full" value={newAssetQuantity} onChange={e => setNewAssetQuantity(parseInt(e.target.value))} /></div>
-              {/* <div className="flex gap-3"><button onClick={() => setShowAddModal(false)} className="flex-1 py-2 bg-gray-100 rounded">Cancel</button><button onClick={handleAddNewAsset} className="flex-1 py-2 bg-blue-600 text-white rounded">Add</button></div> */}
             </div>
           </div>
         )}
@@ -902,6 +702,24 @@ console.log(STATUSES)
         // productStatuses={productStatuses}
         />
 
+        {showOutputModal && outputData && (
+          <OutputOrderModal
+            asset={outputData}
+            onClose={() => {
+              setShowOutputModal(false);
+              setOutputData(null);
+            }}
+            cancel={() => {
+              setStep('setup');
+              setStatusMode('auto');
+              setScannedItems([]);
+              setToHub('');
+              setFromHub('');
+              setFromDiv('');
+              setAutoStatus('');
+            }}
+          />
+        )}
 
       </div>
     );

@@ -24,7 +24,10 @@ const salesReport=`${baseUrl}/stats/sales-report`;
 const divisionInventory=`${baseUrl}/division-inventory`;
 const orders =`${baseUrl}/orders`
 const statsCategoryLogReport=`${baseUrl}/stats/category-log-report`;
-const hubDivisionInventory =`${baseUrl}/stats/hub-division-inventory`;
+const hubDivisionInventory =`${baseUrl}/stats/hub-division-inventory-report`;
+const sell=`${baseUrl}/division-inventory/sell`;
+const rkVendorsHub = `${baseUrl}/rk-vendors/hub`
+
 
 
 
@@ -54,4 +57,6 @@ export default {
   orders,
   statsCategoryLogReport,
   hubDivisionInventory,
+  sell,
+  rkVendorsHub,
 };
