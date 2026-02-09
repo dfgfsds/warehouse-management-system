@@ -11,6 +11,8 @@ import {
 import axios from "axios";
 import { useAuth } from "../../hooks/useAuth";
 import baseUrl from "../../../api-endpoints/ApiUrls";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 /* ================= TYPES ================= */
 // (UNCHANGED)
@@ -78,6 +80,8 @@ export const Dashboard: React.FC = () => {
   const [selectedBrandId, setSelectedBrandId] = useState("");
   const [selectedProductTypeId, setSelectedProductTypeId] = useState("");
   const [productTypes, setProductTypes] = useState<any[]>([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
 
 
@@ -122,25 +126,6 @@ export const Dashboard: React.FC = () => {
 
   }, [user?.vendor_id]);
 
-
-
-  // const filteredHubInventory = hubInventory.filter((item: any) => {
-  //   const productId = item?.product_details?.product?.id;
-  //   console.log(productId)
-  //   const categoryId =
-  //     item?.product_details?.categories?.[0]?.id;
-
-  //   if (selectedProductId && productId !== selectedProductId) {
-  //     return false;
-  //   }
-
-  //   if (selectedCategoryId && categoryId !== selectedCategoryId) {
-  //     return false;
-  //   }
-
-  //   return true;
-  // });
-
   const filteredHubInventory = hubInventory?.filter((item: any) => {
     const product = item?.product_details?.product;
     const productId = product?.id;
@@ -168,18 +153,27 @@ export const Dashboard: React.FC = () => {
   });
 
 
-
-  const fetchHubInventory = async (hubId: string) => {
-    if (!hubId) {
+  const fetchHubInventory = async () => {
+    if (!selectedHubId) {
       setHubInventory([]);
       return;
     }
 
     setHubInventoryLoading(true);
+
     try {
-      const res = await axios.get(
-        `${baseUrl.hubDivisionInventory}?hub_id=${hubId}`
-      );
+      const params: any = {
+        hub_id: selectedHubId,
+      };
+
+      if (selectedProductId) params.product_id = selectedProductId;
+      if (selectedCategoryId) params.category_id = selectedCategoryId;
+      if (startDate) params.start_date = startDate;   // 🔥
+      if (endDate) params.end_date = endDate;         // 🔥
+
+      const res = await axios.get(baseUrl.hubDivisionInventory, {
+        params,
+      });
 
       setHubInventory(res?.data?.data || []);
     } catch (error) {
@@ -189,11 +183,17 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+
   useEffect(() => {
-    if (selectedHubId) {
-      fetchHubInventory(selectedHubId);
-    }
-  }, [selectedHubId]);
+    fetchHubInventory();
+  }, [
+    selectedHubId,
+    selectedProductId,
+    selectedCategoryId,
+    startDate,
+    endDate,
+  ]);
+
 
 
 
@@ -284,6 +284,72 @@ export const Dashboard: React.FC = () => {
   ];
 
 
+  const downloadHubInventoryExcel = () => {
+    if (!filteredHubInventory || filteredHubInventory.length === 0) return;
+
+    const rows = filteredHubInventory.map((item: any, i: number) => {
+      const product = item?.product_details?.product;
+      const category =
+        item?.product_details?.categories?.[0]?.name || "-";
+
+      // tracking map
+      const trackingMap = (item?.tracking || []).reduce(
+        (acc: any, t: any) => {
+          acc[t.division_name] = t.currently_available ?? 0;
+          return acc;
+        },
+        {}
+      );
+
+      const baseRow: any = {
+        "S.No": i + 1,
+        "Product": product?.title || "-",
+        "Tray": item?.product_details?.trays?.[0]?.name || "-",
+        "Brand": product?.brand?.name || "-",
+        "Category": category,
+        "Product Type": product?.product_type?.name || "-",
+        "Total In": item?.total_in ?? 0,
+        "Total Out": item?.total_out ?? 0,
+      };
+
+      // 🔥 dynamic tracking columns (same as table)
+      orderedTrackingHeaders.forEach((name: string) => {
+        const key = name === "INPUT" ? "Available Stock" : name;
+        baseRow[key] = trackingMap[name] ?? 0;
+      });
+
+      return baseRow;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Hub Inventory");
+
+    const buffer = XLSX.write(wb, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    saveAs(
+      new Blob([buffer]),
+      `Hub_Inventory_${selectedHubId || "All"}_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`
+    );
+  };
+
+  const handleClearAllFilters = () => {
+    setSelectedHubId("");
+    setSelectedCategoryId("");
+    setSelectedBrandId("");
+    setSelectedProductTypeId("");
+    setSelectedProductId("");
+    setStartDate("");
+    setEndDate("");
+
+    // optional but best UX
+    setHubInventory([]);
+  };
 
   return (
     <div className="p-6 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -300,16 +366,15 @@ export const Dashboard: React.FC = () => {
 
 
       <section className="rounded-2xl bg-white border shadow-lg p-6 space-y-4">
+        <h2 className="text-lg mb-5 font-semibold text-gray-800 flex items-center gap-2">
+          🏬 Hub Inventory Available Stock
+        </h2>
 
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            🏬 Hub Inventory Available Stock
-          </h2>
 
-          <div className="flex flex-wrap gap-4 items-end mb-4">
+          {/* <div className="flex flex-wrap gap-4 items-end mb-4 my-auto ">
 
-            {/* HUB SELECT */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Hub
@@ -328,7 +393,7 @@ export const Dashboard: React.FC = () => {
               </select>
             </div>
 
-            {/* CATEGORY SELECT */}
+     
             <div>
               <label className="block text-sm font-medium mb-1">
                 Category
@@ -384,8 +449,6 @@ export const Dashboard: React.FC = () => {
               </select>
             </div>
 
-
-            {/* PRODUCT SELECT */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Product
@@ -404,6 +467,214 @@ export const Dashboard: React.FC = () => {
               </select>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-44
+               focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-44
+               focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+
+            <button
+              onClick={handleClearAllFilters}
+              disabled={
+                !selectedHubId &&
+                !selectedCategoryId &&
+                !selectedBrandId &&
+                !selectedProductTypeId &&
+                !selectedProductId &&
+                !startDate &&
+                !endDate
+              }
+              className="px-4 py-2 border rounded-lg text-sm font-semibold
+             hover:bg-red-50 hover:text-red-600
+             disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ❌ Clear Data
+            </button>
+
+            {user?.role === "admin" && (
+              <div className="flex justify-end">
+                <button
+                  onClick={downloadHubInventoryExcel}
+                  disabled={filteredHubInventory.length === 0}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold
+      bg-green-600 text-white rounded-lg
+      hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ⬇ Export Excel
+                </button>
+              </div>
+            )}
+          </div> */}
+          <div
+            className="
+    grid gap-4 mb-4
+    grid-cols-1
+    sm:grid-cols-2
+    md:grid-cols-3
+    lg:grid-cols-4
+    xl:grid-cols-5
+    items-end
+  "
+          >
+            {/* HUB */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Hub</label>
+              <select
+                value={selectedHubId}
+                onChange={(e) => setSelectedHubId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-full"
+              >
+                <option value="">Select Hub</option>
+                {warehousesData?.map((hub: any) => (
+                  <option key={hub.id} value={hub.id}>
+                    {hub.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* CATEGORY */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Category</label>
+              <select
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-full"
+              >
+                <option value="">All Categories</option>
+                {categoriesList?.map((x: any) => (
+                  <option key={x.id} value={x.id}>
+                    {x.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* BRAND */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Brand</label>
+              <select
+                value={selectedBrandId}
+                onChange={(e) => setSelectedBrandId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-full"
+              >
+                <option value="">All Brands</option>
+                {brandsList.map((b: any) => (
+                  <option key={b.id} value={b.id}>
+                    {b.brand_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* PRODUCT TYPE */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Product Type</label>
+              <select
+                value={selectedProductTypeId}
+                onChange={(e) => setSelectedProductTypeId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-full"
+              >
+                <option value="">All Types</option>
+                {productTypes.map((t: any) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* PRODUCT */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Product</label>
+              <select
+                value={selectedProductId}
+                onChange={(e) => setSelectedProductId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-full"
+              >
+                <option value="">All Products</option>
+                {productData?.map((item: any) => (
+                  <option key={item.product.id} value={item.product.id}>
+                    {item.product.title} ({item.product.sku})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* START DATE */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-full"
+              />
+            </div>
+
+            {/* END DATE */}
+            <div>
+              <label className="block text-sm font-medium mb-1">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-full"
+              />
+            </div>
+
+            {/* CLEAR */}
+            <button
+              onClick={handleClearAllFilters}
+              disabled={
+                !selectedHubId &&
+                !selectedCategoryId &&
+                !selectedBrandId &&
+                !selectedProductTypeId &&
+                !selectedProductId &&
+                !startDate &&
+                !endDate
+              }
+              className="px-4 py-2 border rounded-lg text-sm font-semibold
+               hover:bg-red-50 hover:text-red-600
+               disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ❌ Clear Data
+            </button>
+
+            {/* EXPORT */}
+            {user?.role === "admin" && (
+              <button
+                onClick={downloadHubInventoryExcel}
+                disabled={filteredHubInventory.length === 0}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg
+                 text-sm font-semibold hover:bg-green-700
+                 disabled:opacity-50"
+              >
+                ⬇ Export Excel
+              </button>
+            )}
           </div>
 
 
@@ -424,30 +695,33 @@ export const Dashboard: React.FC = () => {
           </div>
         ) : (
           /* TABLE */
-          <div className="overflow-x-auto rounded-xl border shadow-sm bg-white ">
-            <table className="w-full text-sm">
+          <div className="relative overflow-x-auto rounded-lg border shadow-sm bg-white">
+            <table className="w-full text-[12px] leading-tight">
               {/* ===== HEADER ===== */}
-              <thead className="bg-gray-50 text-xs uppercase text-gray-600 sticky top-0">
+              <thead className="bg-gray-50 text-[11px] uppercase text-gray-600 sticky top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left">Product / Tray</th>
-                  <th className="px-4 py-3 text-left">Brand / Category / Type</th>
-                  <th className="px-4 py-3 text-center">Total In</th>
-                  <th className="px-4 py-3 text-center border-r">Total Out</th>
+                  <th className="px-2 py-2 text-left">Product / Tray</th>
+                  <th className="px-2 py-2 text-left">Brand / Category / Type</th>
+                  <th className="px-2 py-2 text-center">Total In</th>
+                  <th className="px-2 py-2 text-center border-r">Total Out</th>
 
-                  {/* 🔥 TRACKING HEADERS */}
                   {orderedTrackingHeaders.map((name) => (
                     <th
                       key={name}
-                      className={`px-4 py-3 text-right whitespace-nowrap ${name === "INPUT"
-                        ? "bg-green-50 text-green-700 font-bold"
+                      className={`px-2 py-2 text-right whitespace-nowrap text-[11px] ${name === "INPUT"
+                        ? "bg-green-50 text-green-700 font-semibold"
                         : ""
                         }`}
                     >
-                      {name === "INPUT" ? "Available Stock" : name}
+                      {name === "INPUT"
+                        ? "Available"
+                        : name?.split(" ")[0]}
                     </th>
                   ))}
+
                 </tr>
               </thead>
+
 
               {/* ===== BODY ===== */}
               <tbody className="divide-y">
@@ -456,10 +730,7 @@ export const Dashboard: React.FC = () => {
                   const category =
                     item?.product_details?.categories?.[0]?.name || "-";
 
-                  const trackingList = item?.tracking || [];
-
-                  // convert array → map
-                  const trackingMap = trackingList.reduce(
+                  const trackingMap = (item?.tracking || []).reduce(
                     (acc: any, t: any) => {
                       acc[t.division_name] = t.currently_available ?? 0;
                       return acc;
@@ -468,49 +739,53 @@ export const Dashboard: React.FC = () => {
                   );
 
                   return (
-                    <tr
-                      key={index}
-                      className="hover:bg-gray-50 transition align-top"
-                    >
+                    <tr key={index} className="hover:bg-gray-50">
+
                       {/* PRODUCT */}
-                      <td className="px-4 py-3">
-                        <div className="font-semibold text-gray-900">
+                      <td className="px-2 py-2">
+                        <div className="font-semibold text-gray-900 text-[12px]">
                           {product?.title}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-[10px] text-gray-500">
+                          Tray : {item?.product_details?.trays[0]?.name}
+                        </div>
+                        <div className="text-[10px] text-gray-500">
                           Tray : {item?.product_details?.trays[0]?.name}
                         </div>
                       </td>
 
+
                       {/* BRAND / CATEGORY / TYPE */}
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-800">
+                      <td className="px-2 py-2">
+                        <div className="font-medium text-gray-800 text-[11px]">
                           {product?.brand?.name}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-[10px] text-gray-500">
                           {category} · {product?.product_type?.name}
                         </div>
                       </td>
 
+
                       {/* TOTAL IN */}
-                      <td className="px-4 py-3 text-center">
-                        <span className="inline-flex px-2 py-1 rounded-md bg-green-100 text-green-700 font-bold">
+                      <td className="px-2 py-2 text-center">
+                        <span className="px-2 py-[2px] rounded bg-green-100 text-green-700 font-semibold text-[11px]">
                           {item?.total_in ?? 0}
                         </span>
                       </td>
 
                       {/* TOTAL OUT */}
-                      <td className="px-4 py-3 text-center border-r">
-                        <span className="inline-flex px-2 py-1 rounded-md bg-red-100 text-red-700 font-bold">
+                      <td className="px-2 py-2 text-center border-r">
+                        <span className="px-2 py-[2px] rounded bg-red-100 text-red-700 font-semibold text-[11px]">
                           {item?.total_out ?? 0}
                         </span>
                       </td>
+
 
                       {/* 🔥 TRACKING VALUES */}
                       {orderedTrackingHeaders.map((name) => (
                         <td
                           key={name}
-                          className={`px-4 py-3 text-right font-bold ${name === "INPUT"
+                          className={`px-2 py-2 text-right font-semibold text-[11px] ${name === "INPUT"
                             ? "text-green-700 bg-green-50"
                             : "text-gray-700"
                             }`}
@@ -518,6 +793,7 @@ export const Dashboard: React.FC = () => {
                           {trackingMap[name] ?? 0}
                         </td>
                       ))}
+
                     </tr>
                   );
                 })}
@@ -627,17 +903,6 @@ export const Dashboard: React.FC = () => {
                 <th className="px-4 py-3 text-right">Amount</th>
               </tr>
             </thead>
-            {/* <tbody>
-              {salesReport.map((r, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 capitalize">{r.product_name}</td>
-                  <td className="px-4 py-2 text-center">{r.date}</td>
-                  <td className="px-4 py-2 text-right">{r.total_quantity}</td>
-                  <td className="px-4 py-2 text-right">{r.order_count}</td>
-                  <td className="px-4 py-2 text-right font-semibold">₹{r.total_amount}</td>
-                </tr>
-              ))}
-            </tbody> */}
 
             <tbody>
               {salesReport.length === 0 ? (

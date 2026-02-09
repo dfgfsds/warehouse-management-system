@@ -142,7 +142,7 @@ export default function BrandForm({
                     </div>
 
                     {/* Logo Upload */}
-                    <div>
+                    {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Brand Logo
                         </label>
@@ -155,7 +155,7 @@ export default function BrandForm({
                             }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         />
-                    </div>
+                    </div> */}
 
                     {logoPreview && (
                         <div className="mt-2">

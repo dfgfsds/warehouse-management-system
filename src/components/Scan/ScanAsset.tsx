@@ -56,6 +56,7 @@ export const ScanAsset: React.FC = () => {
   }
 
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
+console.log(scannedItems)
   // Modal State
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAssetCode, setNewAssetCode] = useState('');
@@ -75,15 +76,28 @@ export const ScanAsset: React.FC = () => {
   const [showOutputModal, setShowOutputModal] = useState(false);
   const [outputData, setOutputData] = useState<any>(null);
 
+  const [isCancelling, setIsCancelling] = useState(false);
+
+
   useEffect(() => {
-    if (actionType === 'sale') {
-      setAutoStatus(STATUSES[5].id as AssetStatus);
+    if (isCancelling) return;
+    if (!STATUSES?.length || !actionType) return;
+
+    if (actionType === "sale") {
+      setAutoStatus(STATUSES[5]?.id as AssetStatus);
+    } else if (actionType === "add") {
+      setAutoStatus(STATUSES[0]?.id as AssetStatus);
     } else {
-      if (STATUSES?.length > 0) {
-        setAutoStatus(STATUSES[0].id as AssetStatus);
-      }
+      setAutoStatus(STATUSES[1]?.id as AssetStatus);
     }
-  }, [STATUSES]);
+  }, [STATUSES, actionType, isCancelling]);
+
+  useEffect(() => {
+    if (step !== "setup") {
+      setIsCancelling(false);
+    }
+  }, [step]);
+
 
 
   useEffect(() => {
@@ -276,6 +290,9 @@ export const ScanAsset: React.FC = () => {
 
     lastScanRef.current = { code, time: now };
 
+    console.log(status)
+
+
     setScannedItems((prev: any[]) => {
       const index = prev.findIndex(
         (i) => i.qrCode === code && i.status === status
@@ -289,7 +306,6 @@ export const ScanAsset: React.FC = () => {
             : item
         );
       }
-
       // first time scan
       return [
         ...prev,
@@ -297,6 +313,7 @@ export const ScanAsset: React.FC = () => {
           assetId: asset?.product?.id,
           qrCode: code,
           status,
+          trayName: asset?.trays[0]?.name,
           ...(actionType === 'add' && {
             tray_id: asset?.trays?.find(
               (t: any) => t?.parent_division_id === status
@@ -363,7 +380,7 @@ export const ScanAsset: React.FC = () => {
         // DESTINATION
         hub_id: toHub,
         ...(actionType === "add" && {
-          division_id: autoStatus,
+          division_id: item?.status,
         }),
         ...(actionType === "transfer" && {
           division_id: item?.status,
@@ -385,19 +402,20 @@ export const ScanAsset: React.FC = () => {
         // previous_tray_id: actionType === 'transfer' ? fromTray : null
       }));
 
+      console.log(payload)
       if (actionType === 'sale') {
         setShowOutputModal(true);
         setOutputData(payload)
       } else {
-        const updateApi = await axios.post(
-          `${baseUrl.divisionInventoryBulk}`,
-          payload
-        );
-        if (updateApi) {
-          setMovedItems(scannedItems);
-          setScannedItems([]);
-          setStep('complete');
-        }
+        // const updateApi = await axios.post(
+        //   `${baseUrl.divisionInventoryBulk}`,
+        //   payload
+        // );
+        // if (updateApi) {
+        //   setMovedItems(scannedItems);
+        //   setScannedItems([]);
+        //   setStep('complete');
+        // }
       }
       // ✅ SUCCESS
     } catch (err: any) {
@@ -559,6 +577,7 @@ export const ScanAsset: React.FC = () => {
             )}
 
             <button onClick={() => {
+              setIsCancelling(true);
               setStep('setup');
               setStatusMode('auto');
               setScannedItems([]);
@@ -606,15 +625,15 @@ export const ScanAsset: React.FC = () => {
                   <tr key={idx} className="hover:bg-gray-50">
                     <td className="p-4">
                       <div className="font-medium capitalize">{item?.productType}</div>
-                      <div className="text-sm font-bold">tray {idx + 1}</div>
+                      <div className="text-sm font-bold">tray: {item?.trayName}</div>
                       <div className="text-gray-500 text-sm">{item?.qrCode}</div>
                       <div className="text-gray-500 text-sm">{item?.categories?.[0]?.name}</div>
 
-                      {item?.maxQuantity === undefined && actionType === 'transfer' && (
+                      {/* {item?.maxQuantity === undefined && actionType === 'transfer' && (
                         <span className="text-xs text-orange-500 flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" /> Not in source
                         </span>
-                      )}
+                      )} */}
                     </td>
                     <td className="p-4">
                       <div className="font-medium capitalize">{item?.spareName}</div>

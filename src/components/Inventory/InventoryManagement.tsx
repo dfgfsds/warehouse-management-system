@@ -12,7 +12,8 @@ import {
   Box,
   PlusCircle,
   X,
-  Loader
+  Loader,
+  Menu
 } from 'lucide-react';
 import { StorageManager } from '../../utils/storage';
 import { Asset, Warehouse, Section, Tray, AssetEvent } from '../../types';
@@ -362,8 +363,11 @@ export const InventoryManagement: React.FC = () => {
     }
   };
 
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const handleTrayClick = (tray: Tray) => {
     setSelectedTray(tray);
+    setIsSidebarOpen(false);
   };
 
   // ======================================================
@@ -1045,20 +1049,26 @@ export const InventoryManagement: React.FC = () => {
   return (
     <div className="flex h-[calc(100vh-5rem)]">
       {/* Sidebar - Tree View */}
-      <div className="w-80 border-r bg-white overflow-y-auto hidden md:block">
+      {/* <div className="w-80 border-r bg-white overflow-y-auto hidden md:block"> */}
+       <div
+        className={`
+          bg-white border-r overflow-y-auto
+          transition-all duration-300
+          ${isSidebarOpen ? "w-80" : "w-0 overflow-hidden"}
+        `}
+      >
         <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
           <h2 className="font-semibold text-gray-700 flex items-center gap-2">
             <Folder className="h-5 w-5 text-blue-600" /> Organization
           </h2>
-          {/* <button
-            onClick={() => setShowAddWarehouseModal(true)}
-            className="text-blue-600 hover:bg-blue-50 rounded p-1"
-            title="Add Warehouse"
-          >
-            <PlusCircle className="h-4 w-4" />
-          </button> */}
-        </div>
 
+            <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            ✕
+          </button>
+        </div>
         {/* Search Input */}
         <div className="p-3 border-b bg-white sticky top-0 z-10">
           <div className="relative">
@@ -1296,6 +1306,12 @@ export const InventoryManagement: React.FC = () => {
       </div>
 
       {/* Main Content */}
+       <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-100"
+          >
+            <Menu className="h-5 w-5 text-gray-600" />
+          </button>
       <div className="flex-1 overflow-auto bg-gray-50 p-6">
 
         {selectedTray ? (
@@ -1341,21 +1357,6 @@ export const InventoryManagement: React.FC = () => {
                 </div> */}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-
-                  {/* <select
-                    value={selectedTray}
-                    onChange={(e) => setSelectedTray(e.target.value)}
-                    className="border px-3 py-2 rounded-lg text-sm"
-                  >
-                    <option value="">All Trays</option>
-
-                    {trayOptions.map((tray) => (
-                      <option key={tray.id} value={tray.id}>
-                        {tray.name}
-                      </option>
-                    ))}
-                  </select> */}
-
                   {/* Brand */}
                   <select
                     value={filterBrand}
@@ -1379,8 +1380,6 @@ export const InventoryManagement: React.FC = () => {
                       <option key={pt.id} value={pt.id}>{pt.name}</option>
                     ))}
                   </select>
-
-                  {/* Division / Tray */}
 
                   {/* Start Date */}
                   <input
@@ -1416,10 +1415,12 @@ export const InventoryManagement: React.FC = () => {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-100 text-xs uppercase text-gray-600 font-semibold">
+                   <thead className="bg-gray-100 text-[10px] uppercase text-gray-600 font-semibold">
                       <tr>
                         <th className="px-4 py-3">S.No</th>
-                        <th className="px-4 py-3">Product / Tray / Barcode</th>
+                        <th className="px-4 py-3">Product / Tray
+                           {/* / Barcode */}
+                           </th>
                         <th className="px-4 py-3">Product Type / Brand</th>
 
                         <th className="px-4 py-3 text-center">Total In </th>
@@ -1470,7 +1471,7 @@ export const InventoryManagement: React.FC = () => {
                         const firstTracking = item?.tracking?.[0]; // one tracking per product
 
                         return (
-                          <tr key={item.id} className="hover:bg-gray-50">
+                          <tr key={item.id} className="hover:bg-gray-50 text-[10px] ">
                             <td className="px-4 py-3">
                               <div className="font-semibold text-gray-900">
                                 {index + 1}
@@ -1482,11 +1483,11 @@ export const InventoryManagement: React.FC = () => {
                                 {item.name}
                               </div>
                               <div className="text-xs text-gray-500">
-                                Tray: {firstTracking?.tray_name || "-"}
+                                Tray: {firstTracking?.tray_code || "-"}
                               </div>
-                              <div className="text-xs font-mono text-gray-600">
+                              {/* <div className="text-xs font-mono text-gray-600">
                                 Barcode: {item.id}
-                              </div>
+                              </div> */}
                             </td>
 
                             {/* Product Type / Brand */}
@@ -1582,129 +1583,7 @@ export const InventoryManagement: React.FC = () => {
 
               )}
             </div>
-            {/* <tbody className="divide-y divide-gray-100">
-                      {filteredAssets?.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="p-12 text-center text-gray-400">
-                            This tray is empty.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredAssets?.map((asset: any) => {
-                          const product = asset?.product_details?.product;
-                          const category = asset?.product_details?.categories?.[0];
-
-                          return (
-                            <tr
-                              key={asset?.id}
-                              className="hover:bg-gray-50/80 transition-colors group"
-                            >
-                              <td className="px-6 py-4 ">
-                                <div className="font-mono text-sm font-semibold text-gray-800">
-                                  {product?.barcode_value}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  SKU: {product?.sku}
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-4 capitalize">
-                                <div className="text-sm font-semibold text-gray-900">
-                                  {product?.title}
-                                </div>
-
-                                <div className="text-xs text-gray-500 mt-0.5">
-                                  Brand:{" "}
-                                  <span className="font-medium">
-                                    {product?.brand?.name || "-"}
-                                  </span>
-                                </div>
-
-                                <div className="text-xs text-gray-500">
-                                  Category:{" "}
-                                  <span className="font-medium">
-                                    {category?.name || "-"}
-                                  </span>
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-4 text-center">
-                                <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-md font-bold text-sm">
-                                  {asset?.stock}
-                                </span>
-                              </td>
-
-                              <td className="px-6 py-4">
-                                <span
-                                  className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(
-                                    asset?.status_name
-                                  )}`}
-                                >
-                                  {asset?.status_name?.toUpperCase()}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-center">
-                                <button
-                                  onClick={() => {
-                                    setSelectedOutputAsset(asset);
-                                    setShowOutputModal(true);
-                                  }}
-                                  className="px-3 py-1 bg-red-50 text-red-700 text-xs font-bold rounded-lg hover:bg-red-100"
-                                >
-                                  OUTPUT
-                                </button>
-                              </td>
-
-
-
-                              <td className="px-6 py-4 text-sm text-gray-500">
-                                {new Date(asset?.updated_at || asset?.created_at).toLocaleString("en-IN", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                })}
-                              </td>
-
-
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => {
-                                      setShowAddAssetModal(true)
-                                      setEditProductData(asset?.product_details)
-                                    }}
-
-                                    className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
-                                    title="Edit Product"
-                                  >
-                                    <Package className="h-4 w-4" />
-                                  </button>
-
-                                  <button
-                                    onClick={() => handleViewHistory(asset)}
-                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                                    title="View History"
-                                  >
-                                    <History className="h-4 w-4" />
-                                  </button>
-
-                                  <button
-                                    onClick={() => handlePrintBarcode(asset)}
-                                    className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                                    title="Print Barcode"
-                                  >
-                                    <Printer className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody> */}
+           
           </div>
 
 
