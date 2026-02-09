@@ -3,13 +3,10 @@ import {
   LayoutDashboard,
   QrCode,
   Package,
-  History,
-  BarChart3,
   Settings,
-  Users,
-  Building2,
   BoldIcon,
-  BoxIcon
+  BoxIcon,
+  ListOrdered
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -22,41 +19,42 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
   const { user } = useAuth();
   // staff manager
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'staff',"manager"] },
-    { id: 'scan', label: 'Scan Asset', icon: QrCode, roles: ['operator', 'staff', 'admin',"manager"] },
-    { id: 'brands', label: 'Brands', icon: Settings, roles: ['admin',"manager"] },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'staff', "manager"] },
+    { id: 'scan', label: 'Scan Asset', icon: QrCode, roles: ['operator', 'staff', 'admin', "manager"] },
+    { id: 'brands', label: 'Brands', icon: Settings, roles: ['admin', "manager"] },
     // { id: 'divisions', label: 'divisions', icon: BoldIcon, roles: ['admin'] },
-    { id: 'categorys', label: 'Categories', icon: BoxIcon, roles: ['admin',"manager"] },
+    { id: 'categorys', label: 'Categories', icon: BoxIcon, roles: ['admin', "manager"] },
     { id: 'inventory', label: 'Inventory', icon: Package, roles: ['admin', "manager", 'staff'] },
-    { id: 'productList', label: 'Product List', icon: BoldIcon, roles: ['admin',"manager"] },
+    { id: 'productList', label: 'Product List', icon: BoldIcon, roles: ['admin', "manager"] },
+    { id: 'orderHistory', label: 'Orders History', icon: ListOrdered, roles: ['admin', 'warehouse_manager'] },
     // { id: 'history', label: 'Asset History', icon: History, roles: ['admin', 'warehouse_manager', 'auditor'] },
     // { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'warehouse_manager'] },
-    { id: 'admin', label: 'Administration', icon: Settings, roles: ['admin',"manager"] },
+    { id: 'admin', label: 'Administration', icon: Settings, roles: ['admin', "manager"] },
   ];
 
-  const visibleItems = navigationItems.filter(item =>
-    item.roles.includes(user?.role || '')
+  const visibleItems = navigationItems?.filter((item:any) =>
+    item?.roles.includes(user?.role || '')
   );
 
   return (
     <nav className="bg-gray-50 border-r border-gray-200 w-64 h-full overflow-y-auto">
       <div className="p-4">
         <ul className="space-y-2">
-          {visibleItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
+          {visibleItems?.map((item) => {
+            const Icon = item?.icon;
+            const isActive = activeTab === item?.id;
 
             return (
-              <li key={item.id}>
+              <li key={item?.id}>
                 <button
-                  onClick={() => onTabChange(item.id)}
+                  onClick={() => onTabChange(item?.id)}
                   className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors ${isActive
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                     }`}
                 >
                   <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium">{item?.label}</span>
                 </button>
               </li>
             );

@@ -15,6 +15,7 @@ import Brands from './components/Brands/Brands';
 import Divisions from './components/Divisions/Divisions';
 import Category from './components/Category/Category';
 import { ProductList } from './components/ProductList/ProductLists';
+import OrderHistory from './components/OrderHistory/OrderHistory';
 
 function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -98,6 +99,8 @@ function App() {
         return <Administration />;
       case 'productList':
         return <ProductList />;
+              case 'orderHistory':
+        return <OrderHistory />;
       default:
         return <Dashboard />;
     }

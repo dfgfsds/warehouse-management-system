@@ -1,14 +1,14 @@
 import { X, IndianRupee } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import baseUrl from "../../../api-endpoints/ApiUrls";
 import { useAuth } from "../../hooks/useAuth";
 
-export default function OutputOrderModal({ asset, onClose, getTrayProductsApi }: any) {
+export default function OutputOrderModal({ asset, onClose, getTrayProductsApi, cancel }: any) {
     const { user }: any = useAuth();
     const product = asset?.product_details?.product;
 
-    const [quantity, setQuantity] = useState(1);
+    const [quantity, setQuantity] = useState(0);
     const [amount, setAmount] = useState(0);
     const [paidAmount, setPaidAmount] = useState(0);
 
@@ -21,6 +21,29 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi }:
     const [customerEmail, setCustomerEmail] = useState("");
     const [customerAddress, setCustomerAddress] = useState("");
 
+    console.log(asset)
+    const assetList = Array.isArray(asset)
+        ? asset
+        : Object.values(asset || {});
+
+
+    const totalStock = assetList.reduce((sum: number, item: any) => {
+        const qty =
+            item.moveQuantity ??
+            item["moveQuantity"] ??
+            item.stock ??
+            item.qty ??
+            0;
+
+        return sum + Number(qty);
+    }, 0);
+
+    useEffect(() => {
+        if (totalStock) {
+            setQuantity(totalStock);
+        }
+    })
+
     const [loading, setLoading] = useState(false);
 
     const orderTotal = quantity * amount;
@@ -30,25 +53,18 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi }:
         if (quantity > asset?.stock) return alert("Quantity exceeds stock");
         if (amount <= 0) return alert("Amount must be greater than 0");
 
-        if (paymentType === "full" && paidAmount !== orderTotal) {
-            return alert("Paid amount must equal order total for FULL payment");
-        }
+        // if (paymentType === "full" && paidAmount !== orderTotal) {
+        //     return alert("Paid amount must equal order total for FULL payment");
+        // }
 
         if (paymentType === "partial" && paidAmount >= orderTotal) {
             return alert("Paid amount must be less than order total");
         }
-
         const payload = {
-            parent_id: user?.vendor_id,
-            product_id: product?.id,
-            hub_id: asset?.hub_id,
-            division_id: asset?.division_id,
-            tray_id: asset?.tray_id,
-            vendor_id: asset?.vendor_id,
-            status: asset?.status,
-            stock: quantity,
-            user_id: user?.user_id,
-
+            product_details: asset?.map((item: any) => ({
+                product_id: item?.product_id,
+                quantity: item?.stock,
+            })),
             order_type: "customer",
             order_total: orderTotal,
 
@@ -61,16 +77,45 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi }:
             transaction_id: transactionId || null,
             payment_date: new Date().toISOString().split("T")[0],
             payment_type: paymentType,
-            paid_amount: paidAmount,
-        };
+            paid_amount: amount,
+            vendor_id: user?.vendor_id,
+            user_id: user?.user_id,
+            // hub_id: asset[0]?.hub_id,
+        }
+        // const payload = {
+        //     parent_id: user?.vendor_id,
+        //     product_id: product?.id,
+        //     hub_id: asset?.hub_id,
+        //     division_id: asset?.division_id,
+        //     tray_id: asset?.tray_id,
+        //     vendor_id: asset?.vendor_id,
+        //     status: asset?.status,
+        //     stock: quantity,
+        //     user_id: user?.user_id,
+
+        //     order_type: "customer",
+        //     order_total: orderTotal,
+
+        //     customer_name: customerName,
+        //     customer_mobile: customerMobile,
+        //     customer_email: customerEmail,
+        //     customer_address: customerAddress,
+
+        //     payment_mode: paymentMode,
+        //     transaction_id: transactionId || null,
+        //     payment_date: new Date().toISOString().split("T")[0],
+        //     payment_type: paymentType,
+        //     paid_amount: paidAmount,
+        // };
 
         try {
             setLoading(true);
-            const updatedApi = await axios.post(`${baseUrl.divisionInventory}`, payload);
+            const updatedApi = await axios.post(`${baseUrl.sell}?hub_id=${asset[0]?.hub_id}`, payload);
             if (updatedApi) {
                 alert("✅ Order created successfully");
                 onClose();
-                getTrayProductsApi();
+                cancel();
+                // getTrayProductsApi();
             }
 
         } catch (err: any) {

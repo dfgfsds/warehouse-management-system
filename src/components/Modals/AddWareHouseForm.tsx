@@ -50,12 +50,12 @@ export default function AddWarehouseModal({
             if (editWarehouse) {
                 // UPDATE
                 await axios.put(
-                    `${baseUrl.vendors}/${editWarehouse.id}`,
+                    `${baseUrl.rkVendorsHub}/${editWarehouse.id}`,
                     formData
                 );
             } else {
                 // CREATE
-                await axios.post(baseUrl.vendors, formData);
+                await axios.post(baseUrl.rkVendorsHub, formData);
             }
             getWarehouses();
             onCancel();
