@@ -1,511 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { Package, TrendingUp, Clock, AlertTriangle, Activity, Users } from 'lucide-react';
-// import { StorageManager } from '../../utils/storage';
-// import { Asset, AssetEvent, DashboardStats } from '../../types';
-// import { useAuth } from '../../hooks/useAuth';
-// import baseUrl from '../../../api-endpoints/ApiUrls'
-// export const Dashboard: React.FC = () => {
-//   const { user } = useAuth();
-//   const [stats, setStats] = useState<DashboardStats>({
-//     totalAssets: 0,
-//     assetsByStatus: {
-//       working: 0,
-//       needs_fix: 0,
-//       scrap: 0,
-//       reserved: 0,
-//       damaged: 0,
-//       testing: 0
-//     },
-//     assetsByWarehouse: {},
-//     recentActivity: [],
-//     agingStats: {
-//       days0to2: 0,
-//       days3to7: 0,
-//       days7plus: 0
-//     }
-//   });
-
-//   useEffect(() => {
-//     calculateStats();
-//   }, []);
-
-//   console.log(baseUrl,'hgjhgjh')
-//   const calculateStats = () => {
-//     const assets = StorageManager.getAssets();
-//     const events = StorageManager.getEvents().slice(-10); // Last 10 events
-//     const warehouses = StorageManager.getWarehouses();
-
-//     // Calculate asset counts by status
-//     const assetsByStatus = assets.reduce((acc, asset) => {
-//       acc[asset.status] = (acc[asset.status] || 0) + 1;
-//       return acc;
-//     }, {} as Record<string, number>);
-
-//     // Calculate aging
-//     const now = new Date();
-//     const agingStats = assets.reduce((acc, asset) => {
-//       const lastMoved = new Date(asset.lastMovedAt);
-//       const daysDiff = Math.floor((now.getTime() - lastMoved.getTime()) / (1000 * 60 * 60 * 24));
-
-//       if (daysDiff <= 2) acc.days0to2++;
-//       else if (daysDiff <= 7) acc.days3to7++;
-//       else acc.days7plus++;
-
-//       return acc;
-//     }, { days0to2: 0, days3to7: 0, days7plus: 0 });
-
-//     // Calculate assets by warehouse
-//     const assetsByWarehouse = assets.reduce((acc, asset) => {
-//       const warehouse = warehouses.find(w => w.id === asset.warehouseId);
-//       const warehouseName = warehouse?.name || 'Unknown';
-//       acc[warehouseName] = (acc[warehouseName] || 0) + 1;
-//       return acc;
-//     }, {} as Record<string, number>);
-
-//     setStats({
-//       totalAssets: assets.length,
-//       assetsByStatus: {
-//         working: assetsByStatus.working || 0,
-//         needs_fix: assetsByStatus.needs_fix || 0,
-//         scrap: assetsByStatus.scrap || 0,
-//         reserved: assetsByStatus.reserved || 0,
-//         damaged: assetsByStatus.damaged || 0,
-//         testing: assetsByStatus.testing || 0
-//       },
-//       assetsByWarehouse,
-//       recentActivity: events,
-//       agingStats
-//     });
-//   };
-
-//   const getStatusColor = (status: string) => {
-//     switch (status) {
-//       case 'working': return 'text-green-600 bg-green-100';
-//       case 'needs_fix': return 'text-yellow-600 bg-yellow-100';
-//       case 'scrap': return 'text-red-600 bg-red-100';
-//       case 'reserved': return 'text-blue-600 bg-blue-100';
-//       case 'damaged': return 'text-red-600 bg-red-100';
-//       case 'testing': return 'text-purple-600 bg-purple-100';
-//       default: return 'text-gray-600 bg-gray-100';
-//     }
-//   };
-
-//   const formatEventType = (type: string) => {
-//     return type.split('_').map(word => 
-//       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-//     ).join(' ');
-//   };
-
-//   return (
-//     <div className="p-6 space-y-6">
-//       <div className="flex items-center justify-between">
-//         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-//         <div className="text-sm text-gray-500">
-//           Welcome back, {user?.username}
-//         </div>
-//       </div>
-
-//       {/* Key Metrics */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-//         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-sm font-medium text-gray-600">Total Assets</p>
-//               <p className="text-3xl font-bold text-gray-900">{stats.totalAssets}</p>
-//             </div>
-//             <Package className="h-12 w-12 text-blue-600 bg-blue-100 rounded-lg p-3" />
-//           </div>
-//         </div>
-
-//         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-sm font-medium text-gray-600">Working Assets</p>
-//               <p className="text-3xl font-bold text-green-600">{stats.assetsByStatus.working}</p>
-//             </div>
-//             <TrendingUp className="h-12 w-12 text-green-600 bg-green-100 rounded-lg p-3" />
-//           </div>
-//         </div>
-
-//         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-sm font-medium text-gray-600">Needs Fix</p>
-//               <p className="text-3xl font-bold text-yellow-600">{stats.assetsByStatus.needs_fix}</p>
-//             </div>
-//             <AlertTriangle className="h-12 w-12 text-yellow-600 bg-yellow-100 rounded-lg p-3" />
-//           </div>
-//         </div>
-
-//         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-sm font-medium text-gray-600">Aged 7+ Days</p>
-//               <p className="text-3xl font-bold text-red-600">{stats.agingStats.days7plus}</p>
-//             </div>
-//             <Clock className="h-12 w-12 text-red-600 bg-red-100 rounded-lg p-3" />
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         {/* Asset Status Breakdown */}
-//         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-//           <h2 className="text-lg font-semibold text-gray-900 mb-4">Asset Status</h2>
-//           <div className="space-y-3">
-//             {Object.entries(stats.assetsByStatus).map(([status, count]) => (
-//               <div key={status} className="flex items-center justify-between">
-//                 <div className="flex items-center space-x-2">
-//                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
-//                     {status.replace('_', ' ').toUpperCase()}
-//                   </span>
-//                 </div>
-//                 <span className="font-semibold text-gray-900">{count}</span>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-
-//         {/* Recent Activity */}
-//         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-//           <div className="flex items-center space-x-2 mb-4">
-//             <Activity className="h-5 w-5 text-gray-600" />
-//             <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-//           </div>
-//           <div className="space-y-3">
-//             {stats.recentActivity.length === 0 ? (
-//               <p className="text-gray-500 text-sm">No recent activity</p>
-//             ) : (
-//               stats.recentActivity.map((event) => (
-//                 <div key={event.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-//                   <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
-//                   <div className="flex-1 min-w-0">
-//                     <p className="text-sm font-medium text-gray-900">
-//                       {formatEventType(event.type)}
-//                     </p>
-//                     <p className="text-sm text-gray-600 truncate">
-//                       Asset: {event.assetId}
-//                     </p>
-//                     <p className="text-xs text-gray-500">
-//                       {new Date(event.timestamp).toLocaleString()}
-//                     </p>
-//                   </div>
-//                 </div>
-//               ))
-//             )}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Aging Analysis */}
-//       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-//         <h2 className="text-lg font-semibold text-gray-900 mb-4">Asset Aging Analysis</h2>
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-//           <div className="text-center p-4 bg-green-50 rounded-lg">
-//             <div className="text-2xl font-bold text-green-600">{stats.agingStats.days0to2}</div>
-//             <div className="text-sm text-gray-600">0-2 Days</div>
-//           </div>
-//           <div className="text-center p-4 bg-yellow-50 rounded-lg">
-//             <div className="text-2xl font-bold text-yellow-600">{stats.agingStats.days3to7}</div>
-//             <div className="text-sm text-gray-600">3-7 Days</div>
-//           </div>
-//           <div className="text-center p-4 bg-red-50 rounded-lg">
-//             <div className="text-2xl font-bold text-red-600">{stats.agingStats.days7plus}</div>
-//             <div className="text-sm text-gray-600">7+ Days</div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
-// import React, { useEffect, useState } from 'react';
-// import {
-//   Package,
-//   AlertTriangle,
-//   Clock,
-//   TrendingUp,
-// } from 'lucide-react';
-// import { useAuth } from '../../hooks/useAuth';
-// import { StorageManager } from '../../utils/storage';
-// import { Asset } from '../../types';
-
-// interface DashboardStats {
-//   total_assets: number;
-//   status_counts: Record<string, number>;
-//   warehouse_distribution: Record<string, number>;
-//   recent_activity: any[];
-//   aging_stats: {
-//     days_0_to_2: number;
-//     days_3_to_7: number;
-//     days_7_plus: number;
-//   };
-// }
-
-// export const Dashboard: React.FC = () => {
-//   const { user }: any = useAuth();
-
-//   const [stats, setStats] = useState<DashboardStats>({
-//     total_assets: 0,
-//     status_counts: {},
-//     warehouse_distribution: {},
-//     recent_activity: [],
-//     aging_stats: {
-//       days_0_to_2: 0,
-//       days_3_to_7: 0,
-//       days_7_plus: 0,
-//     },
-//   });
-
-//   /* ================= CALCULATE STATS FROM LOCALSTORAGE ================= */
-//   useEffect(() => {
-//     calculateDashboardStats();
-//   }, []);
-
-//   const calculateDashboardStats = () => {
-//     try {
-//       const assets = StorageManager.getAssets();
-//       const events = StorageManager.getEvents().slice(-10); // Last 10 events
-//       const warehouses = StorageManager.getWarehouses();
-
-//       // Count assets by status
-//       const status_counts: Record<string, number> = {};
-//       assets.forEach((asset) => {
-//         const status = asset.status || 'unknown';
-//         status_counts[status] = (status_counts[status] || 0) + 1;
-//       });
-
-//       // Distribute assets by warehouse
-//       const warehouse_distribution: Record<string, number> = {};
-//       assets.forEach((asset) => {
-//         const warehouse = warehouses.find(w => w.id === asset.warehouseId);
-//         const warehouseName = warehouse?.name || 'Unknown';
-//         warehouse_distribution[warehouseName] = (warehouse_distribution[warehouseName] || 0) + 1;
-//       });
-
-//       // Calculate aging statistics (based on lastMovedAt)
-//       const now = new Date();
-//       const aging_stats = { days_0_to_2: 0, days_3_to_7: 0, days_7_plus: 0 };
-
-//       assets.forEach((asset) => {
-//         const lastMoved = new Date(asset.lastMovedAt);
-//         const daysDiff = Math.floor((now.getTime() - lastMoved.getTime()) / (1000 * 60 * 60 * 24));
-
-//         if (daysDiff <= 2) {
-//           aging_stats.days_0_to_2++;
-//         } else if (daysDiff <= 7) {
-//           aging_stats.days_3_to_7++;
-//         } else {
-//           aging_stats.days_7_plus++;
-//         }
-//       });
-
-//       setStats({
-//         total_assets: assets.length,
-//         status_counts,
-//         warehouse_distribution,
-//         recent_activity: events,
-//         aging_stats,
-//       });
-//     } catch (error) {
-//       console.error('Error calculating dashboard stats:', error);
-//     }
-//   };
-
-//   return (
-//     <div className="p-6 space-y-6">
-//       {/* HEADER */}
-//       <div className="flex items-center justify-between">
-//         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-//         <span className="text-sm text-gray-500">
-//           Welcome back, {user?.username || 'User'}
-//         </span>
-//       </div>
-
-//       {/* ================= TOP METRICS ================= */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-//         {/* TOTAL ASSETS */}
-//         <div className="bg-white p-6 rounded-lg border shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-sm text-gray-600">Total Assets</p>
-//               <p className="text-3xl font-bold text-gray-900">
-//                 {stats.total_assets}
-//               </p>
-//             </div>
-//             <Package className="h-12 w-12 text-blue-600 bg-blue-100 p-3 rounded-lg" />
-//           </div>
-//         </div>
-
-//         {/* WORKING ASSETS */}
-//         <div className="bg-white p-6 rounded-lg border shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-sm text-gray-600">Working</p>
-//               <p className="text-3xl font-bold text-green-600">
-//                 {stats.status_counts['working'] || 0}
-//               </p>
-//             </div>
-//             <TrendingUp className="h-12 w-12 text-green-600 bg-green-100 p-3 rounded-lg" />
-//           </div>
-//         </div>
-
-//         {/* NEEDS FIX */}
-//         <div className="bg-white p-6 rounded-lg border shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-sm text-gray-600">Needs Fix</p>
-//               <p className="text-3xl font-bold text-yellow-600">
-//                 {stats.status_counts['needs_fix'] || 0}
-//               </p>
-//             </div>
-//             <AlertTriangle className="h-12 w-12 text-yellow-600 bg-yellow-100 p-3 rounded-lg" />
-//           </div>
-//         </div>
-
-//         {/* AGING 7+ DAYS */}
-//         <div className="bg-white p-6 rounded-lg border shadow-sm">
-//           <div className="flex items-center justify-between">
-//             <div>
-//               <p className="text-sm text-gray-600">Aged 7+ Days</p>
-//               <p className="text-3xl font-bold text-red-600">
-//                 {stats.aging_stats.days_7_plus}
-//               </p>
-//             </div>
-//             <Clock className="h-12 w-12 text-red-600 bg-red-100 p-3 rounded-lg" />
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* ================= STATUS BREAKDOWN ================= */}
-//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         {/* Asset Status */}
-//         <div className="bg-white p-6 rounded-lg border shadow-sm">
-//           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-//             Asset Status Breakdown
-//           </h2>
-
-//           {Object.keys(stats.status_counts).length === 0 ? (
-//             <p className="text-sm text-gray-500">No assets available</p>
-//           ) : (
-//             <div className="space-y-3">
-//               {Object.entries(stats.status_counts).map(([status, count]) => (
-//                 <div key={status} className="flex items-center justify-between">
-//                   <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-//                     {status.replace('_', ' ').toUpperCase()}
-//                   </span>
-//                   <span className="font-semibold text-gray-900">{count}</span>
-//                 </div>
-//               ))}
-//             </div>
-//           )}
-//         </div>
-
-//         {/* Warehouse Distribution */}
-//         <div className="bg-white p-6 rounded-lg border shadow-sm">
-//           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-//             Assets by Warehouse
-//           </h2>
-
-//           {Object.keys(stats.warehouse_distribution).length === 0 ? (
-//             <p className="text-sm text-gray-500">No warehouse data available</p>
-//           ) : (
-//             <div className="space-y-3">
-//               {Object.entries(stats.warehouse_distribution).map(([warehouse, count]) => (
-//                 <div key={warehouse} className="flex items-center justify-between">
-//                   <span className="text-sm font-medium text-gray-700">{warehouse}</span>
-//                   <span className="font-semibold text-gray-900">{count}</span>
-//                 </div>
-//               ))}
-//             </div>
-//           )}
-//         </div>
-//       </div>
-
-//       {/* ================= AGING ANALYSIS ================= */}
-//       <div className="bg-white p-6 rounded-lg border shadow-sm">
-//         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-//           Asset Aging Analysis
-//         </h2>
-
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-//           <AgingCard
-//             label="0–2 Days"
-//             value={stats.aging_stats.days_0_to_2}
-//             color="green"
-//           />
-//           <AgingCard
-//             label="3–7 Days"
-//             value={stats.aging_stats.days_3_to_7}
-//             color="yellow"
-//           />
-//           <AgingCard
-//             label="7+ Days"
-//             value={stats.aging_stats.days_7_plus}
-//             color="red"
-//           />
-//         </div>
-//       </div>
-
-//       {/* ================= RECENT ACTIVITY ================= */}
-//       <div className="bg-white p-6 rounded-lg border shadow-sm">
-//         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-//           Recent Activity
-//         </h2>
-
-//         {stats.recent_activity.length === 0 ? (
-//           <p className="text-sm text-gray-500">No recent activity</p>
-//         ) : (
-//           <div className="space-y-3">
-//             {stats.recent_activity.map((event) => (
-//               <div key={event.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-//                 <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-//                 <div className="flex-1 min-w-0">
-//                   <p className="text-sm font-medium text-gray-900">
-//                     {event.type.replace('_', ' ').toUpperCase()}
-//                   </p>
-//                   <p className="text-sm text-gray-600 truncate">
-//                     Asset: {event.assetId}
-//                   </p>
-//                   <p className="text-xs text-gray-500">
-//                     {new Date(event.timestamp).toLocaleString()}
-//                   </p>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// /* ================= HELPER COMPONENT ================= */
-
-// const AgingCard = ({
-//   label,
-//   value,
-//   color,
-// }: {
-//   label: string;
-//   value: number;
-//   color: 'red' | 'yellow' | 'green';
-// }) => {
-//   const colorMap: any = {
-//     red: 'text-red-600 bg-red-50',
-//     yellow: 'text-yellow-600 bg-yellow-50',
-//     green: 'text-green-600 bg-green-50',
-//   };
-
-//   return (
-//     <div className={`text-center p-4 rounded-lg ${colorMap[color]}`}>
-//       <div className="text-2xl font-bold">{value}</div>
-//       <div className="text-sm font-medium">{label}</div>
-//     </div>
-//   );
-// };
-
 import React, { useEffect, useState } from "react";
 import {
   Package,
@@ -579,6 +71,14 @@ export const Dashboard: React.FC = () => {
   const [productSearch, setProductSearch] = useState("");
   const [productData, setProductData] = useState<any[]>([]);
   const [selectedProductId, setSelectedProductId] = useState("");
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+
+  const [brandsList, setBrandsList] = useState<any[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState("");
+  const [selectedProductTypeId, setSelectedProductTypeId] = useState("");
+  const [productTypes, setProductTypes] = useState<any[]>([]);
+
 
 
   const getProducts = async () => {
@@ -597,6 +97,10 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    axios.get(`${baseUrl.categories}/by-vendor/${user.vendor_id}/?vendor=${user.vendor_id}&type=product`).then(r => setCategoriesList(r?.data?.data?.categories || []));
+  }, []);
+
 
   useEffect(() => {
     if (user?.vendor_id) {
@@ -604,10 +108,63 @@ export const Dashboard: React.FC = () => {
     }
   }, [user?.vendor_id]);
 
-  const filteredHubInventory = hubInventory.filter((item: any) => {
-    if (!selectedProductId) return true;
 
-    return item.product_id === selectedProductId;
+  useEffect(() => {
+    if (!user?.vendor_id) return;
+
+    axios
+      .get(`${baseUrl.brands}/by-vendor/${user.vendor_id}`)
+      .then(r => setBrandsList(r?.data?.data?.brands || []));
+
+    axios
+      .get(`${baseUrl.productTypes}/by-vendor/${user.vendor_id}`)
+      .then(r => setProductTypes(r?.data?.data?.product_types || []));
+
+  }, [user?.vendor_id]);
+
+
+
+  // const filteredHubInventory = hubInventory.filter((item: any) => {
+  //   const productId = item?.product_details?.product?.id;
+  //   console.log(productId)
+  //   const categoryId =
+  //     item?.product_details?.categories?.[0]?.id;
+
+  //   if (selectedProductId && productId !== selectedProductId) {
+  //     return false;
+  //   }
+
+  //   if (selectedCategoryId && categoryId !== selectedCategoryId) {
+  //     return false;
+  //   }
+
+  //   return true;
+  // });
+
+  const filteredHubInventory = hubInventory?.filter((item: any) => {
+    const product = item?.product_details?.product;
+    const productId = product?.id;
+    const categoryId = item?.product_details?.categories?.[0]?.id;
+    const brandId = product?.brand?.id;
+    const productTypeId = product?.product_type?.id;
+
+    if (selectedProductId && productId !== selectedProductId) {
+      return false;
+    }
+
+    if (selectedCategoryId && categoryId !== selectedCategoryId) {
+      return false;
+    }
+
+    if (selectedBrandId && brandId !== selectedBrandId) {
+      return false;
+    }
+
+    if (selectedProductTypeId && productTypeId !== selectedProductTypeId) {
+      return false;
+    }
+
+    return true;
   });
 
 
@@ -621,19 +178,16 @@ export const Dashboard: React.FC = () => {
     setHubInventoryLoading(true);
     try {
       const res = await axios.get(
-        `${baseUrl.hubDivisionInventory}?hub_id=${hubId}&division_id=335f1aea-42f2-48e9-81b6-12d2e4f5c480`
+        `${baseUrl.hubDivisionInventory}?hub_id=${hubId}`
       );
 
-      setHubInventory(res?.data?.data?.inventory_stats || []);
+      setHubInventory(res?.data?.data || []);
     } catch (error) {
       console.error("Hub inventory error", error);
     } finally {
       setHubInventoryLoading(false);
     }
   };
-
-
-
 
   useEffect(() => {
     if (selectedHubId) {
@@ -714,6 +268,23 @@ export const Dashboard: React.FC = () => {
     return "bg-green-50 text-green-700 border-green-200";
   };
 
+  const trackingHeaders = Array.from(
+    new Set(
+      hubInventory.flatMap(
+        (item: any) =>
+          item.tracking?.map((t: any) => t.division_name) || []
+      )
+    )
+  );
+
+  // INPUT first, rest after
+  const orderedTrackingHeaders = [
+    "INPUT",
+    ...trackingHeaders.filter((h) => h !== "INPUT"),
+  ];
+
+
+
   return (
     <div className="p-6 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
 
@@ -736,44 +307,106 @@ export const Dashboard: React.FC = () => {
             🏬 Hub Inventory Available Stock
           </h2>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-4 items-end mb-4">
 
             {/* HUB SELECT */}
-            <select
-              value={selectedHubId}
-              onChange={(e) => setSelectedHubId(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm w-56 focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Hub</option>
-              {warehousesData?.map((hub: any) => (
-                <option key={hub.id} value={hub.id}>
-                  {hub.title}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Hub
+              </label>
+              <select
+                value={selectedHubId}
+                onChange={(e) => setSelectedHubId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-56 focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Hub</option>
+                {warehousesData?.map((hub: any) => (
+                  <option key={hub.id} value={hub.id}>
+                    {hub.title}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* PRODUCT SEARCH */}
-            <select
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-64 bg-white focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Products</option>
+            {/* CATEGORY SELECT */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Category
+              </label>
+              <select
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-64 focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Categories</option>
+                {categoriesList?.map((x: any) => (
+                  <option key={x.id} value={x.id}>
+                    {x.title}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              {productData?.map((item: any) => (
-                <option
-                  key={item?.product?.id}
-                  value={item?.product?.id}
-                  className="capitalize"
-                >
-                  {item?.product?.title} ({item?.product?.sku})
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Brand
+              </label>
+              <select
+                value={selectedBrandId}
+                onChange={(e) => setSelectedBrandId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-56 focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Brands</option>
+                {brandsList.map((b: any) => (
+                  <option key={b.id} value={b.id}>
+                    {b.brand_name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
 
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Product Type
+              </label>
+              <select
+                value={selectedProductTypeId}
+                onChange={(e) => setSelectedProductTypeId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-56 focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Types</option>
+                {productTypes.map((t: any) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+
+            {/* PRODUCT SELECT */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Product
+              </label>
+              <select
+                value={selectedProductId}
+                onChange={(e) => setSelectedProductId(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white text-sm w-72 focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Products</option>
+                {productData?.map((item: any) => (
+                  <option key={item.product.id} value={item.product.id}>
+                    {item.product.title} ({item.product.sku})
+                  </option>
+                ))}
+              </select>
+            </div>
 
           </div>
+
+
         </div>
 
         {/* STATES */}
@@ -791,60 +424,113 @@ export const Dashboard: React.FC = () => {
           </div>
         ) : (
           /* TABLE */
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border rounded-xl overflow-hidden">
-              <thead className="bg-gray-100 text-xs uppercase text-gray-600">
+          <div className="overflow-x-auto rounded-xl border shadow-sm bg-white ">
+            <table className="w-full text-sm">
+              {/* ===== HEADER ===== */}
+              <thead className="bg-gray-50 text-xs uppercase text-gray-600 sticky top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left">Product</th>
-                  <th className="px-4 py-3 text-center">SKU</th>
-                  <th className="px-4 py-3 text-right">Available Stock</th>
+                  <th className="px-4 py-3 text-left">Product / Tray</th>
+                  <th className="px-4 py-3 text-left">Brand / Category / Type</th>
+                  <th className="px-4 py-3 text-center">Total In</th>
+                  <th className="px-4 py-3 text-center border-r">Total Out</th>
+
+                  {/* 🔥 TRACKING HEADERS */}
+                  {orderedTrackingHeaders.map((name) => (
+                    <th
+                      key={name}
+                      className={`px-4 py-3 text-right whitespace-nowrap ${name === "INPUT"
+                        ? "bg-green-50 text-green-700 font-bold"
+                        : ""
+                        }`}
+                    >
+                      {name === "INPUT" ? "Available Stock" : name}
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
+              {/* ===== BODY ===== */}
               <tbody className="divide-y">
-                {filteredHubInventory.map((item: any) => (
-                  <tr
-                    key={item.product_id}
-                    className="hover:bg-gray-50 transition"
-                  >
-                    {/* PRODUCT */}
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-gray-900 capitalize">
-                        {item.product_name}
-                      </div>
-                    </td>
+                {filteredHubInventory.map((item: any, index: number) => {
+                  const product = item?.product_details?.product;
+                  const category =
+                    item?.product_details?.categories?.[0]?.name || "-";
 
-                    {/* SKU */}
-                    <td className="px-4 py-3 text-center font-mono text-gray-600">
-                      {item.sku}
-                    </td>
+                  const trackingList = item?.tracking || [];
 
-                    {/* AVAILABLE STOCK */}
-                    <td className="px-4 py-3 text-right">
-                      <div
-                        className={`inline-flex flex-col items-center justify-center px-3 py-1.5 rounded-lg border font-bold ${getStockStyle(
-                          item.current_stock
-                        )}`}
-                      >
-                        <span className="text-xl leading-none">
-                          {item.current_stock}
+                  // convert array → map
+                  const trackingMap = trackingList.reduce(
+                    (acc: any, t: any) => {
+                      acc[t.division_name] = t.currently_available ?? 0;
+                      return acc;
+                    },
+                    {}
+                  );
+
+                  return (
+                    <tr
+                      key={index}
+                      className="hover:bg-gray-50 transition align-top"
+                    >
+                      {/* PRODUCT */}
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-gray-900">
+                          {product?.title}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Tray : {item?.product_details?.trays[0]?.name}
+                        </div>
+                      </td>
+
+                      {/* BRAND / CATEGORY / TYPE */}
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-800">
+                          {product?.brand?.name}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {category} · {product?.product_type?.name}
+                        </div>
+                      </td>
+
+                      {/* TOTAL IN */}
+                      <td className="px-4 py-3 text-center">
+                        <span className="inline-flex px-2 py-1 rounded-md bg-green-100 text-green-700 font-bold">
+                          {item?.total_in ?? 0}
                         </span>
-                        <span className="text-[10px] uppercase tracking-wide">
-                          Available
+                      </td>
+
+                      {/* TOTAL OUT */}
+                      <td className="px-4 py-3 text-center border-r">
+                        <span className="inline-flex px-2 py-1 rounded-md bg-red-100 text-red-700 font-bold">
+                          {item?.total_out ?? 0}
                         </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      {/* 🔥 TRACKING VALUES */}
+                      {orderedTrackingHeaders.map((name) => (
+                        <td
+                          key={name}
+                          className={`px-4 py-3 text-right font-bold ${name === "INPUT"
+                            ? "text-green-700 bg-green-50"
+                            : "text-gray-700"
+                            }`}
+                        >
+                          {trackingMap[name] ?? 0}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+
         )}
       </section>
 
 
       {/* PRODUCT SECTION */}
-      <section className="rounded-2xl bg-white/80 backdrop-blur border shadow-lg p-6 space-y-4">
+      {/* <section className="rounded-2xl bg-white/80 backdrop-blur border shadow-lg p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">
           📦 Product Stock Overview
         </h2>
@@ -868,21 +554,21 @@ export const Dashboard: React.FC = () => {
             Load Data
           </button>
         </div>
-      </section>
+      </section> */}
 
       {/* METRICS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Metric title="Total Stock" value={totalStock} icon={<Package />} color="blue" />
         <Metric title="Total In" value={inOutStats.total_in} icon={<TrendingUp />} color="green" />
         <Metric title="Total Out" value={inOutStats.total_out} icon={<TrendingDown />} color="red" />
         <Metric title="Last In" value={inOutStats.last_in_date || "-"} icon={<Clock />} color="purple" />
-      </div>
+      </div> */}
 
       {/* STATUS */}
-      <section className="grid md:grid-cols-2 gap-6">
+      {/* <section className="grid md:grid-cols-2 gap-6">
         <div className="rounded-2xl bg-white border shadow p-6">
           <h3 className="font-semibold mb-4">Stock by Status</h3>
-          {statusStocks.map((s) => (
+          {statusStocks?.map((s) => (
             <div key={s.status_id}
               className="flex justify-between px-4 py-3 mb-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
               <span className="capitalize">{s?.status_name}</span>
@@ -903,7 +589,7 @@ export const Dashboard: React.FC = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* SALES */}
       <section className="rounded-2xl bg-white border shadow-lg p-6 space-y-4">

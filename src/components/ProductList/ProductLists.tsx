@@ -522,6 +522,9 @@ export const ProductList: React.FC = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    S.No
+                                </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Product
                                 </th>
@@ -543,12 +546,15 @@ export const ProductList: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredProducts?.map((item: any) => {
-                                const p = item.product;
+                            {filteredProducts?.map((item: any, index: number) => {
+                                const p = item?.product;
 
                                 return (
-                                    <tr key={p.id} className="hover:bg-gray-50">
+                                    <tr key={p?.id} className="hover:bg-gray-50">
                                         {/* Product */}
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {index + 1}
+                                        </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col gap-1">
                                                 {/* Product Name */}
@@ -560,7 +566,7 @@ export const ProductList: React.FC = () => {
                                                 {p?.brand?.name && (
                                                     <div className="text-xs text-gray-500 flex items-center gap-1">
                                                         <span className="font-medium text-gray-600">Brand:</span>
-                                                        {p.brand.name}
+                                                        {p?.brand?.name}
                                                     </div>
                                                 )}
                                                 {p?.product_type?.name && (
@@ -573,7 +579,7 @@ export const ProductList: React.FC = () => {
                                                 {item?.categories?.[0]?.name && (
                                                     <div className="text-xs text-gray-500 flex items-center gap-1">
                                                         <span className="font-medium text-gray-600">categorie:</span>
-                                                        {item.categories[0].name}
+                                                        {item?.categories?.[0]?.name}
                                                     </div>
                                                 )}
 
@@ -612,7 +618,7 @@ export const ProductList: React.FC = () => {
 
                                         {/* Hub */}
                                         <td className="px-6 py-4 text-sm text-gray-700">
-                                            {p.hub?.name}
+                                            {p?.hub?.name}
                                         </td>
 
                                         {/* AMC / Insurance */}
@@ -655,8 +661,8 @@ export const ProductList: React.FC = () => {
                                             {p?.barcode_value && (
                                                 <button
                                                     onClick={() => {
-                                                        setSelectedBarcode(p.barcode_value);
-                                                        setSelectedProductName(p.title);
+                                                        setSelectedBarcode(p?.barcode_value);
+                                                        setSelectedProductName(p?.title);
                                                         setBarcodeModalOpen(true);
                                                     }}
                                                     className="text-gray-700 underline text-sm"
