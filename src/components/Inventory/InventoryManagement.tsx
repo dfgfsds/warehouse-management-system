@@ -363,7 +363,7 @@ export const InventoryManagement: React.FC = () => {
     }
   };
 
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleTrayClick = (tray: Tray) => {
     setSelectedTray(tray);
@@ -1050,7 +1050,7 @@ export const InventoryManagement: React.FC = () => {
     <div className="flex h-[calc(100vh-5rem)]">
       {/* Sidebar - Tree View */}
       {/* <div className="w-80 border-r bg-white overflow-y-auto hidden md:block"> */}
-       <div
+      <div
         className={`
           bg-white border-r overflow-y-auto
           transition-all duration-300
@@ -1062,7 +1062,7 @@ export const InventoryManagement: React.FC = () => {
             <Folder className="h-5 w-5 text-blue-600" /> Organization
           </h2>
 
-            <button
+          <button
             onClick={() => setIsSidebarOpen(false)}
             className="p-1 rounded hover:bg-gray-100"
           >
@@ -1306,12 +1306,12 @@ export const InventoryManagement: React.FC = () => {
       </div>
 
       {/* Main Content */}
-       <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100"
-          >
-            <Menu className="h-5 w-5 text-gray-600" />
-          </button>
+      <button
+        onClick={() => setIsSidebarOpen(true)}
+        className="p-2 rounded-lg hover:bg-gray-100"
+      >
+        <Menu className="h-5 w-5 text-gray-600" />
+      </button>
       <div className="flex-1 overflow-auto bg-gray-50 p-6">
 
         {selectedTray ? (
@@ -1415,12 +1415,12 @@ export const InventoryManagement: React.FC = () => {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                   <thead className="bg-gray-100 text-[10px] uppercase text-gray-600 font-semibold">
+                    <thead className="bg-gray-100 text-[10px] uppercase text-gray-600 font-semibold">
                       <tr>
                         <th className="px-4 py-3">S.No</th>
                         <th className="px-4 py-3">Product / Tray
-                           {/* / Barcode */}
-                           </th>
+                          {/* / Barcode */}
+                        </th>
                         <th className="px-4 py-3">Product Type / Brand</th>
 
                         <th className="px-4 py-3 text-center">Total In </th>
@@ -1583,7 +1583,7 @@ export const InventoryManagement: React.FC = () => {
 
               )}
             </div>
-           
+
           </div>
 
 
