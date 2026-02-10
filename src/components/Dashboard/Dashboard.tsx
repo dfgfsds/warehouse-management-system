@@ -80,8 +80,10 @@ export const Dashboard: React.FC = () => {
   const [selectedBrandId, setSelectedBrandId] = useState("");
   const [selectedProductTypeId, setSelectedProductTypeId] = useState("");
   const [productTypes, setProductTypes] = useState<any[]>([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
 
 
 
