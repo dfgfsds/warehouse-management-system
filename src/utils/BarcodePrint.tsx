@@ -5,8 +5,9 @@ import { X, Printer, Download } from "lucide-react";
 
 interface Props {
   open: boolean;
-  barcode: any;
+  barcode: string;
   productName?: string;
+  trayName?: string;
   onClose: () => void;
 }
 
@@ -14,90 +15,66 @@ const BarcodePrintModal: React.FC<Props> = ({
   open,
   barcode,
   productName,
+  trayName,
   onClose,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [copies, setCopies] = useState(1);
-  const [printType, setPrintType] = useState<'barcode' | 'qrcode'>('barcode');
-  const [qrImageUrl, setQrImageUrl] = useState<string>('');
 
+  const [copies, setCopies] = useState(1);
+  const [printType, setPrintType] = useState<"barcode" | "qrcode">("barcode");
+  const [qrImageUrl, setQrImageUrl] = useState("");
+
+  /* ================= GENERATE BARCODE / QR ================= */
   useEffect(() => {
     if (!open || !barcode) return;
 
-    if (printType === 'barcode' && svgRef.current) {
-      try {
-        JsBarcode(svgRef.current, barcode, {
-          format: "CODE128",
-          width: 2,
-          height: 70,
-          displayValue: true,
-        });
-      } catch (e) {
-        console.error("Barcode generation error", e);
-      }
-    } else if (printType === 'qrcode' && canvasRef.current) {
-      try {
-        QRCode.toDataURL(barcode, {
-          width: 200,
-          margin: 2,
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF',
-          },
-        }).then(url => {
-          setQrImageUrl(url);
-          const canvas = canvasRef.current;
-          if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              const img = new Image();
-              img.onload = () => {
-                ctx.drawImage(img, 0, 0);
-              };
-              img.src = url;
-            }
-          }
-        });
-      } catch (e) {
-        console.error("QR Code generation error", e);
-      }
+    if (printType === "barcode" && svgRef.current) {
+      JsBarcode(svgRef.current, barcode, {
+        format: "CODE128",
+        width: 2,
+        height: 70,
+        displayValue: true,
+      });
+    }
+
+    if (printType === "qrcode") {
+      QRCode.toDataURL(barcode, { width: 200, margin: 2 }).then((url) => {
+        setQrImageUrl(url);
+      });
     }
   }, [open, barcode, printType]);
 
+  /* ================= PRINT ================= */
   const handlePrint = () => {
     const content = document.getElementById("barcode-print-area");
     if (!content) return;
 
-    const printWindow = window.open("", "", "width=1200,height=800");
+    const printWindow = window.open("", "", "width=1000,height=800");
     if (!printWindow) return;
 
-    let printContent = "";
-    // Repeat content for number of copies
+    let html = "";
     for (let i = 0; i < copies; i++) {
-      printContent += `
-        <div style="page-break-inside: avoid; margin-bottom: 20px; border: 1px dashed #ccc; ;">
-           ${content.innerHTML}
-        </div>`;
+      html += `
+        <div style="
+          page-break-inside: avoid;
+          border: 1px dashed #ccc;
+          padding: 12px;
+          margin-bottom: 20px;
+          text-align: center;
+          font-family: Arial;
+        ">
+          ${content.innerHTML}
+        </div>
+      `;
     }
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>Print ${printType === 'barcode' ? 'Barcode' : 'QR Code'}</title>
-          <style>
-            body {
-              font-family: Arial;
-              padding: 20px;
-            }
-            @media print {
-               body { padding: 0; }
-            }
-          </style>
+          <title>Print</title>
         </head>
-        <body>
-          ${printContent}
-        </body>
+        <body>${html}</body>
       </html>
     `);
 
@@ -109,88 +86,95 @@ const BarcodePrintModal: React.FC<Props> = ({
     }, 500);
   };
 
+  /* ================= DOWNLOAD BARCODE ================= */
   const downloadBarcode = () => {
     if (!svgRef.current) return;
-    
+
     const svg = svgRef.current.outerHTML;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
     const img = new Image();
-    img.onload = () => {
-      // Set canvas size with extra space for text
-      const padding = 40;
-      const textHeight = 60;
-      canvas.width = img.width + padding * 2;
-      canvas.height = img.height + padding * 2 + textHeight;
-      
-      // White background
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw barcode image centered
-      ctx.drawImage(img, padding, padding);
-      
-      // // Draw code text below barcode
-      // const codeY = img.height + padding + 20;
-      // ctx.fillStyle = '#000000';
-      // ctx.font = 'bold 14px monospace';
-      // ctx.textAlign = 'center';
-      // ctx.fillText(barcode, canvas.width / 2, codeY);
-      
-      // // Draw product name if available
-      // if (productName) {
-      //   ctx.font = '12px Arial';
-      //   ctx.fillText(productName, canvas.width / 2, codeY + 22);
-      // }
 
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const padding = 30;
+      canvas.width = img.width + padding * 2;
+      canvas.height = img.height + padding * 2 + 60;
+
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.drawImage(img, padding, padding);
+
+      let y = img.height + padding + 20;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#000";
+
+      ctx.font = "bold 14px monospace";
+      ctx.fillText(barcode, canvas.width / 2, y);
+
+      if (productName) {
+        y += 18;
+        ctx.font = "12px Arial";
+        ctx.fillText(productName, canvas.width / 2, y);
+      }
+
+      if (trayName) {
+        y += 18;
+        ctx.font = "12px Arial";
+        ctx.fillText(`Tray: ${trayName}`, canvas.width / 2, y);
+      }
+
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
       link.download = `barcode-${barcode}.png`;
       link.click();
     };
 
-    img.src = 'data:image/svg+xml;base64,' + btoa(svg);
+    img.src = "data:image/svg+xml;base64," + btoa(svg);
   };
 
+  /* ================= DOWNLOAD QR ================= */
   const downloadQRCode = () => {
     if (!qrImageUrl) return;
-    
+
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Set canvas size with extra space for text
       const padding = 30;
-      const textHeight = 60;
       canvas.width = img.width + padding * 2;
-      canvas.height = img.height + padding * 2 + textHeight;
-      
-      // White background
-      ctx.fillStyle = 'white';
+      canvas.height = img.height + padding * 2 + 60;
+
+      ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw QR code image centered
+
       ctx.drawImage(img, padding, padding);
-      
-      // Draw code text below QR
-      const codeY = img.height + padding + 20;
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 14px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(barcode, canvas.width / 2, codeY);
-      
-      // Draw product name if available
+
+      let y = img.height + padding + 20;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#000";
+
+      ctx.font = "bold 14px monospace";
+      ctx.fillText(barcode, canvas.width / 2, y);
+
       if (productName) {
-        ctx.font = '12px Arial';
-        ctx.fillText(productName, canvas.width / 2, codeY + 22);
+        y += 18;
+        ctx.font = "12px Arial";
+        ctx.fillText(productName, canvas.width / 2, y);
       }
 
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
+      if (trayName) {
+        y += 18;
+        ctx.font = "12px Arial";
+        ctx.fillText(`Tray: ${trayName}`, canvas.width / 2, y);
+      }
+
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
       link.download = `qrcode-${barcode}.png`;
       link.click();
     };
@@ -200,121 +184,88 @@ const BarcodePrintModal: React.FC<Props> = ({
 
   if (!open) return null;
 
+  /* ================= UI ================= */
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-white w-full max-w-md rounded-xl shadow-xl p-6 relative">
 
-        {/* Close */}
         <button
           onClick={onClose}
-          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100"
+          className="absolute top-3 right-3 p-1 rounded hover:bg-gray-100"
         >
-          <X className="h-5 w-5" />
+          <X />
         </button>
 
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Printer className="h-5 w-5 text-blue-600" /> Print {printType === 'barcode' ? 'Barcode' : 'QR Code'}
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <Printer className="h-5 w-5 text-blue-600" />
+          Print {printType === "barcode" ? "Barcode" : "QR Code"}
         </h2>
 
-        {/* Print Type Switch */}
-        <div className="flex items-center gap-4 mb-6 p-3 bg-gray-50 rounded-lg">
-          <label className="text-sm font-medium text-gray-700">Type:</label>
-          <div className="flex gap-2">
+        {/* TYPE SWITCH */}
+        <div className="flex gap-2 mb-4">
+          {["barcode", "qrcode"].map((t) => (
             <button
-              onClick={() => setPrintType('barcode')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                printType === 'barcode'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
+              key={t}
+              onClick={() => setPrintType(t as any)}
+              className={`px-3 py-1.5 rounded text-sm font-medium ${printType === t
+                  ? "bg-blue-600 text-white"
+                  : "border hover:bg-gray-50"
+                }`}
             >
-              Barcode
+              {t.toUpperCase()}
             </button>
-            <button
-              onClick={() => setPrintType('qrcode')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                printType === 'qrcode'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              QR Code
-            </button>
-          </div>
+          ))}
         </div>
 
-        {/* Preview Area */}
+        {/* PREVIEW */}
         <div
           id="barcode-print-area"
-          className="border rounded-lg p-6 text-center bg-gray-50 mb-6"
+          className="border rounded-lg p-4 text-center bg-gray-50 mb-4"
         >
           {productName && (
-            <div className="text-lg font-bold mb-4 text-gray-800">
-              {productName}
+            <div className="text-sm font-semibold">{productName}</div>
+          )}
+          {trayName && (
+            <div className="text-xs text-gray-600 mb-2">
+              Tray: {trayName}
             </div>
           )}
-          
-          <div className="flex justify-center bg-white p-4 rounded mb-4">
-            {printType === 'barcode' ? (
+
+          <div className="flex justify-center bg-white p-3 rounded">
+            {printType === "barcode" ? (
               <svg ref={svgRef} />
             ) : (
-              <canvas ref={canvasRef} width={200} height={200} />
+              <img src={qrImageUrl} alt="QR" className="h-40 w-40" />
             )}
           </div>
-
-          {/* Display barcode/QR value and product name below */}
-          {/* <div className="mt-4 pt-4 border-t border-gray-300 space-y-2">
-            <div>
-              <p className="text-xs text-gray-500 font-semibold uppercase">Code</p>
-              <p className="text-sm font-mono font-bold text-gray-800">{barcode}</p>
-            </div>
-            {productName && (
-              <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase">Product</p>
-                <p className="text-sm font-semibold text-gray-800">{productName}</p>
-              </div>
-            )}
-          </div> */}
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-4 mb-6">
-          <label className="text-sm font-medium text-gray-700">Copies:</label>
+        {/* COPIES */}
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-sm font-medium">Copies</span>
           <input
             type="number"
-            min="1"
-            max="50"
+            min={1}
             value={copies}
-            onChange={(e) => setCopies(Math.max(1, parseInt(e.target.value) || 1))}
-            className="border rounded-lg px-3 py-2 w-24 text-center"
+            onChange={(e) => setCopies(Math.max(1, +e.target.value))}
+            className="w-20 border rounded px-2 py-1 text-center"
           />
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 mb-4">
+        {/* ACTIONS */}
+        <div className="flex gap-2">
           <button
-            onClick={printType === 'barcode' ? downloadBarcode : downloadQRCode}
-            className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm flex items-center justify-center gap-2 shadow-sm"
+            onClick={printType === "barcode" ? downloadBarcode : downloadQRCode}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg"
           >
-            <Download className="h-4 w-4" />
-            Download
-          </button>
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
-          >
-            Cancel
+            <Download size={16} /> Download
           </button>
 
           <button
             onClick={handlePrint}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm flex items-center gap-2"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg"
           >
-            <Printer className="h-4 w-4" />
-            Print {copies} {copies === 1 ? 'Copy' : 'Copies'}
+            <Printer size={16} /> Print
           </button>
         </div>
       </div>

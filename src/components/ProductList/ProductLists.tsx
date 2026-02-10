@@ -9,8 +9,307 @@ import baseUrl from '../../../api-endpoints/ApiUrls';
 import DeleteConfirmModal from '../Modals/DeleteConfirmModal';
 import BarcodePrintModal from '../../utils/BarcodePrint';
 import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
+// import { saveAs } from "file-saver";
 import { Download } from "lucide-react";
+
+import JsBarcode from "jsbarcode";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+
+export interface BarcodeItem {
+    barcode: string;
+    productName?: string;
+    trayName?: string;
+}
+
+// import JsBarcode from "jsbarcode";
+
+// export const printAllBarcodes = (items: any[]) => {
+//     if (!items.length) return;
+
+//     const win = window.open("", "", "width=1200,height=900");
+//     if (!win) return;
+
+//     win.document.write(`
+//     <html>
+//       <head>
+//         <title>Barcode Print</title>
+//         <style>
+//           @page {
+//             size: A4;
+//             margin: 0;
+//           }
+
+//           body {
+//             margin: 0;
+//             padding: 0;
+//             font-family: Arial, sans-serif;
+//           }
+
+//           /* ===== PAGE ===== */
+//           .page {
+//             width: 210mm;
+//             height: 297mm;
+
+//             display: grid;
+//             grid-template-columns: 1fr 1fr;
+//             grid-template-rows: repeat(10, 1fr);
+
+//             padding: 8mm;
+//             box-sizing: border-box;
+
+//             page-break-after: always;
+//           }
+
+//           /* ===== LABEL ===== */
+//           .label {
+//             display: flex;
+//             flex-direction: column;
+//             align-items: center;
+//             justify-content: center;
+//             text-align: center;
+
+//             border: none; /* ❌ NO BORDER */
+//           }
+
+//           .product {
+//             font-size: 10px;
+//             font-weight: bold;
+//             margin-bottom: 1mm;
+//           }
+
+//           .tray {
+//             font-size: 9px;
+//             margin-bottom: 1mm;
+//           }
+
+//           svg {
+//             height: 14mm;
+//           }
+//         </style>
+//       </head>
+
+//       <body>
+//         ${items
+//             .map((item, i) => `
+//             ${i % 20 === 0 ? `<div class="page">` : ``}
+
+//             <div class="label">
+//               <div class="product">${item.productName}</div>
+//               <div class="tray">Tray: ${item.trayName}</div>
+//               <svg id="barcode-${i}"></svg>
+//             </div>
+
+//             ${(i % 20 === 19 || i === items.length - 1) ? `</div>` : ``}
+//           `)
+//             .join("")}
+//       </body>
+//     </html>
+//   `);
+
+//     win.document.close();
+
+//     setTimeout(() => {
+//         items.forEach((item, i) => {
+//             const svg = win.document.getElementById(`barcode-${i}`);
+//             if (svg) {
+//                 JsBarcode(svg, item.barcode, {
+//                     format: "CODE128",
+//                     width: 1.6,
+//                     height: 36,
+//                     displayValue: true,
+//                     fontSize: 10,
+//                 });
+//             }
+//         });
+
+//         win.focus();
+//         win.print();
+//     }, 700);
+// };
+
+// import QRCode from "qrcode";
+
+// export const printAllQRCodes = async (items: any[]) => {
+//   const safeItems = items.filter(
+//     (i) => i?.barcode && i?.productName
+//   );
+
+//   if (!safeItems.length) {
+//     alert("No QR codes to print");
+//     return;
+//   }
+
+//   const win = window.open("", "", "width=1200,height=900");
+//   if (!win) return;
+
+//   win.document.write(`
+//     <html>
+//       <head>
+//         <title>QR Print</title>
+//         <style>
+//           @page {
+//             size: A4;
+//             margin: 0;
+//           }
+
+//           body {
+//             margin: 0;
+//             font-family: Arial, sans-serif;
+//           }
+
+//           /* ===== ONE PAGE = 10 QR ===== */
+//           .page {
+//             width: 210mm;
+//             height: 297mm;
+
+//             display: grid;
+//             grid-template-columns: 1fr 1fr;      /* 2 columns */
+//             grid-template-rows: repeat(5, 1fr);  /* 5 rows = 10 */
+
+//             padding: 8mm;
+//             box-sizing: border-box;
+
+//             page-break-after: always;
+//           }
+
+//           .label {
+//             display: flex;
+//             flex-direction: column;
+//             align-items: center;
+//             justify-content: center;
+//             text-align: center;
+//           }
+
+//           .product {
+//             font-size: 10px;
+//             font-weight: bold;
+//             margin-bottom: 1mm;
+//           }
+
+//           .tray {
+//             font-size: 9px;
+//             margin-bottom: 1mm;
+//           }
+
+//           img {
+//             width: 32mm;
+//             height: 32mm;
+//           }
+//         </style>
+//       </head>
+
+//       <body>
+//         ${safeItems
+//           .map((item, i) => `
+//             ${i % 10 === 0 ? `<div class="page">` : ``}
+
+//             <div class="label">
+//               <div class="product">${item.productName}</div>
+//               <div class="tray">Tray: ${item.trayName}</div>
+//               <div class="product">${item.barcode}</div>
+//               <img id="qr-${i}" />
+//             </div>
+
+//             ${(i % 10 === 9 || i === safeItems.length - 1) ? `</div>` : ``}
+//           `)
+//           .join("")}
+//       </body>
+//     </html>
+//   `);
+
+//   win.document.close();
+
+//   /* ===== SAFE BATCH QR GENERATION ===== */
+//   const CHUNK_SIZE = 10;
+
+//   for (let i = 0; i < safeItems.length; i += CHUNK_SIZE) {
+//     const chunk = safeItems.slice(i, i + CHUNK_SIZE);
+
+//     await Promise.all(
+//       chunk.map(async (item, index) => {
+//         const img = win.document.getElementById(
+//           `qr-${i + index}`
+//         ) as HTMLImageElement;
+
+//         if (img) {
+//           img.src = await QRCode.toDataURL(item.barcode, {
+//             width: 220,
+//             margin: 0, // ❌ no white border
+//           });
+//         }
+//       })
+//     );
+
+//     // 🧠 browser breathe
+//     await new Promise((r) => setTimeout(r, 0));
+//   }
+
+//   win.focus();
+//   win.print();
+// };
+
+
+
+/* ================= DOWNLOAD ALL ================= */
+// export const downloadAllBarcodes = async (items: BarcodeItem[]) => {
+//     if (!items.length) {
+//         alert("No barcodes found");
+//         return;
+//     }
+
+//     const zip = new JSZip();
+
+//     for (const item of items) {
+//         const canvas = document.createElement("canvas");
+//         const ctx = canvas.getContext("2d");
+//         if (!ctx) continue;
+
+//         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+//         JsBarcode(svg, item.barcode, {
+//             format: "CODE128",
+//             width: 2,
+//             height: 50,
+//             displayValue: true,
+//         });
+
+//         const img = new Image();
+//         const svgData =
+//             "data:image/svg+xml;base64," + btoa(svg.outerHTML);
+
+//         await new Promise<void>((resolve) => {
+//             img.onload = () => {
+//                 canvas.width = img.width + 40;
+//                 canvas.height = img.height + 70;
+
+//                 ctx.fillStyle = "#fff";
+//                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+//                 ctx.drawImage(img, 20, 20);
+
+//                 ctx.fillStyle = "#000";
+//                 ctx.textAlign = "center";
+//                 ctx.font = "12px Arial";
+//                 ctx.fillText(
+//                     `${item.productName || ""} (${item.trayName || "-"})`,
+//                     canvas.width / 2,
+//                     canvas.height - 20
+//                 );
+
+//                 zip.file(
+//                     `barcode-${item.barcode}.png`,
+//                     canvas.toDataURL("image/png").split(",")[1],
+//                     { base64: true }
+//                 );
+//                 resolve();
+//             };
+//             img.src = svgData;
+//         });
+//     }
+
+//     const blob = await zip.generateAsync({ type: "blob" });
+//     saveAs(blob, "all-barcodes.zip");
+// };
+
 
 export const ProductList: React.FC = () => {
     const { user }: any = useAuth();
@@ -48,7 +347,7 @@ export const ProductList: React.FC = () => {
     const [barcodeModalOpen, setBarcodeModalOpen] = useState(false);
     const [selectedBarcode, setSelectedBarcode] = useState("");
     const [selectedProductName, setSelectedProductName] = useState("");
-
+    const [trayName, setTrayName] = useState("")
 
     const handleExportExcel = () => {
         if (!filteredProducts || filteredProducts.length === 0) {
@@ -93,6 +392,37 @@ export const ProductList: React.FC = () => {
         saveAs(fileData, `products_${Date.now()}.xlsx`);
     };
 
+    // const getAllFilteredBarcodes = () => {
+    //     const list: {
+    //         barcode: string;
+    //         productName?: string;
+    //         trayName?: string;
+    //     }[] = [];
+
+    //     filteredProducts.forEach((item: any) => {
+    //         const p = item?.product;
+    //         if (!p?.barcode_value) return;
+
+    //         // If trays exist, create barcode per tray
+    //         if (item?.trays?.length > 0) {
+    //             item.trays.forEach((t: any) => {
+    //                 list.push({
+    //                     barcode: p.barcode_value,
+    //                     productName: p.title,
+    //                     trayName: t?.code || "",
+    //                 });
+    //             });
+    //         } else {
+    //             list.push({
+    //                 barcode: p.barcode_value,
+    //                 productName: p.title,
+    //                 trayName: "",
+    //             });
+    //         }
+    //     });
+
+    //     return list;
+    // };
 
 
     const getProducts = async () => {
@@ -375,6 +705,25 @@ export const ProductList: React.FC = () => {
         );
     });
 
+    // const barcodeItems = filteredProducts.map((item: any) => ({
+    //     barcode: item.product.barcode_value,
+    //     productName: item.product.title,
+    //     trayName: item.trays?.[0]?.code || "-"
+    // }));
+
+    // const getFilteredBarcodeItems = () => {
+    //     return filteredProducts?.flatMap((item: any) => {
+    //         const p = item?.product;
+    //         if (!p?.barcode_value) return [];
+
+    //         return (item?.trays?.length ? item?.trays : [{}]).map((t: any) => ({
+    //             barcode: p?.barcode_value,
+    //             productName: p?.title,
+    //             trayName: item.trays?.[0]?.code || "-"
+    //         }));
+    //     });
+    // };
+
 
 
     if (loading) {
@@ -388,7 +737,7 @@ export const ProductList: React.FC = () => {
 
                 {/* Text */}
                 <p className="mt-4 text-sm font-medium text-gray-600">
-                    Loading brands, please wait...
+                    Loading Products, please wait...
                 </p>
             </div>
         );
@@ -407,8 +756,44 @@ export const ProductList: React.FC = () => {
                 </div>
             </div>
 
+            <div className="flex gap-3">
+                {/* <button
+                    onClick={() => printAllBarcodes(getFilteredBarcodeItems())}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg flex gap-2"
+                >
+                    <Printer size={16} />
+                    Print All Barcodes
+                </button> */}
 
-            <div className="bg-white p-6 rounded-lg border grid grid-cols-1  md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {/* <button
+                    onClick={() => printAllBarcodes(barcodeItems)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2"
+                >
+                    <Printer size={16} />
+                    Print All Barcodes
+                </button> */}
+
+                {/* <button
+                    onClick={() => printAllQRCodes(getFilteredBarcodeItems())}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                >
+                    Print All QR Codes
+                </button> */}
+
+
+
+                {/* <button
+                    onClick={() => downloadAllBarcodes(getFilteredBarcodeItems())}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg flex gap-2"
+                >
+                    <Download size={16} />
+                    Download All Barcodes
+                </button> */}
+            </div>
+
+
+
+            <div className="bg-white p-6 rounded-lg border grid grid-cols-1  md:grid-cols-3 lg:grid-cols-4 gap-4">
 
                 {/* Search */}
                 <div>
@@ -416,7 +801,7 @@ export const ProductList: React.FC = () => {
                     <input
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search by title / SKU / barcode"
+                        placeholder="Search by title / barcode"
                         className="w-full border px-3 py-2 rounded-lg"
                     />
                 </div>
@@ -489,6 +874,24 @@ export const ProductList: React.FC = () => {
                     </button>
 
                 </div> */}
+
+                {/* <div className="flex items-end gap-3"> */}
+                <button
+                    onClick={loadData}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                    Refresh
+                </button>
+
+                <button
+                    onClick={handleExportExcel}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                >
+                    <span className="flex mx-auto gap-2">
+                    <Download size={16} className='my-auto'/>
+                    Export Excel
+                    </span>
+                </button>
                 <button
                     onClick={() => setShowAddAssetModal(true)}
                     className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors flex items-center justify-center gap-2"
@@ -496,22 +899,7 @@ export const ProductList: React.FC = () => {
                     <PlusCircle className="h-4 w-4" />
                     Add Asset
                 </button>
-                <div className="flex items-end gap-3">
-                    <button
-                        onClick={loadData}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                        Refresh
-                    </button>
-
-                    <button
-                        onClick={handleExportExcel}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-                    >
-                        <Download size={16} />
-                        Export Excel
-                    </button>
-                </div>
+                {/* </div> */}
 
             </div>
 
@@ -522,7 +910,7 @@ export const ProductList: React.FC = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     S.No
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -637,7 +1025,7 @@ export const ProductList: React.FC = () => {
                                             </div>
                                         </td> */}
 
-                                        <td className="px-6 py-4 flex gap-4">
+                                        <td className="px-6 py-10 flex gap-4">
                                             <button
                                                 onClick={() => {
                                                     setEditData(item);
@@ -645,7 +1033,8 @@ export const ProductList: React.FC = () => {
                                                 }}
                                                 className="text-blue-600 flex gap-1"
                                             >
-                                                <Edit2 size={16} /> Edit
+                                                <Edit2 size={16} />
+                                                 {/* Edit */}
                                             </button>
 
                                             <button
@@ -655,7 +1044,8 @@ export const ProductList: React.FC = () => {
                                                 }}
                                                 className="text-red-600 flex gap-1"
                                             >
-                                                <Trash2 size={16} /> Delete
+                                                <Trash2 size={16} /> 
+                                                {/* Delete */}
                                             </button>
 
                                             {p?.barcode_value && (
@@ -664,11 +1054,12 @@ export const ProductList: React.FC = () => {
                                                         setSelectedBarcode(p?.barcode_value);
                                                         setSelectedProductName(p?.title);
                                                         setBarcodeModalOpen(true);
+                                                        setTrayName(item?.trays?.[0]?.code || "")
                                                     }}
                                                     className="text-gray-700 underline text-sm"
                                                 >
                                                     {/* Print Barcode */}
-                                                    <Printer className="h-4 w-4" />
+                                                    <Printer className="h-4 w-4" /> 
                                                 </button>
                                             )}
 
@@ -717,7 +1108,8 @@ export const ProductList: React.FC = () => {
                 open={barcodeModalOpen}
                 barcode={selectedBarcode}
                 productName={selectedProductName}
-                onClose={() => setBarcodeModalOpen(false)}
+                trayName={trayName}
+                onClose={() => { setTrayName(""); setBarcodeModalOpen(false); }}
             />
 
 
