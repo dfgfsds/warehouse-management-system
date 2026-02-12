@@ -143,7 +143,7 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi, c
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
                     {/* PRODUCT INFO */}
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    {/* <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                         <div className="font-semibold text-gray-800">
                             {product?.title}
                         </div>
@@ -153,7 +153,7 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi, c
                         <div className="text-sm text-gray-600">
                             Available Stock: <b>{asset?.stock}</b>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* QTY + PRICE */}
                     <div className="grid grid-cols-2 gap-4">
@@ -188,10 +188,10 @@ export default function OutputOrderModal({ asset, onClose, getTrayProductsApi, c
                     </div>
 
                     {/* TOTAL */}
-                    <div className="flex justify-between bg-gray-100 px-4 py-3 rounded-lg font-bold">
+                    {/* <div className="flex justify-between bg-gray-100 px-4 py-3 rounded-lg font-bold">
                         <span>Total</span>
                         <span>₹ {orderTotal}</span>
-                    </div>
+                    </div> */}
 
                     {/* PAYMENT */}
                     <div className="grid grid-cols-2 gap-4">
