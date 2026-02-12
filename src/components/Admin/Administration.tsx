@@ -16,6 +16,7 @@ import { toast } from 'react-toastify';
 
 export const Administration: React.FC = () => {
   const { user }: any = useAuth();
+
   const [activeTab, setActiveTab] = useState('users');
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
@@ -44,18 +45,14 @@ export const Administration: React.FC = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(
-        `${baseUrl?.users}/${deleteItem.id}`,
-        {
-          data: {
-            user_id: deleteItem?.id
-          }
-        }
+      const upddateApi = await axios.delete(
+        `${baseUrl?.users}/${deleteItem?.id}?performed_by=${user?.user_id}`
       );
-
-      setConfirmOpen(false);
-      setDeleteItem(null);
-      getUser();
+      if (upddateApi) {
+        setConfirmOpen(false);
+        setDeleteItem(null);
+        getUser();
+      }
 
     } catch (error: any) {
       const errMsg =

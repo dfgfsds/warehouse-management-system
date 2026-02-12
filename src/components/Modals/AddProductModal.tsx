@@ -186,7 +186,7 @@ export default function AddProductModal({
     axios.get(`${baseUrl.productUnits}/by-vendor/${user?.vendor_id}`).then(r => setUnits(r?.data?.data?.product_units || []));
     axios.get(`${baseUrl.vendors}/${user?.vendor_id}/hubs`).then(r => setHubs(r?.data?.data?.hubs || []));
     axios.get(`${baseUrl.divisions}/vendor/${user?.vendor_id}`).then(r => setDivisions(r?.data?.data?.divisions || []));
-    axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}`).then(r => setCategoriesList(r?.data?.data?.categories || []));
+    axios.get(`${baseUrl.categories}/by-vendor/${user.vendor_id}/?vendor=${user.vendor_id}&type=product`).then(r => setCategoriesList(r?.data?.data?.categories || []));
   }, []);
 
 

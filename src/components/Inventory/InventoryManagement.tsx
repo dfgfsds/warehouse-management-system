@@ -1257,9 +1257,9 @@ export const InventoryManagement: React.FC = () => {
                                         <Box className="h-3 w-3" />
                                         {tray.name}
                                       </div>
-                                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedTray?.id === tray.id ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
+                                      {/* <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedTray?.id === tray.id ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
                                         {trayCounts[tray.id] || 0}
-                                      </span>
+                                      </span> */}
                                     </button>
 
                                     {/* <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
