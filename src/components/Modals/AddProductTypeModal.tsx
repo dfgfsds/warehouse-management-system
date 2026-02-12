@@ -40,7 +40,7 @@ export default function AddProductTypeModal({
     const getCategories = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}`);
+            const res = await axios.get(`${baseUrl.categories}/by-vendor/${user.vendor_id}/?vendor=${user.vendor_id}&type=product`);
             setCategoryData(res?.data?.data?.categories || []);
         } catch (error) {
             console.log(error);

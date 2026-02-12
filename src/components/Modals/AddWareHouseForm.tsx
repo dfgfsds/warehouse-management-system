@@ -22,21 +22,21 @@ export default function AddWarehouseModal({
         lat: "",
         log: "",
         address: "",
-        code:""
+        code: ""
     });
-
+    console.log(user?.vendor_id, editWarehouse)
     // 🔹 Edit mode
     useEffect(() => {
         if (editWarehouse) {
             setFormData({
                 type: editWarehouse?.type || "hub",
-                parent_id: editWarehouse?.parentId || "",
+                parent_id: editWarehouse?.parent_id || "",
                 title: editWarehouse?.title || "",
                 description: editWarehouse?.description || "",
                 lat: editWarehouse?.lat || "",
                 log: editWarehouse?.log || "",
                 address: editWarehouse?.address || "",
-                code:editWarehouse?.code || "",
+                code: editWarehouse?.code || "",
             });
         }
     }, [editWarehouse]);
@@ -49,16 +49,22 @@ export default function AddWarehouseModal({
 
             if (editWarehouse) {
                 // UPDATE
-                await axios.put(
-                    `${baseUrl.rkVendorsHub}/${editWarehouse.id}`,
+                const updateApi = await axios.put(
+                    `${baseUrl.vendors}/${editWarehouse.id}`,
                     formData
                 );
+                if (updateApi) {
+                    getWarehouses();
+                    onCancel();
+                }
             } else {
                 // CREATE
-                await axios.post(baseUrl.rkVendorsHub, formData);
+                const updateApi = await axios.post(baseUrl.rkVendorsHub, formData);
+                if (updateApi) {
+                    getWarehouses();
+                    onCancel();
+                }
             }
-            getWarehouses();
-            onCancel();
         } catch (error: any) {
             let message = "Something went wrong";
             const data = error?.response?.data;
@@ -105,7 +111,7 @@ export default function AddWarehouseModal({
                         />
                     </div>
 
-   {/* Code */}
+                    {/* Code */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Code
