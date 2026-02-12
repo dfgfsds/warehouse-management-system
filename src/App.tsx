@@ -16,6 +16,8 @@ import Divisions from './components/Divisions/Divisions';
 import Category from './components/Category/Category';
 import { ProductList } from './components/ProductList/ProductLists';
 import OrderHistory from './components/OrderHistory/OrderHistory';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -99,7 +101,7 @@ function App() {
         return <Administration />;
       case 'productList':
         return <ProductList />;
-              case 'orderHistory':
+      case 'orderHistory':
         return <OrderHistory />;
       default:
         return <Dashboard />;
@@ -108,6 +110,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ToastContainer position="top-right" autoClose={3000} />
       <Header title="Warehouse Management System" />
       <div className="flex h-[calc(100vh-4rem)]">
         <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
