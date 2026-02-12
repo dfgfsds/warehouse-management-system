@@ -12,6 +12,7 @@ import ProductUnit from './ProductUnit';
 import ProductTypes from './ProductTypes';
 import DeleteConfirmModal from '../Modals/DeleteConfirmModal';
 import SectionManagerModal from '../Modals/SectionManagerModal';
+import { toast } from 'react-toastify';
 
 export const Administration: React.FC = () => {
   const { user }: any = useAuth();
@@ -44,13 +45,25 @@ export const Administration: React.FC = () => {
   const handleDelete = async () => {
     try {
       await axios.delete(
-        `${baseUrl?.users}/${deleteItem.id}`
+        `${baseUrl?.users}/${deleteItem.id}`,
+        {
+          data: {
+            user_id: deleteItem?.id
+          }
+        }
       );
+
       setConfirmOpen(false);
       setDeleteItem(null);
       getUser();
-    } catch (error) {
-      console.log(error);
+
+    } catch (error: any) {
+      const errMsg =
+        error?.response?.data?.data?.errors?.body?.[0] ||
+        error?.response?.data?.message ||
+        "Something went wrong ❌";
+
+      toast.error(errMsg);
     }
   };
 
@@ -131,9 +144,6 @@ export const Administration: React.FC = () => {
     setEditingItem(null);
     setShowAddModal(false);
   };
-
-
-
 
 
   const adminTabs = [
@@ -259,18 +269,18 @@ export const Administration: React.FC = () => {
 
           )}
 
-        
+
           {activeTab === 'users' && (
             <>
-            <div className="flex justify-between items-center flex-wrap gap-2">
-                    <h2 className="text-lg font-semibold text-gray-900">Users ({usersList.length})</h2>
-                    <button onClick={() => setShowUserModal(!showAddModal)} className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                      <UserPlus className="h-4 w-4" /> <span>Add User</span>
-                    </button>
-                  </div>
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">Users ({usersList.length})</h2>
+                <button onClick={() => setShowUserModal(!showAddModal)} className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <UserPlus className="h-4 w-4" /> <span>Add User</span>
+                </button>
+              </div>
               {usersList?.length > 0 && (
                 <div className="space-y-4">
-                  
+
                   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
@@ -320,11 +330,11 @@ export const Administration: React.FC = () => {
                   </div>
                 </div>
               )}
-                <div className="text-center py-12" hidden={usersList?.length > 0}>
-            <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">User Management</h3>
-            <p className="mt-1 text-sm text-gray-500">No users found.</p>
-          </div>
+              <div className="text-center py-12" hidden={usersList?.length > 0}>
+                <Users className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">User Management</h3>
+                <p className="mt-1 text-sm text-gray-500">No users found.</p>
+              </div>
             </>
           )}
 

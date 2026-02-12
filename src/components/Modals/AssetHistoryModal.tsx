@@ -302,7 +302,8 @@ export default function AssetHistoryModal({
                         </div>
                     ) : (
                         <table className="w-full text-sm">
-                            <thead className="sticky top-0 bg-gray-100 text-xs uppercase text-gray-600">
+                            {/* sticky top-0 */}
+                            <thead className=" bg-gray-100 text-xs uppercase text-gray-600">
                                 <tr>
                                     <th className="px-4 py-3 text-left">#</th>
                                     <th className="px-4 py-3">Date</th>
