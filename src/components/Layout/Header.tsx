@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../hooks/useAuth';
 import baseUrl from '../../../api-endpoints/ApiUrls';
 import { AuthManager } from '../../utils/auth';
+import Logo from '../../assets/images/RKlogo.png';
 
 interface HeaderProps {
   title: string;
@@ -150,7 +151,8 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
-            <Warehouse className="h-8 w-8 text-blue-600" />
+            {/* <Warehouse className="h-8 w-8 text-blue-600" /> */}
+            <img src={Logo} className="h-36 w-36"/>
             <div>
               <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
             </div>
