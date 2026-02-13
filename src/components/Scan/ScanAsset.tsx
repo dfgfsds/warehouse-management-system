@@ -407,15 +407,15 @@ console.log(scannedItems)
         setShowOutputModal(true);
         setOutputData(payload)
       } else {
-        // const updateApi = await axios.post(
-        //   `${baseUrl.divisionInventoryBulk}`,
-        //   payload
-        // );
-        // if (updateApi) {
-        //   setMovedItems(scannedItems);
-        //   setScannedItems([]);
-        //   setStep('complete');
-        // }
+        const updateApi = await axios.post(
+          `${baseUrl.divisionInventoryBulk}`,
+          payload
+        );
+        if (updateApi) {
+          setMovedItems(scannedItems);
+          setScannedItems([]);
+          setStep('complete');
+        }
       }
       // ✅ SUCCESS
     } catch (err: any) {
@@ -566,7 +566,9 @@ console.log(scannedItems)
                     value={autoStatus}
                     onChange={(e) => setAutoStatus(e.target.value as AssetStatus)}
                   >
-                    {STATUSES?.slice(1, 6)?.map((s: any) => (
+                    {STATUSES?.
+                    // slice(1, 6)?.
+                    map((s: any) => (
                       <option key={s?.id} value={s?.id}>
                         {s?.division_name}
                       </option>
