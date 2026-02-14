@@ -286,59 +286,185 @@ export const Dashboard: React.FC = () => {
   ];
 
 
+  // const downloadHubInventoryExcel = () => {
+  //   if (!filteredHubInventory || filteredHubInventory.length === 0) return;
+
+  //   const rows = filteredHubInventory.map((item: any, i: number) => {
+  //     const product = item?.product_details?.product;
+  //     const category =
+  //       item?.product_details?.categories?.[0]?.name || "-";
+
+  //     // tracking map
+  //     const trackingMap = (item?.tracking || []).reduce(
+  //       (acc: any, t: any) => {
+  //         acc[t.division_name] = t.currently_available ?? 0;
+  //         return acc;
+  //       },
+  //       {}
+  //     );
+
+  //     const baseRow: any = {
+  //       "S.No": i + 1,
+  //       "Product": product?.title || "-",
+  //       "Tray": item?.product_details?.trays?.[0]?.name || "-",
+  //       "Brand": product?.brand?.name || "-",
+  //       "Category": category,
+  //       "Product Type": product?.product_type?.name || "-",
+  //       "Total In": item?.total_in ?? 0,
+  //       "Total Out": item?.total_out ?? 0,
+  //     };
+
+  //     // 🔥 dynamic tracking columns (same as table)
+  //     orderedTrackingHeaders.forEach((name: string) => {
+  //       const key = name === "INPUT" ? "Available Stock" : name;
+  //       baseRow[key] = trackingMap[name] ?? 0;
+  //     });
+
+  //     return baseRow;
+  //   });
+
+  //   const ws = XLSX.utils.json_to_sheet(rows);
+  //   const wb = XLSX.utils.book_new();
+  //   XLSX.utils.book_append_sheet(wb, ws, "Hub Inventory");
+
+  //   const buffer = XLSX.write(wb, {
+  //     bookType: "xlsx",
+  //     type: "array",
+  //   });
+
+  //   saveAs(
+  //     new Blob([buffer]),
+  //     `Hub_Inventory_${selectedHubId || "All"}_${new Date()
+  //       .toISOString()
+  //       .slice(0, 10)}.xlsx`
+  //   );
+  // };
+
   const downloadHubInventoryExcel = () => {
-    if (!filteredHubInventory || filteredHubInventory.length === 0) return;
+  if (!filteredHubInventory || filteredHubInventory.length === 0) return;
 
-    const rows = filteredHubInventory.map((item: any, i: number) => {
-      const product = item?.product_details?.product;
-      const category =
-        item?.product_details?.categories?.[0]?.name || "-";
-
-      // tracking map
-      const trackingMap = (item?.tracking || []).reduce(
-        (acc: any, t: any) => {
-          acc[t.division_name] = t.currently_available ?? 0;
-          return acc;
-        },
-        {}
-      );
-
-      const baseRow: any = {
-        "S.No": i + 1,
-        "Product": product?.title || "-",
-        "Tray": item?.product_details?.trays?.[0]?.name || "-",
-        "Brand": product?.brand?.name || "-",
-        "Category": category,
-        "Product Type": product?.product_type?.name || "-",
-        "Total In": item?.total_in ?? 0,
-        "Total Out": item?.total_out ?? 0,
-      };
-
-      // 🔥 dynamic tracking columns (same as table)
-      orderedTrackingHeaders.forEach((name: string) => {
-        const key = name === "INPUT" ? "Available Stock" : name;
-        baseRow[key] = trackingMap[name] ?? 0;
-      });
-
-      return baseRow;
-    });
-
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Hub Inventory");
-
-    const buffer = XLSX.write(wb, {
-      bookType: "xlsx",
-      type: "array",
-    });
-
-    saveAs(
-      new Blob([buffer]),
-      `Hub_Inventory_${selectedHubId || "All"}_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx`
-    );
+  let grandTotals = {
+    totalIn: 0,
+    totalOut: 0,
+    input: 0,
+    checking: 0,
+    waiting: 0,
+    gum: 0,
+    fault: 0,
+    scrap: 0,
   };
+
+  const rows = filteredHubInventory.map((item: any, i: number) => {
+    const product = item?.product_details?.product;
+    const category =
+      item?.product_details?.categories?.[0]?.name || "-";
+
+    const trackingMap = (item?.tracking || []).reduce(
+      (acc: any, t: any) => {
+        acc[t.division_name] = t.currently_available ?? 0;
+        return acc;
+      },
+      {}
+    );
+
+    const inputValue = trackingMap["INPUT"] ?? 0;
+
+    const checkingValue:any =
+      Object.entries(trackingMap).find(([key]) =>
+        key.includes("CHECKING")
+      )?.[1] ?? 0;
+
+    const waitingValue:any =
+      Object.entries(trackingMap).find(([key]) =>
+        key.includes("WAITING")
+      )?.[1] ?? 0;
+
+    const gumValue:any =
+      Object.entries(trackingMap).find(([key]) =>
+        key.includes("GUM")
+      )?.[1] ?? 0;
+
+    const faultValue:any =
+      Object.entries(trackingMap).find(([key]) =>
+        key.includes("FAULT")
+      )?.[1] ?? 0;
+
+    const totalValue:any =
+      checkingValue + waitingValue + gumValue + faultValue;
+
+    const scrapValue = trackingMap["SCRAP"] ?? 0;
+
+    // 🔥 accumulate totals
+    grandTotals.totalIn += item?.total_in ?? 0;
+    grandTotals.totalOut += item?.total_out ?? 0;
+    grandTotals.input += inputValue;
+    grandTotals.checking += checkingValue;
+    grandTotals.waiting += waitingValue;
+    grandTotals.gum += gumValue;
+    grandTotals.fault += faultValue;
+    grandTotals.scrap += scrapValue;
+
+    return {
+      "S.No": i + 1,
+      "Product": product?.title || "-",
+      "Tray": item?.product_details?.trays?.[0]?.name || "-",
+      "Barcode": product?.barcode_value || "-",
+      "Brand": product?.brand?.name || "-",
+      "Category": category,
+      "Product Type": product?.product_type?.name || "-",
+      "Total In": item?.total_in ?? 0,
+      "Total Out": item?.total_out ?? 0,
+      "Available": inputValue,
+      "CHECKING": checkingValue,
+      "WAITING": waitingValue,
+      "GUM": gumValue,
+      "FAULT": faultValue,
+      "TOTAL": totalValue,
+      "SCRAP": scrapValue,
+    };
+  });
+
+  // 🔥 Add Grand Total Row at end
+  rows.push({
+    "S.No": "",
+    "Product": "GRAND TOTAL",
+    "Tray": "",
+    "Barcode": "",
+    "Brand": "",
+    "Category": "",
+    "Product Type": "",
+    "Total In": grandTotals.totalIn,
+    "Total Out": grandTotals.totalOut,
+    "Available": grandTotals.input,
+    "CHECKING": grandTotals.checking,
+    "WAITING": grandTotals.waiting,
+    "GUM": grandTotals.gum,
+    "FAULT": grandTotals.fault,
+    "TOTAL":
+      grandTotals.checking +
+      grandTotals.waiting +
+      grandTotals.gum +
+      grandTotals.fault,
+    "SCRAP": grandTotals.scrap,
+  });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Hub Inventory");
+
+  const buffer = XLSX.write(wb, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  saveAs(
+    new Blob([buffer]),
+    `Hub_Inventory_${selectedHubId || "All"}_${new Date()
+      .toISOString()
+      .slice(0, 10)}.xlsx`
+  );
+};
+
 
   const handleClearAllFilters = () => {
     setSelectedHubId("");
@@ -352,6 +478,9 @@ export const Dashboard: React.FC = () => {
     // optional but best UX
     setHubInventory([]);
   };
+
+  const SCRAP_STATUSES = ["CHECKING", "WAITING", "GUM", "FAULT"];
+
 
   return (
     <div className="p-6 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -707,7 +836,7 @@ export const Dashboard: React.FC = () => {
                   <th className="px-2 py-2 text-center">Total In</th>
                   <th className="px-2 py-2 text-center border-r">Total Out</th>
 
-                  {orderedTrackingHeaders.map((name) => (
+                  {/* {orderedTrackingHeaders?.map((name) => (
                     <th
                       key={name}
                       className={`px-2 py-2 text-right whitespace-nowrap text-[11px] ${name === "INPUT"
@@ -719,7 +848,31 @@ export const Dashboard: React.FC = () => {
                         ? "Available"
                         : name?.split(" ")[0]}
                     </th>
+                  ))} */}
+                  <th className="px-2 py-2 text-right text-[11px] bg-green-50 text-green-700 font-semibold">
+                    Available
+                  </th>
+
+                  {/* SCRAP STATUS COLUMNS */}
+                  {SCRAP_STATUSES?.map((status) => (
+                    <th
+                      key={status}
+                      className="px-2 py-2 text-right text-[11px] bg-yellow-50 text-yellow-700 font-semibold"
+                    >
+                      {status}
+                    </th>
                   ))}
+
+                  {/* TOTAL COLUMN */}
+                  <th className="px-2 py-2 text-right text-[11px] bg-green-100 text-green-800 font-bold">
+                    TOTAL
+                  </th>
+
+                  {/* SCRAP COLUMN (last) */}
+                  <th className="px-2 py-2 text-right text-[11px] bg-red-100 text-red-800 font-bold">
+                    SCRAP
+                  </th>
+
 
                 </tr>
               </thead>
@@ -739,20 +892,50 @@ export const Dashboard: React.FC = () => {
                     },
                     {}
                   );
+                  // const inputValue = trackingMap["INPUT"] ?? 0;
+                  // const totalScrapStatuses = SCRAP_STATUSES.reduce((sum, status) => {
+                  //   return sum + (trackingMap[status] ?? 0);
+                  // }, 0);
+
+                  // const scrapValue = trackingMap["SCRAP"] ?? 0;
+
+                  const inputValue = trackingMap["INPUT"] ?? 0;
+
+                  const checkingValue:any = Object.entries(trackingMap).find(([key]) =>
+                    key.includes("CHECKING")
+                  )?.[1] ?? 0;
+
+                  const waitingValue:any = Object.entries(trackingMap).find(([key]) =>
+                    key.includes("WAITING")
+                  )?.[1] ?? 0;
+
+                  const gumValue:any = Object.entries(trackingMap).find(([key]) =>
+                    key.includes("GUM")
+                  )?.[1] ?? 0;
+
+                  const faultValue:any = Object.entries(trackingMap).find(([key]) =>
+                    key.includes("FAULT")
+                  )?.[1] ?? 0;
+
+                  const totalScrapStatuses =
+                    checkingValue + waitingValue + gumValue + faultValue;
+
+                  const scrapValue = trackingMap["SCRAP"] ?? 0;
+
 
                   return (
                     <tr key={index} className="hover:bg-gray-50">
 
                       {/* PRODUCT */}
                       <td className="px-2 py-2">
-                        <div className="font-semibold text-gray-900 text-[12px]">
+                        <div className="font-bold text-gray-900 text-[10px]">
                           {product?.title}
                         </div>
                         <div className="text-[10px] text-gray-500">
                           Tray : {item?.product_details?.trays[0]?.name}
                         </div>
                         <div className="text-[10px] text-gray-500">
-                          Tray : {item?.product_details?.trays[0]?.name}
+                          Barcode : {product?.barcode_value}
                         </div>
                       </td>
 
@@ -784,7 +967,7 @@ export const Dashboard: React.FC = () => {
 
 
                       {/* 🔥 TRACKING VALUES */}
-                      {orderedTrackingHeaders.map((name) => (
+                      {/* {orderedTrackingHeaders?.map((name) => (
                         <td
                           key={name}
                           className={`px-2 py-2 text-right font-semibold text-[11px] ${name === "INPUT"
@@ -794,7 +977,58 @@ export const Dashboard: React.FC = () => {
                         >
                           {trackingMap[name] ?? 0}
                         </td>
-                      ))}
+                      ))} */}
+                      {/* <td className="px-2 py-2 text-center font-semibold text-green-700 bg-green-50">
+                        {inputValue}
+                      </td> */}
+                      {/* CHECKING | WAITING | GUM | FAULT */}
+                      {/* {SCRAP_STATUSES.map((status) => (
+                        <td
+                          key={status}
+                          className="px-2 py-2 text-center text-[11px] font-semibold text-yellow-700 bg-yellow-50"
+                        >
+                          {trackingMap[status] ?? 0}
+                        </td>
+                      ))} */}
+
+                      {/* TOTAL (sum of above 4 only) */}
+                      {/* <td className="px-2 py-2 text-center font-bold text-green-800 bg-green-100">
+                        {totalScrapStatuses}
+                      </td> */}
+
+                      {/* SCRAP (separate value) */}
+                      {/* <td className="px-2 py-2 text-center font-bold text-red-800 bg-red-100">
+                        {scrapValue}
+                      </td> */}
+
+                      <td className="px-2 py-2 text-center font-semibold text-green-700 bg-green-50">
+                        {inputValue}
+                      </td>
+
+                      <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
+                        {checkingValue}
+                      </td>
+
+                      <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
+                        {waitingValue}
+                      </td>
+
+                      <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
+                        {gumValue}
+                      </td>
+
+                      <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
+                        {faultValue}
+                      </td>
+
+                      <td className="px-2 py-2 text-center font-bold text-green-800 bg-green-100">
+                        {totalScrapStatuses}
+                      </td>
+
+                      <td className="px-2 py-2 text-center font-bold text-red-800 bg-red-100">
+                        {scrapValue}
+                      </td>
+
 
                     </tr>
                   );
