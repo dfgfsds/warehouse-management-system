@@ -128,126 +128,126 @@ export interface BarcodeItem {
 //     }, 700);
 // };
 
-// import QRCode from "qrcode";
+import QRCode from "qrcode";
 
-// export const printAllQRCodes = async (items: any[]) => {
-//   const safeItems = items.filter(
-//     (i) => i?.barcode && i?.productName
-//   );
+export const printAllQRCodes = async (items: any[]) => {
+    const safeItems = items.filter(
+        (i) => i?.barcode && i?.productName
+    );
 
-//   if (!safeItems.length) {
-//     alert("No QR codes to print");
-//     return;
-//   }
+    if (!safeItems.length) {
+        alert("No QR codes to print");
+        return;
+    }
 
-//   const win = window.open("", "", "width=1200,height=900");
-//   if (!win) return;
+    const win = window.open("", "", "width=1200,height=900");
+    if (!win) return;
 
-//   win.document.write(`
-//     <html>
-//       <head>
-//         <title>QR Print</title>
-//         <style>
-//           @page {
-//             size: A4;
-//             margin: 0;
-//           }
+    win.document.write(`
+    <html>
+      <head>
+        <title>QR Print</title>
+        <style>
+          @page {
+            size: A4;
+            margin: 0;
+          }
 
-//           body {
-//             margin: 0;
-//             font-family: Arial, sans-serif;
-//           }
+          body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+          }
 
-//           /* ===== ONE PAGE = 10 QR ===== */
-//           .page {
-//             width: 210mm;
-//             height: 297mm;
+          /* ===== ONE PAGE = 10 QR ===== */
+          .page {
+            width: 210mm;
+            height: 297mm;
 
-//             display: grid;
-//             grid-template-columns: 1fr 1fr;      /* 2 columns */
-//             grid-template-rows: repeat(5, 1fr);  /* 5 rows = 10 */
+            display: grid;
+            grid-template-columns: 1fr 1fr;      /* 2 columns */
+            grid-template-rows: repeat(5, 1fr);  /* 5 rows = 10 */
 
-//             padding: 8mm;
-//             box-sizing: border-box;
+            padding: 8mm;
+            box-sizing: border-box;
 
-//             page-break-after: always;
-//           }
+            page-break-after: always;
+          }
 
-//           .label {
-//             display: flex;
-//             flex-direction: column;
-//             align-items: center;
-//             justify-content: center;
-//             text-align: center;
-//           }
+          .label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+          }
 
-//           .product {
-//             font-size: 10px;
-//             font-weight: bold;
-//             margin-bottom: 1mm;
-//           }
+          .product {
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 1mm;
+          }
 
-//           .tray {
-//             font-size: 9px;
-//             margin-bottom: 1mm;
-//           }
+          .tray {
+            font-size: 9px;
+            margin-bottom: 1mm;
+          }
 
-//           img {
-//             width: 32mm;
-//             height: 32mm;
-//           }
-//         </style>
-//       </head>
+          img {
+            width: 32mm;
+            height: 32mm;
+          }
+        </style>
+      </head>
 
-//       <body>
-//         ${safeItems
-//           .map((item, i) => `
-//             ${i % 10 === 0 ? `<div class="page">` : ``}
+      <body>
+        ${safeItems
+            .map((item, i) => `
+            ${i % 10 === 0 ? `<div class="page">` : ``}
 
-//             <div class="label">
-//               <div class="product">${item.productName}</div>
-//               <div class="tray">Tray: ${item.trayName}</div>
-//               <div class="product">${item.barcode}</div>
-//               <img id="qr-${i}" />
-//             </div>
+            <div class="label">
+              <div class="product">${item.productName}</div>
+              <div class="tray">Tray: ${item.trayName}</div>
+              <div class="product">${item.barcode}</div>
+              <img id="qr-${i}" />
+            </div>
 
-//             ${(i % 10 === 9 || i === safeItems.length - 1) ? `</div>` : ``}
-//           `)
-//           .join("")}
-//       </body>
-//     </html>
-//   `);
+            ${(i % 10 === 9 || i === safeItems.length - 1) ? `</div>` : ``}
+          `)
+            .join("")}
+      </body>
+    </html>
+  `);
 
-//   win.document.close();
+    win.document.close();
 
-//   /* ===== SAFE BATCH QR GENERATION ===== */
-//   const CHUNK_SIZE = 10;
+    /* ===== SAFE BATCH QR GENERATION ===== */
+    const CHUNK_SIZE = 10;
 
-//   for (let i = 0; i < safeItems.length; i += CHUNK_SIZE) {
-//     const chunk = safeItems.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < safeItems.length; i += CHUNK_SIZE) {
+        const chunk = safeItems.slice(i, i + CHUNK_SIZE);
 
-//     await Promise.all(
-//       chunk.map(async (item, index) => {
-//         const img = win.document.getElementById(
-//           `qr-${i + index}`
-//         ) as HTMLImageElement;
+        await Promise.all(
+            chunk.map(async (item, index) => {
+                const img = win.document.getElementById(
+                    `qr-${i + index}`
+                ) as HTMLImageElement;
 
-//         if (img) {
-//           img.src = await QRCode.toDataURL(item.barcode, {
-//             width: 220,
-//             margin: 0, // ❌ no white border
-//           });
-//         }
-//       })
-//     );
+                if (img) {
+                    img.src = await QRCode.toDataURL(item.barcode, {
+                        width: 220,
+                        margin: 0, // ❌ no white border
+                    });
+                }
+            })
+        );
 
-//     // 🧠 browser breathe
-//     await new Promise((r) => setTimeout(r, 0));
-//   }
+        // 🧠 browser breathe
+        await new Promise((r) => setTimeout(r, 0));
+    }
 
-//   win.focus();
-//   win.print();
-// };
+    win.focus();
+    win.print();
+};
 
 
 
@@ -711,18 +711,18 @@ export const ProductList: React.FC = () => {
     //     trayName: item.trays?.[0]?.code || "-"
     // }));
 
-    // const getFilteredBarcodeItems = () => {
-    //     return filteredProducts?.flatMap((item: any) => {
-    //         const p = item?.product;
-    //         if (!p?.barcode_value) return [];
+    const getFilteredBarcodeItems = () => {
+        return filteredProducts?.flatMap((item: any) => {
+            const p = item?.product;
+            if (!p?.barcode_value) return [];
 
-    //         return (item?.trays?.length ? item?.trays : [{}]).map((t: any) => ({
-    //             barcode: p?.barcode_value,
-    //             productName: p?.title,
-    //             trayName: item.trays?.[0]?.code || "-"
-    //         }));
-    //     });
-    // };
+            return (item?.trays?.length ? item?.trays : [{}]).map((t: any) => ({
+                barcode: p?.barcode_value,
+                productName: p?.title,
+                trayName: item.trays?.[0]?.code || "-"
+            }));
+        });
+    };
 
 
 
@@ -888,8 +888,8 @@ export const ProductList: React.FC = () => {
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
                 >
                     <span className="flex mx-auto gap-2">
-                    <Download size={16} className='my-auto'/>
-                    Export Excel
+                        <Download size={16} className='my-auto' />
+                        Export Excel
                     </span>
                 </button>
                 <button
@@ -1034,7 +1034,7 @@ export const ProductList: React.FC = () => {
                                                 className="text-blue-600 flex gap-1"
                                             >
                                                 <Edit2 size={16} />
-                                                 {/* Edit */}
+                                                {/* Edit */}
                                             </button>
 
                                             <button
@@ -1044,7 +1044,7 @@ export const ProductList: React.FC = () => {
                                                 }}
                                                 className="text-red-600 flex gap-1"
                                             >
-                                                <Trash2 size={16} /> 
+                                                <Trash2 size={16} />
                                                 {/* Delete */}
                                             </button>
 
@@ -1059,7 +1059,7 @@ export const ProductList: React.FC = () => {
                                                     className="text-gray-700 underline text-sm"
                                                 >
                                                     {/* Print Barcode */}
-                                                    <Printer className="h-4 w-4" /> 
+                                                    <Printer className="h-4 w-4" />
                                                 </button>
                                             )}
 
