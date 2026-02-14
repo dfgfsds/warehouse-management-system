@@ -975,10 +975,73 @@ export const InventoryManagement: React.FC = () => {
 
   // const [selectedTray, setSelectedTray] = useState<string>("");
 
+  // const downloadExcel = () => {
+  //   if (!filteredAssets || filteredAssets.length === 0) return;
+
+  //   const rows = filteredAssets.map((item: any, index: number) => {
+  //     const firstTracking = item?.tracking?.[0] || {};
+
+  //     const row: any = {
+  //       "S.No": index + 1,
+  //       "Product Name": item.name,
+  //       "Category": item.category_name,
+  //       "Brand": item.brand_name,
+  //       "Tray": firstTracking?.tray_name || "-",
+  //       "Barcode": item.id,
+  //       "Total In": firstTracking?.total_in || 0,
+  //       "Total Out": firstTracking?.total_out || 0,
+  //       "Available Stock": firstTracking?.available_stock || 0,
+  //     };
+
+  //     /* ================= SAME TABLE LOGIC ================= */
+
+  //     if (selectedTray?.code === "CHECKING AREA") {
+  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
+  //       row["Gum Leakage"] = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
+  //       row["Fault Board"] = getOutCount(firstTracking, "FAULT BOARD");
+  //       row["Scrap"] = getOutCount(firstTracking, "SCRAP");
+  //     }
+
+  //     if (selectedTray?.code === "WAITING AREA") {
+  //       row["Input"] = getInCount(firstTracking, "CHECKING AREA");
+  //     }
+
+  //     if (selectedTray?.code === "GUM LEAKAGE BOARD") {
+  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
+  //     }
+
+  //     if (selectedTray?.code === "FAULT BOARD") {
+  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
+  //       row["Scrap"] = getOutCount(firstTracking, "SCRAP");
+  //     }
+
+  //     return row;
+  //   });
+
+  //   const worksheet = XLSX.utils.json_to_sheet(rows);
+  //   const workbook = XLSX.utils.book_new();
+
+  //   XLSX.utils.book_append_sheet(
+  //     workbook,
+  //     worksheet,
+  //     selectedTray?.code || "Assets"
+  //   );
+
+  //   XLSX.writeFile(
+  //     workbook,
+  //     `Assets_${selectedTray?.code || "ALL"}_${new Date()
+  //       .toISOString()
+  //       .slice(0, 10)}.xlsx`
+  //   );
+  // };
+
   const downloadExcel = () => {
     if (!filteredAssets || filteredAssets.length === 0) return;
 
-    const rows = filteredAssets.map((item: any, index: number) => {
+    const rows: any[] = [];
+    const totals: any = {};
+
+    filteredAssets.forEach((item: any, index: number) => {
       const firstTracking = item?.tracking?.[0] || {};
 
       const row: any = {
@@ -1015,8 +1078,27 @@ export const InventoryManagement: React.FC = () => {
         row["Scrap"] = getOutCount(firstTracking, "SCRAP");
       }
 
-      return row;
+      // 🔥 accumulate totals dynamically
+      Object.keys(row).forEach((key) => {
+        if (typeof row[key] === "number") {
+          totals[key] = (totals[key] || 0) + row[key];
+        }
+      });
+
+      rows.push(row);
     });
+
+    // 🔥 GRAND TOTAL ROW
+    const totalRow: any = {
+      "S.No": "",
+      "Product Name": "GRAND TOTAL",
+    };
+
+    Object.keys(totals).forEach((key) => {
+      totalRow[key] = totals[key];
+    });
+
+    rows.push(totalRow);
 
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
@@ -1034,7 +1116,6 @@ export const InventoryManagement: React.FC = () => {
         .slice(0, 10)}.xlsx`
     );
   };
-
 
 
   const getInCount = (tracking: any, division: string) => {
