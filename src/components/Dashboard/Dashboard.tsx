@@ -128,31 +128,79 @@ export const Dashboard: React.FC = () => {
 
   }, [user?.vendor_id]);
 
-  const filteredHubInventory = hubInventory?.filter((item: any) => {
-    const product = item?.product_details?.product;
-    const productId = product?.id;
-    const categoryId = item?.product_details?.categories?.[0]?.id;
-    const brandId = product?.brand?.id;
-    const productTypeId = product?.product_type?.id;
+  // const filteredHubInventory = hubInventory?.filter((item: any) => {
+  //   const product = item?.product_details?.product;
+  //   const productId = product?.id;
+  //   const categoryId = item?.product_details?.categories?.[0]?.id;
+  //   const brandId = product?.brand?.id;
+  //   const productTypeId = product?.product_type?.id;
 
-    if (selectedProductId && productId !== selectedProductId) {
-      return false;
-    }
+  //   if (selectedProductId && productId !== selectedProductId) {
+  //     return false;
+  //   }
 
-    if (selectedCategoryId && categoryId !== selectedCategoryId) {
-      return false;
-    }
+  //   if (selectedCategoryId && categoryId !== selectedCategoryId) {
+  //     return false;
+  //   }
 
-    if (selectedBrandId && brandId !== selectedBrandId) {
-      return false;
-    }
+  //   if (selectedBrandId && brandId !== selectedBrandId) {
+  //     return false;
+  //   }
 
-    if (selectedProductTypeId && productTypeId !== selectedProductTypeId) {
-      return false;
-    }
+  //   if (selectedProductTypeId && productTypeId !== selectedProductTypeId) {
+  //     return false;
+  //   }
 
-    return true;
-  });
+  //   return true;
+  // });
+
+
+  const filteredHubInventory = (hubInventory || [])
+    .filter((item: any) => {
+      const product = item?.product_details?.product;
+      const productId = product?.id;
+      const categoryId = item?.product_details?.categories?.[0]?.id;
+      const brandId = product?.brand?.id;
+      const productTypeId = product?.product_type?.id;
+
+      if (selectedProductId && productId !== selectedProductId) return false;
+      if (selectedCategoryId && categoryId !== selectedCategoryId) return false;
+      if (selectedBrandId && brandId !== selectedBrandId) return false;
+      if (selectedProductTypeId && productTypeId !== selectedProductTypeId) return false;
+
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      const codeA = a?.product_details?.trays?.[0]?.code || "";
+      const codeB = b?.product_details?.trays?.[0]?.code || "";
+
+      const parseCode = (code: string) => {
+        if (!code) return { type: "NUM", number: 0 };
+
+        if (code.startsWith("FL")) {
+          return {
+            type: "FL",
+            number: parseInt(code.replace("FL", ""), 10) || 0,
+          };
+        }
+
+        return {
+          type: "NUM",
+          number: parseInt(code, 10) || 0,
+        };
+      };
+
+      const aParsed = parseCode(codeA);
+      const bParsed = parseCode(codeB);
+
+      // 🔥 First normal numbers
+      if (aParsed.type !== bParsed.type) {
+        return aParsed.type === "NUM" ? -1 : 1;
+      }
+
+      // 🔥 Then numeric order
+      return aParsed.number - bParsed.number;
+    });
 
 
   const fetchHubInventory = async () => {
@@ -341,129 +389,129 @@ export const Dashboard: React.FC = () => {
   // };
 
   const downloadHubInventoryExcel = () => {
-  if (!filteredHubInventory || filteredHubInventory.length === 0) return;
+    if (!filteredHubInventory || filteredHubInventory.length === 0) return;
 
-  let grandTotals = {
-    totalIn: 0,
-    totalOut: 0,
-    input: 0,
-    checking: 0,
-    waiting: 0,
-    gum: 0,
-    fault: 0,
-    scrap: 0,
-  };
-
-  const rows = filteredHubInventory.map((item: any, i: number) => {
-    const product = item?.product_details?.product;
-    const category =
-      item?.product_details?.categories?.[0]?.name || "-";
-
-    const trackingMap = (item?.tracking || []).reduce(
-      (acc: any, t: any) => {
-        acc[t.division_name] = t.currently_available ?? 0;
-        return acc;
-      },
-      {}
-    );
-
-    const inputValue = trackingMap["INPUT"] ?? 0;
-
-    const checkingValue:any =
-      Object.entries(trackingMap).find(([key]) =>
-        key.includes("CHECKING")
-      )?.[1] ?? 0;
-
-    const waitingValue:any =
-      Object.entries(trackingMap).find(([key]) =>
-        key.includes("WAITING")
-      )?.[1] ?? 0;
-
-    const gumValue:any =
-      Object.entries(trackingMap).find(([key]) =>
-        key.includes("GUM")
-      )?.[1] ?? 0;
-
-    const faultValue:any =
-      Object.entries(trackingMap).find(([key]) =>
-        key.includes("FAULT")
-      )?.[1] ?? 0;
-
-    const totalValue:any =
-      checkingValue + waitingValue + gumValue + faultValue;
-
-    const scrapValue = trackingMap["SCRAP"] ?? 0;
-
-    // 🔥 accumulate totals
-    grandTotals.totalIn += item?.total_in ?? 0;
-    grandTotals.totalOut += item?.total_out ?? 0;
-    grandTotals.input += inputValue;
-    grandTotals.checking += checkingValue;
-    grandTotals.waiting += waitingValue;
-    grandTotals.gum += gumValue;
-    grandTotals.fault += faultValue;
-    grandTotals.scrap += scrapValue;
-
-    return {
-      "S.No": i + 1,
-      "Product": product?.title || "-",
-      "Tray": item?.product_details?.trays?.[0]?.name || "-",
-      "Barcode": product?.barcode_value || "-",
-      "Brand": product?.brand?.name || "-",
-      "Category": category,
-      "Product Type": product?.product_type?.name || "-",
-      "Total In": item?.total_in ?? 0,
-      "Total Out": item?.total_out ?? 0,
-      "Available": inputValue,
-      "CHECKING": checkingValue,
-      "WAITING": waitingValue,
-      "GUM": gumValue,
-      "FAULT": faultValue,
-      "TOTAL": totalValue,
-      "SCRAP": scrapValue,
+    let grandTotals = {
+      totalIn: 0,
+      totalOut: 0,
+      input: 0,
+      checking: 0,
+      waiting: 0,
+      gum: 0,
+      fault: 0,
+      scrap: 0,
     };
-  });
 
-  // 🔥 Add Grand Total Row at end
-  rows.push({
-    "S.No": "",
-    "Product": "GRAND TOTAL",
-    "Tray": "",
-    "Barcode": "",
-    "Brand": "",
-    "Category": "",
-    "Product Type": "",
-    "Total In": grandTotals.totalIn,
-    "Total Out": grandTotals.totalOut,
-    "Available": grandTotals.input,
-    "CHECKING": grandTotals.checking,
-    "WAITING": grandTotals.waiting,
-    "GUM": grandTotals.gum,
-    "FAULT": grandTotals.fault,
-    "TOTAL":
-      grandTotals.checking +
-      grandTotals.waiting +
-      grandTotals.gum +
-      grandTotals.fault,
-    "SCRAP": grandTotals.scrap,
-  });
+    const rows = filteredHubInventory.map((item: any, i: number) => {
+      const product = item?.product_details?.product;
+      const category =
+        item?.product_details?.categories?.[0]?.name || "-";
 
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Hub Inventory");
+      const trackingMap = (item?.tracking || []).reduce(
+        (acc: any, t: any) => {
+          acc[t.division_name] = t.currently_available ?? 0;
+          return acc;
+        },
+        {}
+      );
 
-  const buffer = XLSX.write(wb, {
-    bookType: "xlsx",
-    type: "array",
-  });
+      const inputValue = trackingMap["INPUT"] ?? 0;
 
-  saveAs(
-    new Blob([buffer]),
-    `Hub_Inventory_${selectedHubId || "All"}_${new Date()
-      .toISOString()
-      .slice(0, 10)}.xlsx`
-  );
-};
+      const checkingValue: any =
+        Object.entries(trackingMap).find(([key]) =>
+          key.includes("CHECKING")
+        )?.[1] ?? 0;
+
+      const waitingValue: any =
+        Object.entries(trackingMap).find(([key]) =>
+          key.includes("WAITING")
+        )?.[1] ?? 0;
+
+      const gumValue: any =
+        Object.entries(trackingMap).find(([key]) =>
+          key.includes("GUM")
+        )?.[1] ?? 0;
+
+      const faultValue: any =
+        Object.entries(trackingMap).find(([key]) =>
+          key.includes("FAULT")
+        )?.[1] ?? 0;
+
+      const totalValue: any =
+        checkingValue + waitingValue + gumValue + faultValue;
+
+      const scrapValue = trackingMap["SCRAP"] ?? 0;
+
+      // 🔥 accumulate totals
+      grandTotals.totalIn += item?.total_in ?? 0;
+      grandTotals.totalOut += item?.total_out ?? 0;
+      grandTotals.input += inputValue;
+      grandTotals.checking += checkingValue;
+      grandTotals.waiting += waitingValue;
+      grandTotals.gum += gumValue;
+      grandTotals.fault += faultValue;
+      grandTotals.scrap += scrapValue;
+
+      return {
+        "S.No": i + 1,
+        "Product": product?.title || "-",
+        "Tray": item?.product_details?.trays?.[0]?.name || "-",
+        "Barcode": product?.barcode_value || "-",
+        "Brand": product?.brand?.name || "-",
+        "Category": category,
+        "Product Type": product?.product_type?.name || "-",
+        "Total In": item?.total_in ?? 0,
+        "Total Out": item?.total_out ?? 0,
+        "Available": inputValue,
+        "CHECKING": checkingValue,
+        "WAITING": waitingValue,
+        "GUM": gumValue,
+        "FAULT": faultValue,
+        "TOTAL": totalValue,
+        "SCRAP": scrapValue,
+      };
+    });
+
+    // 🔥 Add Grand Total Row at end
+    rows.push({
+      "S.No": "",
+      "Product": "GRAND TOTAL",
+      "Tray": "",
+      "Barcode": "",
+      "Brand": "",
+      "Category": "",
+      "Product Type": "",
+      "Total In": grandTotals.totalIn,
+      "Total Out": grandTotals.totalOut,
+      "Available": grandTotals.input,
+      "CHECKING": grandTotals.checking,
+      "WAITING": grandTotals.waiting,
+      "GUM": grandTotals.gum,
+      "FAULT": grandTotals.fault,
+      "TOTAL":
+        grandTotals.checking +
+        grandTotals.waiting +
+        grandTotals.gum +
+        grandTotals.fault,
+      "SCRAP": grandTotals.scrap,
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Hub Inventory");
+
+    const buffer = XLSX.write(wb, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    saveAs(
+      new Blob([buffer]),
+      `Hub_Inventory_${selectedHubId || "All"}_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`
+    );
+  };
 
 
   const handleClearAllFilters = () => {
@@ -480,7 +528,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const SCRAP_STATUSES = ["CHECKING", "WAITING", "GUM", "FAULT"];
-
+  console.log(filteredHubInventory)
 
   return (
     <div className="p-6 space-y-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -745,9 +793,9 @@ export const Dashboard: React.FC = () => {
                 className="px-3 py-2 border rounded-lg bg-white text-sm w-full"
               >
                 <option value="">All Products</option>
-                {productData?.map((item: any) => (
-                  <option key={item.product.id} value={item.product.id}>
-                    {item.product.title} ({item.product.sku})
+                {filteredHubInventory?.map((item: any) => (
+                  <option key={item?.product_details?.product?.id} value={item?.product_details?.product?.id}>
+                    {item?.product_details?.product?.title}
                   </option>
                 ))}
               </select>
@@ -826,148 +874,147 @@ export const Dashboard: React.FC = () => {
           </div>
         ) : (
           /* TABLE */
-          <div className="relative overflow-x-auto rounded-lg border shadow-sm bg-white">
-            <table className="w-full text-[12px] leading-tight">
-              {/* ===== HEADER ===== */}
-              <thead className="bg-gray-50 text-[11px] uppercase text-gray-600 sticky top-0">
-                <tr>
-                  <th className="px-2 py-2 text-left">Product / Tray</th>
-                  <th className="px-2 py-2 text-left">Brand / Category / Type</th>
-                  <th className="px-2 py-2 text-center">Total In</th>
-                  <th className="px-2 py-2 text-center border-r">Total Out</th>
+          <div className="rounded-lg border shadow-sm bg-white">
 
-                  {/* {orderedTrackingHeaders?.map((name) => (
-                    <th
-                      key={name}
-                      className={`px-2 py-2 text-right whitespace-nowrap text-[11px] ${name === "INPUT"
-                        ? "bg-green-50 text-green-700 font-semibold"
-                        : ""
-                        }`}
-                    >
-                      {name === "INPUT"
-                        ? "Available"
-                        : name?.split(" ")[0]}
+            {/* 🔥 SCROLL CONTAINER */}
+            <div className="max-h-[500px] overflow-y-auto overflow-x-auto ">
+
+              <table className="w-full text-[12px] leading-tight border-collapse">
+                {/* ===== HEADER ===== */}
+                <thead className="bg-gray-50">
+                  <tr>
+
+                    <th className="px-2 py-2 text-left sticky top-0 bg-gray-50 z-20">
+                      Product / Tray
                     </th>
-                  ))} */}
-                  <th className="px-2 py-2 text-right text-[11px] bg-green-50 text-green-700 font-semibold">
-                    Available
-                  </th>
 
-                  {/* SCRAP STATUS COLUMNS */}
-                  {SCRAP_STATUSES?.map((status) => (
-                    <th
-                      key={status}
-                      className="px-2 py-2 text-right text-[11px] bg-yellow-50 text-yellow-700 font-semibold"
-                    >
-                      {status}
+                    <th className="px-2 py-2 text-left sticky top-0 bg-gray-50 z-20">
+                      Brand / Category / Type
                     </th>
-                  ))}
 
-                  {/* TOTAL COLUMN */}
-                  <th className="px-2 py-2 text-right text-[11px] bg-green-100 text-green-800 font-bold">
-                    TOTAL
-                  </th>
+                    <th className="px-2 py-2 text-center sticky top-0 bg-gray-50 z-20">
+                      Total In
+                    </th>
 
-                  {/* SCRAP COLUMN (last) */}
-                  <th className="px-2 py-2 text-right text-[11px] bg-red-100 text-red-800 font-bold">
-                    SCRAP
-                  </th>
+                    <th className="px-2 py-2 text-center border-r sticky top-0 bg-gray-50 z-20">
+                      Total Out
+                    </th>
 
+                    <th className="px-2 py-2 text-right sticky top-0 bg-green-50 text-green-700 font-semibold z-20">
+                      Available
+                    </th>
 
-                </tr>
-              </thead>
+                    {SCRAP_STATUSES?.map((status) => (
+                      <th
+                        key={status}
+                        className="px-2 py-2 text-right sticky top-0 bg-yellow-50 text-yellow-700 font-semibold z-20"
+                      >
+                        {status}
+                      </th>
+                    ))}
 
+                    <th className="px-2 py-2 text-right sticky top-0 bg-green-100 text-green-800 font-bold z-20">
+                      TOTAL
+                    </th>
 
-              {/* ===== BODY ===== */}
-              <tbody className="divide-y">
-                {filteredHubInventory.map((item: any, index: number) => {
-                  const product = item?.product_details?.product;
-                  const category =
-                    item?.product_details?.categories?.[0]?.name || "-";
+                    <th className="px-2 py-2 text-right sticky top-0 bg-red-100 text-red-800 font-bold z-20">
+                      SCRAP
+                    </th>
 
-                  const trackingMap = (item?.tracking || []).reduce(
-                    (acc: any, t: any) => {
-                      acc[t.division_name] = t.currently_available ?? 0;
-                      return acc;
-                    },
-                    {}
-                  );
-                  // const inputValue = trackingMap["INPUT"] ?? 0;
-                  // const totalScrapStatuses = SCRAP_STATUSES.reduce((sum, status) => {
-                  //   return sum + (trackingMap[status] ?? 0);
-                  // }, 0);
-
-                  // const scrapValue = trackingMap["SCRAP"] ?? 0;
-
-                  const inputValue = trackingMap["INPUT"] ?? 0;
-
-                  const checkingValue:any = Object.entries(trackingMap).find(([key]) =>
-                    key.includes("CHECKING")
-                  )?.[1] ?? 0;
-
-                  const waitingValue:any = Object.entries(trackingMap).find(([key]) =>
-                    key.includes("WAITING")
-                  )?.[1] ?? 0;
-
-                  const gumValue:any = Object.entries(trackingMap).find(([key]) =>
-                    key.includes("GUM")
-                  )?.[1] ?? 0;
-
-                  const faultValue:any = Object.entries(trackingMap).find(([key]) =>
-                    key.includes("FAULT")
-                  )?.[1] ?? 0;
-
-                  const totalScrapStatuses =
-                    checkingValue + waitingValue + gumValue + faultValue;
-
-                  const scrapValue = trackingMap["SCRAP"] ?? 0;
+                  </tr>
+                </thead>
 
 
-                  return (
-                    <tr key={index} className="hover:bg-gray-50">
+                {/* ===== BODY ===== */}
+                <tbody className="divide-y">
+                  {filteredHubInventory.map((item: any, index: number) => {
+                    const product = item?.product_details?.product;
+                    const category =
+                      item?.product_details?.categories?.[0]?.name || "-";
 
-                      {/* PRODUCT */}
-                      <td className="px-2 py-2">
-                        <div className="font-bold text-gray-900 text-[10px]">
-                          {product?.title}
-                        </div>
-                        <div className="text-[10px] text-gray-500">
-                          Tray : {item?.product_details?.trays[0]?.name}
-                        </div>
-                        <div className="text-[10px] text-gray-500">
-                          Barcode : {product?.barcode_value}
-                        </div>
-                      </td>
+                    const trackingMap = (item?.tracking || []).reduce(
+                      (acc: any, t: any) => {
+                        acc[t.division_name] = t.currently_available ?? 0;
+                        return acc;
+                      },
+                      {}
+                    );
+                    // const inputValue = trackingMap["INPUT"] ?? 0;
+                    // const totalScrapStatuses = SCRAP_STATUSES.reduce((sum, status) => {
+                    //   return sum + (trackingMap[status] ?? 0);
+                    // }, 0);
+
+                    // const scrapValue = trackingMap["SCRAP"] ?? 0;
+
+                    const inputValue = trackingMap["INPUT"] ?? 0;
+
+                    const checkingValue: any = Object.entries(trackingMap).find(([key]) =>
+                      key.includes("CHECKING")
+                    )?.[1] ?? 0;
+
+                    const waitingValue: any = Object.entries(trackingMap).find(([key]) =>
+                      key.includes("WAITING")
+                    )?.[1] ?? 0;
+
+                    const gumValue: any = Object.entries(trackingMap).find(([key]) =>
+                      key.includes("GUM")
+                    )?.[1] ?? 0;
+
+                    const faultValue: any = Object.entries(trackingMap).find(([key]) =>
+                      key.includes("FAULT")
+                    )?.[1] ?? 0;
+
+                    const totalScrapStatuses =
+                      checkingValue + waitingValue + gumValue + faultValue;
+
+                    const scrapValue = trackingMap["SCRAP"] ?? 0;
 
 
-                      {/* BRAND / CATEGORY / TYPE */}
-                      <td className="px-2 py-2">
-                        <div className="font-medium text-gray-800 text-[11px]">
-                          {product?.brand?.name}
-                        </div>
-                        <div className="text-[10px] text-gray-500">
-                          {category} · {product?.product_type?.name}
-                        </div>
-                      </td>
+                    return (
+                      <tr key={index} className="hover:bg-gray-50">
+
+                        {/* PRODUCT */}
+                        <td className="px-2 py-2">
+                          <div className="font-bold text-gray-900 text-[10px]">
+                            {product?.title}
+                          </div>
+                          <div className="text-[10px] text-gray-500">
+                            Tray : {item?.product_details?.trays[0]?.name}
+                          </div>
+                          <div className="text-[10px] text-gray-500">
+                            Barcode : {product?.barcode_value}
+                          </div>
+                        </td>
 
 
-                      {/* TOTAL IN */}
-                      <td className="px-2 py-2 text-center">
-                        <span className="px-2 py-[2px] rounded bg-green-100 text-green-700 font-semibold text-[11px]">
-                          {item?.total_in ?? 0}
-                        </span>
-                      </td>
-
-                      {/* TOTAL OUT */}
-                      <td className="px-2 py-2 text-center border-r">
-                        <span className="px-2 py-[2px] rounded bg-red-100 text-red-700 font-semibold text-[11px]">
-                          {item?.total_out ?? 0}
-                        </span>
-                      </td>
+                        {/* BRAND / CATEGORY / TYPE */}
+                        <td className="px-2 py-2">
+                          <div className="font-medium text-gray-800 text-[11px]">
+                            {product?.brand?.name}
+                          </div>
+                          <div className="text-[10px] text-gray-500">
+                            {category} · {product?.product_type?.name}
+                          </div>
+                        </td>
 
 
-                      {/* 🔥 TRACKING VALUES */}
-                      {/* {orderedTrackingHeaders?.map((name) => (
+                        {/* TOTAL IN */}
+                        <td className="px-2 py-2 text-center">
+                          <span className="px-2 py-[2px] rounded bg-green-100 text-green-700 font-semibold text-[11px]">
+                            {item?.total_in ?? 0}
+                          </span>
+                        </td>
+
+                        {/* TOTAL OUT */}
+                        <td className="px-2 py-2 text-center border-r">
+                          <span className="px-2 py-[2px] rounded bg-red-100 text-red-700 font-semibold text-[11px]">
+                            {item?.total_out ?? 0}
+                          </span>
+                        </td>
+
+
+                        {/* 🔥 TRACKING VALUES */}
+                        {/* {orderedTrackingHeaders?.map((name) => (
                         <td
                           key={name}
                           className={`px-2 py-2 text-right font-semibold text-[11px] ${name === "INPUT"
@@ -978,11 +1025,11 @@ export const Dashboard: React.FC = () => {
                           {trackingMap[name] ?? 0}
                         </td>
                       ))} */}
-                      {/* <td className="px-2 py-2 text-center font-semibold text-green-700 bg-green-50">
+                        {/* <td className="px-2 py-2 text-center font-semibold text-green-700 bg-green-50">
                         {inputValue}
                       </td> */}
-                      {/* CHECKING | WAITING | GUM | FAULT */}
-                      {/* {SCRAP_STATUSES.map((status) => (
+                        {/* CHECKING | WAITING | GUM | FAULT */}
+                        {/* {SCRAP_STATUSES.map((status) => (
                         <td
                           key={status}
                           className="px-2 py-2 text-center text-[11px] font-semibold text-yellow-700 bg-yellow-50"
@@ -991,50 +1038,51 @@ export const Dashboard: React.FC = () => {
                         </td>
                       ))} */}
 
-                      {/* TOTAL (sum of above 4 only) */}
-                      {/* <td className="px-2 py-2 text-center font-bold text-green-800 bg-green-100">
+                        {/* TOTAL (sum of above 4 only) */}
+                        {/* <td className="px-2 py-2 text-center font-bold text-green-800 bg-green-100">
                         {totalScrapStatuses}
                       </td> */}
 
-                      {/* SCRAP (separate value) */}
-                      {/* <td className="px-2 py-2 text-center font-bold text-red-800 bg-red-100">
+                        {/* SCRAP (separate value) */}
+                        {/* <td className="px-2 py-2 text-center font-bold text-red-800 bg-red-100">
                         {scrapValue}
                       </td> */}
 
-                      <td className="px-2 py-2 text-center font-semibold text-green-700 bg-green-50">
-                        {inputValue}
-                      </td>
+                        <td className="px-2 py-2 text-center font-semibold text-green-700 bg-green-50">
+                          {inputValue}
+                        </td>
 
-                      <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
-                        {checkingValue}
-                      </td>
+                        <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
+                          {checkingValue}
+                        </td>
 
-                      <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
-                        {waitingValue}
-                      </td>
+                        <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
+                          {waitingValue}
+                        </td>
 
-                      <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
-                        {gumValue}
-                      </td>
+                        <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
+                          {gumValue}
+                        </td>
 
-                      <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
-                        {faultValue}
-                      </td>
+                        <td className="px-2 py-2 text-center font-semibold text-yellow-700 bg-yellow-50">
+                          {faultValue}
+                        </td>
 
-                      <td className="px-2 py-2 text-center font-bold text-green-800 bg-green-100">
-                        {totalScrapStatuses}
-                      </td>
+                        <td className="px-2 py-2 text-center font-bold text-green-800 bg-green-100">
+                          {totalScrapStatuses}
+                        </td>
 
-                      <td className="px-2 py-2 text-center font-bold text-red-800 bg-red-100">
-                        {scrapValue}
-                      </td>
+                        <td className="px-2 py-2 text-center font-bold text-red-800 bg-red-100">
+                          {scrapValue}
+                        </td>
 
 
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
 
         )}

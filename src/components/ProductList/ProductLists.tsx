@@ -130,124 +130,411 @@ export interface BarcodeItem {
 
 import QRCode from "qrcode";
 
+// export const printAllQRCodes = async (items: any[]) => {
+//     const safeItems = items.filter(
+//         (i) => i?.barcode && i?.productName
+//     );
+
+//     if (!safeItems.length) {
+//         alert("No QR codes to print");
+//         return;
+//     }
+
+//     const win = window.open("", "", "width=1200,height=900");
+//     if (!win) return;
+
+//     win.document.write(`
+//     <html>
+//       <head>
+//         <title>QR Print</title>
+//         <style>
+//           @page {
+//             size: A4;
+//             margin: 0;
+//           }
+
+//           body {
+//             margin: 0;
+//             font-family: Arial, sans-serif;
+//           }
+
+//           /* ===== ONE PAGE = 10 QR ===== */
+//           .page {
+//             width: 210mm;
+//             height: 297mm;
+
+//             display: grid;
+//             grid-template-columns: 1fr 1fr;      /* 2 columns */
+//             grid-template-rows: repeat(5, 1fr);  /* 5 rows = 10 */
+
+//             padding: 8mm;
+//             box-sizing: border-box;
+
+//             page-break-after: always;
+//           }
+
+//           .label {
+//             display: flex;
+//             flex-direction: column;
+//             align-items: center;
+//             justify-content: center;
+//             text-align: center;
+//           }
+
+//           .product {
+//             font-size: 10px;
+//             font-weight: bold;
+//             margin-bottom: 1mm;
+//           }
+
+//           .tray {
+//             font-size: 9px;
+//             margin-bottom: 1mm;
+//           }
+
+//           img {
+//             width: 32mm;
+//             height: 32mm;
+//           }
+//         </style>
+//       </head>
+
+//       <body>
+//         ${safeItems
+//             .map((item, i) => `
+//             ${i % 10 === 0 ? `<div class="page">` : ``}
+
+//             <div class="label">
+//               <div class="product">${item.productName}</div>
+//               <div class="tray">Tray: ${item.trayName}</div>
+//               <div class="product">${item.barcode}</div>
+//               <img id="qr-${i}" />
+//             </div>
+
+//             ${(i % 10 === 9 || i === safeItems.length - 1) ? `</div>` : ``}
+//           `)
+//             .join("")}
+//       </body>
+//     </html>
+//   `);
+
+//     win.document.close();
+
+//     /* ===== SAFE BATCH QR GENERATION ===== */
+//     const CHUNK_SIZE = 10;
+
+//     for (let i = 0; i < safeItems.length; i += CHUNK_SIZE) {
+//         const chunk = safeItems.slice(i, i + CHUNK_SIZE);
+
+//         await Promise.all(
+//             chunk.map(async (item, index) => {
+//                 const img = win.document.getElementById(
+//                     `qr-${i + index}`
+//                 ) as HTMLImageElement;
+
+//                 if (img) {
+//                     img.src = await QRCode.toDataURL(item.barcode, {
+//                         width: 220,
+//                         margin: 0, // ❌ no white border
+//                     });
+//                 }
+//             })
+//         );
+
+//         // 🧠 browser breathe
+//         await new Promise((r) => setTimeout(r, 0));
+//     }
+
+//     win.focus();
+//     win.print();
+// };
+
+
+let isPrinting = false;
+
 export const printAllQRCodes = async (items: any[]) => {
-    const safeItems = items.filter(
-        (i) => i?.barcode && i?.productName
-    );
+    if (isPrinting) return;
+    isPrinting = true;
 
-    if (!safeItems.length) {
-        alert("No QR codes to print");
-        return;
-    }
-
-    const win = window.open("", "", "width=1200,height=900");
-    if (!win) return;
-
-    win.document.write(`
-    <html>
-      <head>
-        <title>QR Print</title>
-        <style>
-          @page {
-            size: A4;
-            margin: 0;
-          }
-
-          body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-          }
-
-          /* ===== ONE PAGE = 10 QR ===== */
-          .page {
-            width: 210mm;
-            height: 297mm;
-
-            display: grid;
-            grid-template-columns: 1fr 1fr;      /* 2 columns */
-            grid-template-rows: repeat(5, 1fr);  /* 5 rows = 10 */
-
-            padding: 8mm;
-            box-sizing: border-box;
-
-            page-break-after: always;
-          }
-
-          .label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-          }
-
-          .product {
-            font-size: 10px;
-            font-weight: bold;
-            margin-bottom: 1mm;
-          }
-
-          .tray {
-            font-size: 9px;
-            margin-bottom: 1mm;
-          }
-
-          img {
-            width: 32mm;
-            height: 32mm;
-          }
-        </style>
-      </head>
-
-      <body>
-        ${safeItems
-            .map((item, i) => `
-            ${i % 10 === 0 ? `<div class="page">` : ``}
-
-            <div class="label">
-              <div class="product">${item.productName}</div>
-              <div class="tray">Tray: ${item.trayName}</div>
-              <div class="product">${item.barcode}</div>
-              <img id="qr-${i}" />
-            </div>
-
-            ${(i % 10 === 9 || i === safeItems.length - 1) ? `</div>` : ``}
-          `)
-            .join("")}
-      </body>
-    </html>
-  `);
-
-    win.document.close();
-
-    /* ===== SAFE BATCH QR GENERATION ===== */
-    const CHUNK_SIZE = 10;
-
-    for (let i = 0; i < safeItems.length; i += CHUNK_SIZE) {
-        const chunk = safeItems.slice(i, i + CHUNK_SIZE);
-
-        await Promise.all(
-            chunk.map(async (item, index) => {
-                const img = win.document.getElementById(
-                    `qr-${i + index}`
-                ) as HTMLImageElement;
-
-                if (img) {
-                    img.src = await QRCode.toDataURL(item.barcode, {
-                        width: 220,
-                        margin: 0, // ❌ no white border
-                    });
-                }
-            })
+    try {
+        /* =============================
+           REMOVE DUPLICATE PRODUCTS
+           ============================= */
+        const safeItems = Array.from(
+            new Map(
+                items
+                    .filter((i) => i?.barcode && i?.productName)
+                    .map((i) => [i.barcode, i]) // unique by barcode
+            ).values()
         );
 
-        // 🧠 browser breathe
-        await new Promise((r) => setTimeout(r, 0));
+        if (!safeItems.length) {
+            alert("No QR codes to print");
+            isPrinting = false;
+            return;
+        }
+
+        const win = window.open("", "_blank");
+        if (!win) {
+            alert("Popup blocked. Please allow popups.");
+            isPrinting = false;
+            return;
+        }
+
+        /* =============================
+           WRITE PRINT HTML
+           ============================= */
+        win.document.open();
+        win.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>QR Print</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 0;
+            }
+
+            body {
+              margin: 0;
+              font-family: Arial, sans-serif;
+            }
+
+            /* 4 column × 6 row = 24 per page */
+            .page {
+              width: 210mm;
+              height: 297mm;
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              grid-auto-rows: 45mm;
+              padding: 10mm;
+              box-sizing: border-box;
+              page-break-after: always;
+            }
+
+            .label {
+              position: relative;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+            }
+
+            /* 🔥 PRODUCT TITLE */
+            .product {
+              font-size: 6px;
+              font-weight: 600;
+              text-align: center;
+              margin-bottom: 1mm;
+              max-width: 30mm;
+              line-height: 1.2;
+            }
+
+            /* 🔥 EXACT 2CM QR */
+            .qr {
+              width: 20mm;
+              height: 20mm;
+            }
+
+            /* SIDE BARCODE */
+            .barcode-side {
+              position: absolute;
+              right: 8mm;
+              top: 50%;
+              transform: rotate(90deg) translateY(-50%);
+              transform-origin: center;
+              font-size: 6px;
+              font-weight: bold;
+              white-space: nowrap;
+            }
+          </style>
+        </head>
+        <body>
+          ${safeItems
+                .map(
+                    (item, i) => `
+                ${i % 24 === 0 ? `<div class="page">` : ""}
+
+                <div class="label">
+                  <div class="product">${item.productName}</div>
+                  <div class="product">Tray: ${item.trayName || ""}</div>
+                  <img id="qr-${i}" class="qr" />
+                  <div class="barcode-side">${item.barcode}</div>
+                </div>
+
+                ${i % 24 === 23 || i === safeItems.length - 1
+                            ? `</div>`
+                            : ""
+                        }
+              `
+                )
+                .join("")}
+        </body>
+      </html>
+    `);
+        win.document.close();
+
+        /* =============================
+           WAIT DOM READY
+           ============================= */
+        await new Promise((r) => setTimeout(r, 300));
+
+        /* =============================
+           GENERATE QR IMAGES
+           ============================= */
+        for (let i = 0; i < safeItems.length; i++) {
+            const img = win.document.getElementById(
+                `qr-${i}`
+            ) as HTMLImageElement;
+
+            if (img) {
+                img.src = await QRCode.toDataURL(safeItems[i].barcode, {
+                    width: 200, // internal pixel size
+                    margin: 0,  // no white border
+                });
+            }
+        }
+
+        /* =============================
+           WAIT IMAGE LOAD (IMPORTANT FOR IOS)
+           ============================= */
+        await new Promise((r) => setTimeout(r, 500));
+
+        win.focus();
+        win.print();
+
+        // auto close after print
+        setTimeout(() => {
+            win.close();
+        }, 1000);
+
+    } catch (error) {
+        console.error("QR Print Error:", error);
     }
 
-    win.focus();
-    win.print();
+    isPrinting = false;
 };
+
+// export const printAllQRCodes = async (items: any[]) => {
+//   const safeItems = items.filter(
+//     (i) => i?.barcode && i?.productName
+//   );
+
+//   if (!safeItems.length) {
+//     alert("No QR codes to print");
+//     return;
+//   }
+
+//   const win = window.open("", "", "width=1200,height=900");
+//   if (!win) {
+//     alert("Popup blocked. Please allow popups.");
+//     return;
+//   }
+
+//   // 🟢 Write HTML
+//   win.document.open();
+//   win.document.write(`
+//     <!DOCTYPE html>
+//     <html>
+//       <head>
+//         <title>QR Print</title>
+//         <style>
+//           @page { size: A4; margin: 0; }
+
+//           body {
+//             margin: 0;
+//             font-family: Arial, sans-serif;
+//           }
+
+//           .page {
+//             width: 210mm;
+//             height: 297mm;
+//             display: grid;
+//             grid-template-columns: repeat(4, 1fr);
+//             grid-auto-rows: 45mm;
+//             padding: 10mm;
+//             box-sizing: border-box;
+//             page-break-after: always;
+//           }
+
+//           .label {
+//             position: relative;
+//             display: flex;
+//             flex-direction: column;
+//             align-items: center;
+//             justify-content: center;
+//           }
+
+//           .product {
+//             font-size: px;
+//             font-weight: 600;
+//             text-align: center;
+//             margin-bottom: 1mm;
+//             max-width: 30mm;
+//             line-height: 1.2;
+//           }
+
+//           .qr {
+//             width: 20mm;
+//             height: 20mm;
+//           }
+
+//           .barcode-side {
+//             position: absolute;
+//             right: 9mm;
+//             top: 50%;
+//             transform: rotate(90deg) translateY(-50%);
+//             transform-origin: center;
+//             font-size: 6px;
+//             font-weight: bold;
+//             white-space: nowrap;
+//           }
+//         </style>
+//       </head>
+//       <body>
+//         ${safeItems
+//           .map((item, i) => `
+//             ${i % 24 === 0 ? `<div class="page">` : ""}
+
+//             <div class="label">
+//               <div class="product">${item.productName}</div>
+//               <div class="product">Tray:${item.trayName}</div>
+//               <img id="qr-${i}" class="qr" />
+//               <div class="barcode-side">${item.barcode}</div>
+//             </div>
+
+//             ${(i % 24 === 23 || i === safeItems.length - 1)
+//               ? `</div>`
+//               : ""}
+//           `)
+//           .join("")}
+//       </body>
+//     </html>
+//   `);
+//   win.document.close();
+
+//   // 🟢 Wait small time for DOM
+//   await new Promise((r) => setTimeout(r, 300));
+
+//   // 🟢 Generate QR
+//   for (let i = 0; i < safeItems.length; i++) {
+//     const img = win.document.getElementById(`qr-${i}`) as HTMLImageElement;
+
+//     if (img) {
+//       img.src = await QRCode.toDataURL(safeItems[i].barcode, {
+//         width: 200,
+//         margin: 0,
+//       });
+//     }
+//   }
+
+//   // 🟢 Wait for images to load
+//   await new Promise((r) => setTimeout(r, 500));
+
+//   win.focus();
+//   win.print();
+// };
 
 
 
@@ -450,7 +737,7 @@ export const ProductList: React.FC = () => {
 
     useEffect(() => {
         axios.get(`${baseUrl.brands}/by-vendor/${user?.vendor_id}`).then(r => setBrands(r?.data?.data?.brands || []));
-        axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}`).then(r => setCategoriesList(r?.data?.data?.categories || []));
+        axios.get(`${baseUrl.categories}/by-vendor/${user?.vendor_id}/?vendor=${user?.vendor_id}&type=product`).then(r => setCategoriesList(r?.data?.data?.categories || []));
     }, []);
 
 
@@ -671,39 +958,97 @@ export const ProductList: React.FC = () => {
     // });
 
 
-    const filteredProducts = (productData || []).filter((item: any) => {
-        const p = item.product;
-        if (!p) return false;
-        console.log(p?.product_type?.id)
-        const search = searchTerm.toLowerCase().trim();
+    // const filteredProducts = (productData || []).filter((item: any) => {
+    //     const p = item.product;
+    //     if (!p) return false;
+    //     console.log(p?.product_type?.id)
+    //     const search = searchTerm.toLowerCase().trim();
 
-        const matchSearch =
-            !search ||
-            p.title?.toLowerCase().includes(search) ||
-            p.sku?.toLowerCase().includes(search) ||
-            p.barcode_value?.toLowerCase().includes(search);
+    //     const matchSearch =
+    //         !search ||
+    //         p.title?.toLowerCase().includes(search) ||
+    //         p.sku?.toLowerCase().includes(search) ||
+    //         p.barcode_value?.toLowerCase().includes(search);
 
-        const matchProductType =
-            productTypeFilter === "all" ||
-            p?.product_type?.id === productTypeFilter;
+    //     const matchProductType =
+    //         productTypeFilter === "all" ||
+    //         p?.product_type?.id === productTypeFilter;
 
-        const matchBrand =
-            brandFilter === "all" ||
-            p.brand?.id === brandFilter;
+    //     const matchBrand =
+    //         brandFilter === "all" ||
+    //         p.brand?.id === brandFilter;
 
-        const matchCategory =
-            categoryFilter === "all" ||
-            item?.categories?.some(
-                (c: any) => c.category_id === categoryFilter
+    //     const matchCategory =
+    //         categoryFilter === "all" ||
+    //         item?.categories?.some(
+    //             (c: any) => c.id === categoryFilter
+    //         );
+
+    //     return (
+    //         matchSearch &&
+    //         matchProductType &&
+    //         matchBrand &&
+    //         matchCategory
+    //     );
+    // });
+
+    const filteredProducts = (productData || [])
+        ?.filter((item: any) => {
+            const p = item?.product;
+            if (!p) return false;
+
+            const search = searchTerm?.toLowerCase()?.trim();
+
+            const matchSearch =
+                !search ||
+                p?.title?.toLowerCase()?.includes(search) ||
+                p?.sku?.toLowerCase()?.includes(search) ||
+                p?.barcode_value?.toLowerCase()?.includes(search);
+
+            const matchProductType =
+                productTypeFilter === "all" ||
+                p?.product_type?.id === productTypeFilter;
+
+            const matchBrand =
+                brandFilter === "all" ||
+                p?.brand?.id === brandFilter;
+
+            const matchCategory =
+                categoryFilter === "all" ||
+                item?.categories?.some(
+                    (c: any) => c?.id === categoryFilter
+                );
+
+            return (
+                matchSearch &&
+                matchProductType &&
+                matchBrand &&
+                matchCategory
             );
+        })
+        .sort((a: any, b: any) => {
+            const codeA = a?.trays?.[0]?.code || "";
+            const codeB = b?.trays?.[0]?.code || "";
 
-        return (
-            matchSearch &&
-            matchProductType &&
-            matchBrand &&
-            matchCategory
-        );
-    });
+            const parseCode = (code: string) => {
+                if (code?.startsWith("FL")) {
+                    return { type: "FL", number: parseInt(code?.replace("FL", ""), 10) };
+                }
+                return { type: "NUM", number: parseInt(code, 10) };
+            };
+
+            const aParsed = parseCode(codeA);
+            const bParsed = parseCode(codeB);
+
+            // 🔥 First normal numbers
+            if (aParsed?.type !== bParsed?.type) {
+                return aParsed?.type === "NUM" ? -1 : 1;
+            }
+
+            // 🔥 Then sort by number
+            return aParsed?.number - bParsed?.number;
+        });
+
 
     // const barcodeItems = filteredProducts.map((item: any) => ({
     //     barcode: item.product.barcode_value,
@@ -806,7 +1151,18 @@ export const ProductList: React.FC = () => {
                     />
                 </div>
 
-
+                <Select
+                    label="Category"
+                    value={categoryFilter}
+                    onChange={setCategoryFilter}
+                    options={[
+                        // { id: "all", name: "All Categories" },
+                        ...(categoriesList || []).map((c: any) => ({
+                            id: c?.id,
+                            name: c?.title,
+                        })),
+                    ]}
+                />
                 {/* Product Type */}
                 <Select
                     label="Product Type"
@@ -837,18 +1193,7 @@ export const ProductList: React.FC = () => {
                         })),
                     ]}
                 />
-                <Select
-                    label="Category"
-                    value={categoryFilter}
-                    onChange={setCategoryFilter}
-                    options={[
-                        // { id: "all", name: "All Categories" },
-                        ...(categoriesList || []).map((c: any) => ({
-                            id: c?.id,
-                            name: c?.title,
-                        })),
-                    ]}
-                />
+
 
 
                 {/* Status */}

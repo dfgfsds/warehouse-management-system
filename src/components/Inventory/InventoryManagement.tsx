@@ -854,47 +854,117 @@ export const InventoryManagement: React.FC = () => {
   }, []);
 
 
-  const filteredAssets = productData?.filter((asset: any) => {
-    const product = asset?.product_details?.product;
-    const category = asset?.product_details?.categories?.[0];
+  // const filteredAssets = productData?.filter((asset: any) => {
+  //   const product = asset?.product_details?.product;
+  //   const category = asset?.product_details?.categories?.[0];
 
-    const search = searchText?.toLowerCase().trim();
+  //   const search = searchText?.toLowerCase().trim();
 
-    /* 🔍 SEARCH : barcode / sku / product name */
-    const matchSearch =
-      !search ||
-      product?.barcode_value?.toLowerCase().includes(search) ||
-      product?.sku?.toLowerCase().includes(search) ||
-      product?.title?.toLowerCase().includes(search);
+  //   /* 🔍 SEARCH : barcode / sku / product name */
+  //   const matchSearch =
+  //     !search ||
+  //     product?.barcode_value?.toLowerCase().includes(search) ||
+  //     product?.sku?.toLowerCase().includes(search) ||
+  //     product?.title?.toLowerCase().includes(search);
 
-    /* 📦 PRODUCT TYPE */
-    const matchProductType =
-      filterProductType === "all" ||
-      product?.product_type?.id === filterProductType;
+  //   /* 📦 PRODUCT TYPE */
+  //   const matchProductType =
+  //     filterProductType === "all" ||
+  //     asset?.product_type_id === filterProductType;
 
-    /* 🏷 BRAND */
-    const matchBrand =
-      filterBrand === "all" ||
-      asset?.brand_name_id === filterBrand;
+  //   /* 🏷 BRAND */
+  //   const matchBrand =
+  //     filterBrand === "all" ||
+  //     asset?.brand_name_id === filterBrand;
 
-    /* 🗂 CATEGORY */
-    const matchCategory =
-      filterCategory === "all" ||
-      category?.id === filterCategory;
+  //   /* 🗂 CATEGORY */
+  //   const matchCategory =
+  //     filterCategory === "all" ||
+  //     category?.id === filterCategory;
 
-    /* 🚦 STATUS */
-    const matchStatus =
-      filterStatus === "all" ||
-      asset?.product_details?.product?.status?.id === filterStatus;
+  //   /* 🚦 STATUS */
+  //   const matchStatus =
+  //     filterStatus === "all" ||
+  //     asset?.product_details?.product?.status?.id === filterStatus;
 
-    return (
-      matchSearch &&
-      matchProductType &&
-      matchBrand &&
-      matchCategory &&
-      matchStatus
-    );
-  });
+  //   return (
+  //     matchSearch &&
+  //     matchProductType &&
+  //     matchBrand &&
+  //     matchCategory &&
+  //     matchStatus
+  //   );
+  // });
+
+  const filteredAssets = (productData || [])
+    .filter((asset: any) => {
+      const product = asset?.product_details?.product;
+      const category = asset?.product_details?.categories?.[0];
+
+      const search = searchText?.toLowerCase().trim();
+
+      const matchSearch =
+        !search ||
+        product?.barcode_value?.toLowerCase().includes(search) ||
+        product?.sku?.toLowerCase().includes(search) ||
+        product?.title?.toLowerCase().includes(search);
+
+      const matchProductType =
+        filterProductType === "all" ||
+        asset?.product_type_id === filterProductType;
+
+      const matchBrand =
+        filterBrand === "all" ||
+        asset?.brand_name_id === filterBrand;
+
+      const matchCategory =
+        filterCategory === "all" ||
+        category?.id === filterCategory;
+
+      const matchStatus =
+        filterStatus === "all" ||
+        asset?.product_details?.product?.status?.id === filterStatus;
+
+      return (
+        matchSearch &&
+        matchProductType &&
+        matchBrand &&
+        matchCategory &&
+        matchStatus
+      );
+    })
+    .sort((a: any, b: any) => {
+      const codeA = a?.tray_code || "";
+      const codeB = b?.tray_code || "";
+
+      const parseCode = (code: string) => {
+        if (!code) return { type: "NUM", number: 0 };
+
+        if (code.startsWith("FL")) {
+          return {
+            type: "FL",
+            number: parseInt(code.replace("FL", ""), 10) || 0,
+          };
+        }
+
+        return {
+          type: "NUM",
+          number: parseInt(code, 10) || 0,
+        };
+      };
+
+      const aParsed = parseCode(codeA);
+      const bParsed = parseCode(codeB);
+
+      // 🔥 First normal numbers
+      if (aParsed.type !== bParsed.type) {
+        return aParsed.type === "NUM" ? -1 : 1;
+      }
+
+      // 🔥 Then numeric order
+      return aParsed.number - bParsed.number;
+    });
+
   console.log(filteredAssets)
   // 🔹 delete Tray
 
@@ -1035,6 +1105,87 @@ export const InventoryManagement: React.FC = () => {
   //   );
   // };
 
+  // const downloadExcel = () => {
+  //   if (!filteredAssets || filteredAssets.length === 0) return;
+
+  //   const rows: any[] = [];
+  //   const totals: any = {};
+
+  //   filteredAssets.forEach((item: any, index: number) => {
+  //     const firstTracking = item?.tracking?.[0] || {};
+
+  //     const row: any = {
+  //       "S.No": index + 1,
+  //       "Product Name": item.name,
+  //       "Category": item.category_name,
+  //       "Brand": item.brand_name,
+  //       "Tray": firstTracking?.tray_name || "-",
+  //       "Barcode": item.id,
+  //       "Total In": firstTracking?.total_in || 0,
+  //       "Total Out": firstTracking?.total_out || 0,
+  //       "Available Stock": firstTracking?.available_stock || 0,
+  //     };
+
+  //     /* ================= SAME TABLE LOGIC ================= */
+
+  //     if (selectedTray?.code === "CHECKING AREA") {
+  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
+  //       row["Gum Leakage"] = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
+  //       row["Fault Board"] = getOutCount(firstTracking, "FAULT BOARD");
+  //       row["Scrap"] = getOutCount(firstTracking, "SCRAP");
+  //     }
+
+  //     if (selectedTray?.code === "WAITING AREA") {
+  //       row["Input"] = getInCount(firstTracking, "CHECKING AREA");
+  //     }
+
+  //     if (selectedTray?.code === "GUM LEAKAGE BOARD") {
+  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
+  //     }
+
+  //     if (selectedTray?.code === "FAULT BOARD") {
+  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
+  //       row["Scrap"] = getOutCount(firstTracking, "SCRAP");
+  //     }
+
+  //     // 🔥 accumulate totals dynamically
+  //     Object.keys(row).forEach((key) => {
+  //       if (typeof row[key] === "number") {
+  //         totals[key] = (totals[key] || 0) + row[key];
+  //       }
+  //     });
+
+  //     rows.push(row);
+  //   });
+
+  //   // 🔥 GRAND TOTAL ROW
+  //   const totalRow: any = {
+  //     "S.No": "",
+  //     "Product Name": "GRAND TOTAL",
+  //   };
+
+  //   Object.keys(totals).forEach((key) => {
+  //     totalRow[key] = totals[key];
+  //   });
+
+  //   rows.push(totalRow);
+
+  //   const worksheet = XLSX.utils.json_to_sheet(rows);
+  //   const workbook = XLSX.utils.book_new();
+
+  //   XLSX.utils.book_append_sheet(
+  //     workbook,
+  //     worksheet,
+  //     selectedTray?.code || "Assets"
+  //   );
+
+  //   XLSX.writeFile(
+  //     workbook,
+  //     `Assets_${selectedTray?.code || "ALL"}_${new Date()
+  //       .toISOString()
+  //       .slice(0, 10)}.xlsx`
+  //   );
+  // };
   const downloadExcel = () => {
     if (!filteredAssets || filteredAssets.length === 0) return;
 
@@ -1056,29 +1207,46 @@ export const InventoryManagement: React.FC = () => {
         "Available Stock": firstTracking?.available_stock || 0,
       };
 
-      /* ================= SAME TABLE LOGIC ================= */
+      /* ================= CHECKING AREA ================= */
 
       if (selectedTray?.code === "CHECKING AREA") {
-        row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
-        row["Gum Leakage"] = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
-        row["Fault Board"] = getOutCount(firstTracking, "FAULT BOARD");
-        row["Scrap"] = getOutCount(firstTracking, "SCRAP");
+        const waiting = getOutCount(firstTracking, "WAITING AREA");
+        const gum = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
+        const fault = getOutCount(firstTracking, "FAULT BOARD");
+        const scrap = getOutCount(firstTracking, "SCRAP");
+
+        const total = waiting + gum + fault + firstTracking?.available_stock; // 🔥 row total
+
+        row["Waiting Area"] = waiting;
+        row["Gum Leakage"] = gum;
+        row["Fault Board"] = fault;
+        row["Scrap"] = scrap;
+        row["TOTAL"] = total; // 🔥 add total column
       }
+
+      /* ================= WAITING AREA ================= */
 
       if (selectedTray?.code === "WAITING AREA") {
         row["Input"] = getInCount(firstTracking, "CHECKING AREA");
       }
 
+      /* ================= GUM BOARD ================= */
+
       if (selectedTray?.code === "GUM LEAKAGE BOARD") {
         row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
       }
 
+      /* ================= FAULT BOARD ================= */
+
       if (selectedTray?.code === "FAULT BOARD") {
-        row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
-        row["Scrap"] = getOutCount(firstTracking, "SCRAP");
+        const waiting = getOutCount(firstTracking, "WAITING AREA");
+        const scrap = getOutCount(firstTracking, "SCRAP");
+
+        row["Waiting Area"] = waiting;
+        row["Scrap"] = scrap;
       }
 
-      // 🔥 accumulate totals dynamically
+      /* 🔥 ACCUMULATE TOTALS */
       Object.keys(row).forEach((key) => {
         if (typeof row[key] === "number") {
           totals[key] = (totals[key] || 0) + row[key];
@@ -1088,7 +1256,8 @@ export const InventoryManagement: React.FC = () => {
       rows.push(row);
     });
 
-    // 🔥 GRAND TOTAL ROW
+    /* 🔥 GRAND TOTAL ROW */
+
     const totalRow: any = {
       "S.No": "",
       "Product Name": "GRAND TOTAL",
@@ -1336,7 +1505,7 @@ export const InventoryManagement: React.FC = () => {
                                     >
                                       <div className="flex items-center gap-2 capitalize">
                                         <Box className="h-3 w-3" />
-                                        {tray.name}
+                                        {tray?.name}
                                       </div>
                                       {/* <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedTray?.id === tray.id ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
                                         {trayCounts[tray.id] || 0}
@@ -1499,7 +1668,8 @@ export const InventoryManagement: React.FC = () => {
                     <thead className="bg-gray-100 text-[10px] uppercase text-gray-600 font-semibold">
                       <tr>
                         <th className="px-4 py-3">S.No</th>
-                        <th className="px-4 py-3">Product / Tray
+                        <th className="px-4 py-3">Product
+                          {/* / Tray */}
                           {/* / Barcode */}
                         </th>
                         <th className="px-4 py-3">Product Type / Brand</th>
@@ -1517,6 +1687,9 @@ export const InventoryManagement: React.FC = () => {
                             <th className="px-4 py-3 text-center">Gum Leakage</th>
                             <th className="px-4 py-3 text-center">Fault Board</th>
                             <th className="px-4 py-3 text-center">Scrap</th>
+                            <th className="px-4 py-3 text-center font-bold text-green-700">
+                              TOTAL
+                            </th>
                           </>
                         )}
                         {/* in_track Stock  */}
@@ -1550,6 +1723,13 @@ export const InventoryManagement: React.FC = () => {
                     <tbody className="divide-y divide-gray-200">
                       {filteredAssets?.map((item: any, index: number) => {
                         const firstTracking = item?.tracking?.[0]; // one tracking per product
+                        const waiting = getOutCount(firstTracking, "WAITING AREA");
+                        const gum = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
+                        const fault = getOutCount(firstTracking, "FAULT BOARD");
+                        const scrap = getOutCount(firstTracking, "SCRAP");
+
+                        // 🔥 TOTAL = CHECKING AREA OUT FLOWS (except scrap)
+                        const total = waiting + gum + fault + firstTracking?.available_stock;
 
                         return (
                           <tr key={item.id} className="hover:bg-gray-50 text-[10px] ">
@@ -1564,7 +1744,7 @@ export const InventoryManagement: React.FC = () => {
                                 {item.name}
                               </div>
                               <div className="text-xs text-gray-500">
-                                Tray: {firstTracking?.tray_code || "-"}
+                                Tray: {item?.tray_code || "-"}
                               </div>
                               {/* <div className="text-xs font-mono text-gray-600">
                                 Barcode: {item.id}
@@ -1611,6 +1791,9 @@ export const InventoryManagement: React.FC = () => {
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   {getOutCount(firstTracking, "SCRAP")}
+                                </td>
+                                <td className="px-4 py-3 text-center font-bold text-green-700">
+                                  {total}
                                 </td>
                               </>
                             )}
