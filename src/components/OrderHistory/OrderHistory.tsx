@@ -167,7 +167,7 @@ export default function OrderHistory() {
             </div>
 
             {/* ================= TABLE ================= */}
-            <div className="overflow-x-auto border rounded-xl bg-white">
+            {/* <div className="overflow-x-auto border rounded-xl bg-white">
                 <table className="w-full text-sm">
                     <thead className="bg-gray-50 text-xs uppercase text-gray-500">
                         <tr>
@@ -245,6 +245,92 @@ export default function OrderHistory() {
                         })}
                     </tbody>
                 </table>
+            </div> */}
+            <div className="border rounded-xl bg-white overflow-hidden">
+
+                <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+
+                    <table className="w-full text-sm">
+
+                        <thead className="bg-gray-50 text-xs uppercase text-gray-500 sticky top-0 z-10">
+                            <tr>
+                                <th className="px-4 py-3">#</th>
+                                <th className="px-4 py-3">Product</th>
+                                <th className="px-4 py-3">Type / Category</th>
+                                <th className="px-4 py-3">Hub</th>
+                                <th className="px-4 py-3 text-center">Status</th>
+                                <th className="px-4 py-3 text-right">Amount</th>
+                                <th className="px-4 py-3">Customer</th>
+                                <th className="px-4 py-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody className="divide-y">
+                            {filteredOrders.map((order: any, index: number) => {
+                                const details = order?.product_details?.[0]?.details;
+                                const product = details?.product;
+
+                                return (
+                                    <tr key={order.id} className="hover:bg-gray-50">
+                                        <td className="px-4 py-3">{index + 1}</td>
+
+                                        <td className="px-4 py-3">
+                                            <div className="font-semibold">{product?.title}</div>
+                                            <div className="text-xs text-gray-500">
+                                                BarCode: {product?.sku}
+                                            </div>
+                                        </td>
+
+                                        <td className="px-4 py-3">
+                                            <div>{product?.product_type?.name} /</div>
+                                            <div className="text-xs text-gray-500">
+                                                {details?.categories?.[0]?.name}
+                                            </div>
+                                        </td>
+
+                                        <td className="px-4 py-3">{order.hub_name}</td>
+
+                                        <td className="px-4 py-3 text-center">
+                                            <span
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${order.order_status === "success"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-yellow-100 text-yellow-700"
+                                                    }`}
+                                            >
+                                                {order.order_status}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-4 py-3 text-right font-bold">
+                                            ₹ {order.amount}
+                                        </td>
+
+                                        <td className="px-4 py-3">
+                                            <div className="font-medium">{order.customer_name}</div>
+                                            <div className="text-xs text-gray-500">
+                                                {order.customer_mobile}
+                                            </div>
+                                        </td>
+
+                                        <td className="px-4 py-3 text-center">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedOrder(order);
+                                                    setShowViewModal(true);
+                                                }}
+                                                className="p-2 rounded-full hover:bg-blue-100 text-blue-600"
+                                            >
+                                                <Eye size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+
+                    </table>
+
+                </div>
             </div>
 
             {/* ================= MODAL (NO TABLE) ================= */}

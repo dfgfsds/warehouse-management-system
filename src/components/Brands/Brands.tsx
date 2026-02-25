@@ -128,7 +128,8 @@ export default function Brands() {
 
                 {/* Assets Table */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="overflow-x-auto">
+
+                    {/* <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
@@ -173,22 +174,9 @@ export default function Brands() {
                                                     {item?.sub_description?.slice(0, 50)}
                                                 </div>
                                             </td>
-                                            {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button
-                                                    // onClick={() => handleViewAsset(asset)}
-                                                    className="text-blue-600 hover:text-blue-900 mr-3"
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => { setOpenModal(!openModal), setEditBrand(item) }}
-                                                    className="text-blue-600 hover:text-blue-900 mr-3 flex gap-2 my-auto"
-                                                >
-                                                    Edit <Edit className="h-4 w-4" />
-                                                </button>
-                                            </td> */}
+                                        
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-4">
-                                                {/* Edit */}
+                                               
                                                 <button
                                                     onClick={() => {
                                                         setOpenModal(true);
@@ -200,7 +188,7 @@ export default function Brands() {
                                                     Edit
                                                 </button>
 
-                                                {/* Delete */}
+                                              
                                                 <button
                                                     onClick={() => {
                                                         setSelectedBrand(item);
@@ -218,6 +206,94 @@ export default function Brands() {
                                 })}
                             </tbody>
                         </table>
+                    </div> */}
+
+                    <div className="border rounded-xl bg-white overflow-hidden">
+
+                        <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+
+                            <table className="min-w-full divide-y divide-gray-200">
+
+                                <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            S.No
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Brand Name
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Description
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Sub Description
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {filteredBrands?.map((item: any, index: number) => (
+                                        <tr key={item.id} className="hover:bg-gray-50">
+
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {index + 1}
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900 capitalize">
+                                                        {item.brand_name}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500 font-mono">
+                                                        {item.qrCode}
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                                                {item?.description?.slice(0, 50)}
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                                                {item?.sub_description?.slice(0, 50)}
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex gap-4">
+                                                    <button
+                                                        onClick={() => {
+                                                            setOpenModal(true);
+                                                            setEditBrand(item);
+                                                        }}
+                                                        className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                        Edit
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedBrand(item);
+                                                            setConfirmOpen(true);
+                                                        }}
+                                                        className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                    ))}
+                                </tbody>
+
+                            </table>
+
+                        </div>
                     </div>
 
                     {filteredBrands.length === 0 && !loading && (
