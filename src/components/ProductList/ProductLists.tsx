@@ -1251,7 +1251,8 @@ export const ProductList: React.FC = () => {
 
             {/* Assets Table */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
+
+                {/* <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
@@ -1264,15 +1265,11 @@ export const ProductList: React.FC = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Tray / Barcode
                                 </th>
-                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Status
-                                </th> */}
+                             
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Hub
                                 </th>
-                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        AMC / Insurance
-                                    </th> */}
+                             
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Actions
                                 </th>
@@ -1284,18 +1281,18 @@ export const ProductList: React.FC = () => {
 
                                 return (
                                     <tr key={p?.id} className="hover:bg-gray-50">
-                                        {/* Product */}
+                                    
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {index + 1}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col gap-1">
-                                                {/* Product Name */}
+                                           
                                                 <div className="text-sm font-semibold text-gray-900 capitalize">
                                                     {p?.title}
                                                 </div>
 
-                                                {/* Brand */}
+                                             
                                                 {p?.brand?.name && (
                                                     <div className="text-xs text-gray-500 flex items-center gap-1">
                                                         <span className="font-medium text-gray-600">Brand:</span>
@@ -1308,7 +1305,7 @@ export const ProductList: React.FC = () => {
                                                         {p?.product_type?.name}
                                                     </div>
                                                 )}
-                                                {/* Brand */}
+                                              
                                                 {item?.categories?.[0]?.name && (
                                                     <div className="text-xs text-gray-500 flex items-center gap-1">
                                                         <span className="font-medium text-gray-600">categorie:</span>
@@ -1316,16 +1313,11 @@ export const ProductList: React.FC = () => {
                                                     </div>
                                                 )}
 
-                                                {/* Category */}
-                                                {/* {item?.categories?.[0]?.name && (
-                                                    <div className="inline-flex w-fit mt-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-medium">
-                                                        <span className="font-medium text-gray-600 pl-2">categorie:</span>{item.categories[0].name}
-                                                    </div>
-                                                )} */}
+                                             
                                             </div>
                                         </td>
 
-                                        {/* SKU / Barcode */}
+                                      
                                         <td className="px-6 py-4 text-sm">
                                             <div className="flex items-center gap-0">
                                                 <span className="text-xs text-gray-500 font-medium">
@@ -1342,33 +1334,13 @@ export const ProductList: React.FC = () => {
                                             </div>
                                         </td>
 
-                                        {/* Status */}
-                                        {/* <td className="px-6 py-4">
-                                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                                                {p.status?.name}
-                                            </span>
-                                        </td> */}
+                                     
 
-                                        {/* Hub */}
                                         <td className="px-6 py-4 text-sm text-gray-700">
                                             {p?.hub?.name}
                                         </td>
 
-                                        {/* AMC / Insurance */}
-                                        {/* <td className="px-6 py-4 text-sm">
-                                            <div>
-                                                AMC:{" "}
-                                                <span className="font-medium">
-                                                    {p.amc_expiry_date || "-"}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                INS:{" "}
-                                                <span className="font-medium">
-                                                    {p.insurance_expiry_date || "-"}
-                                                </span>
-                                            </div>
-                                        </td> */}
+                                   
 
                                         <td className="px-6 py-10 flex gap-4">
                                             <button
@@ -1379,7 +1351,7 @@ export const ProductList: React.FC = () => {
                                                 className="text-blue-600 flex gap-1"
                                             >
                                                 <Edit2 size={16} />
-                                                {/* Edit */}
+                                     
                                             </button>
 
                                             <button
@@ -1390,7 +1362,7 @@ export const ProductList: React.FC = () => {
                                                 className="text-red-600 flex gap-1"
                                             >
                                                 <Trash2 size={16} />
-                                                {/* Delete */}
+                                 
                                             </button>
 
                                             {p?.barcode_value && (
@@ -1403,7 +1375,7 @@ export const ProductList: React.FC = () => {
                                                     }}
                                                     className="text-gray-700 underline text-sm"
                                                 >
-                                                    {/* Print Barcode */}
+                                                 
                                                     <Printer className="h-4 w-4" />
                                                 </button>
                                             )}
@@ -1416,6 +1388,144 @@ export const ProductList: React.FC = () => {
                         </tbody>
 
                     </table>
+                </div> */}
+
+                <div className="border rounded-xl bg-white overflow-hidden">
+
+                    <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+
+                        <table className="min-w-full divide-y divide-gray-200">
+
+                            <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        S.No
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Product
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Tray / Barcode
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Hub
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {filteredProducts?.map((item: any, index: number) => {
+                                    const p = item?.product;
+
+                                    return (
+                                        <tr key={p?.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 text-sm font-medium">
+                                                {index + 1}
+                                            </td>
+
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="text-sm font-semibold text-gray-900 capitalize">
+                                                        {p?.title}
+                                                    </div>
+
+                                                    {p?.brand?.name && (
+                                                        <div className="text-xs text-gray-500">
+                                                            <span className="font-medium text-gray-600">
+                                                                Brand:
+                                                            </span>{" "}
+                                                            {p?.brand?.name}
+                                                        </div>
+                                                    )}
+
+                                                    {p?.product_type?.name && (
+                                                        <div className="text-xs text-gray-500">
+                                                            <span className="font-medium text-gray-600">
+                                                                Product Type:
+                                                            </span>{" "}
+                                                            {p?.product_type?.name}
+                                                        </div>
+                                                    )}
+
+                                                    {item?.categories?.[0]?.name && (
+                                                        <div className="text-xs text-gray-500">
+                                                            <span className="font-medium text-gray-600">
+                                                                Category:
+                                                            </span>{" "}
+                                                            {item?.categories?.[0]?.name}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-4 text-sm">
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-xs text-gray-500 font-medium">
+                                                        Tray
+                                                    </span>
+                                                    <span className="px-2 py-1 text-indigo-700 font-semibold">
+                                                        {item?.trays?.[0]?.code || "-"}
+                                                    </span>
+                                                </div>
+
+                                                <div className="font-mono text-xs text-gray-500">
+                                                    {p?.barcode_value}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-4 text-sm text-gray-700">
+                                                {p?.hub?.name}
+                                            </td>
+
+                                            <td className="px-6 py-4">
+                                                <div className="flex gap-4">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditData(item);
+                                                            setShowAddAssetModal(true);
+                                                        }}
+                                                        className="text-blue-600"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setDeleteItem(item);
+                                                            setConfirmOpen(true);
+                                                        }}
+                                                        className="text-red-600"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+
+                                                    {p?.barcode_value && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedBarcode(p?.barcode_value);
+                                                                setSelectedProductName(p?.title);
+                                                                setBarcodeModalOpen(true);
+                                                                setTrayName(item?.trays?.[0]?.code || "");
+                                                            }}
+                                                            className="text-gray-700"
+                                                        >
+                                                            <Printer className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+
+                        </table>
+
+                    </div>
                 </div>
 
                 {filteredProducts.length === 0 && (

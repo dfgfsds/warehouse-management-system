@@ -26,13 +26,13 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
     { id: 'categorys', label: 'Categories', icon: BoxIcon, roles: ['admin', "manager"] },
     { id: 'inventory', label: 'Inventory', icon: Package, roles: ['admin', "manager", 'staff'] },
     { id: 'productList', label: 'Product List', icon: BoldIcon, roles: ['admin', "manager"] },
-    { id: 'orderHistory', label: 'Orders History', icon: ListOrdered, roles: ['admin', 'warehouse_manager'] },
+    { id: 'orderHistory', label: 'Orders History', icon: ListOrdered, roles: ['admin', 'warehouse_manager', 'manager'] },
     // { id: 'history', label: 'Asset History', icon: History, roles: ['admin', 'warehouse_manager', 'auditor'] },
     // { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'warehouse_manager'] },
     { id: 'admin', label: 'Administration', icon: Settings, roles: ['admin', "manager"] },
   ];
 
-  const visibleItems = navigationItems?.filter((item:any) =>
+  const visibleItems = navigationItems?.filter((item: any) =>
     item?.roles.includes(user?.role || '')
   );
 

@@ -1663,188 +1663,351 @@ export const InventoryManagement: React.FC = () => {
                   Loading Products...
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-100 text-[10px] uppercase text-gray-600 font-semibold">
-                      <tr>
-                        <th className="px-4 py-3">S.No</th>
-                        <th className="px-4 py-3">Product
-                          {/* / Tray */}
-                          {/* / Barcode */}
-                        </th>
-                        <th className="px-4 py-3">Product Type / Brand</th>
+                // <div className="overflow-x-auto">
+                //   <table className="w-full">
+                //     <thead className="bg-gray-100 text-[10px] uppercase text-gray-600 font-semibold">
+                //       <tr>
+                //         <th className="px-4 py-3">S.No</th>
+                //         <th className="px-4 py-3">Product
 
-                        <th className="px-4 py-3 text-center">Total In </th>
-                        <th className="px-4 py-3 text-center">Total Out </th>
-                        {/* <th className="px-4 py-3 text-center">In Stock</th> */}
-                        <th className="px-4 py-3 text-center">Available Stock</th>
-                        {/* <th className="px-4 py-3 text-center">Out Stock</th> */}
+                //         </th>
+                //         <th className="px-4 py-3">Product Type / Brand</th>
 
-                        {/* out_track Stock  */}
-                        {selectedTray?.code === "CHECKING AREA" && (
-                          <>
-                            <th className="px-4 py-3 text-center">Waiting Area</th>
-                            <th className="px-4 py-3 text-center">Gum Leakage</th>
-                            <th className="px-4 py-3 text-center">Fault Board</th>
-                            <th className="px-4 py-3 text-center">Scrap</th>
-                            <th className="px-4 py-3 text-center font-bold text-green-700">
-                              TOTAL
-                            </th>
-                          </>
-                        )}
-                        {/* in_track Stock  */}
-                        {selectedTray?.code === "WAITING AREA" && (
-                          <>
+                //         <th className="px-4 py-3 text-center">Total In </th>
+                //         <th className="px-4 py-3 text-center">Total Out </th>
+
+                //         <th className="px-4 py-3 text-center">Available Stock</th>
+
+                //         {selectedTray?.code === "CHECKING AREA" && (
+                //           <>
+                //             <th className="px-4 py-3 text-center">Waiting Area</th>
+                //             <th className="px-4 py-3 text-center">Gum Leakage</th>
+                //             <th className="px-4 py-3 text-center">Fault Board</th>
+                //             <th className="px-4 py-3 text-center">Scrap</th>
+                //             <th className="px-4 py-3 text-center font-bold text-green-700">
+                //               TOTAL
+                //             </th>
+                //           </>
+                //         )}
+
+                //         {selectedTray?.code === "WAITING AREA" && (
+                //           <>
+                //             <th className="px-4 py-3 text-center">Input</th>
+                //           </>
+                //         )}
+
+                //         {selectedTray?.code === "GUM LEAKAGE BOARD" && (
+                //           <>
+                //             <th className="px-4 py-3 text-center">Waiting Area</th>
+                //           </>
+                //         )}
+
+
+
+                //         {selectedTray?.code === "FAULT BOARD" && (
+                //           <>
+                //             <th className="px-4 py-3 text-center">Waiting Area</th>
+                //             <th className="px-4 py-3 text-center">Scrap</th>
+                //           </>
+                //         )}
+
+                //         <th className="px-4 py-3">Action</th>
+
+                //       </tr>
+                //     </thead>
+
+
+                //     <tbody className="divide-y divide-gray-200">
+                //       {filteredAssets?.map((item: any, index: number) => {
+                //         const firstTracking = item?.tracking?.[0]; 
+                //         const waiting = getOutCount(firstTracking, "WAITING AREA");
+                //         const gum = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
+                //         const fault = getOutCount(firstTracking, "FAULT BOARD");
+                //         const scrap = getOutCount(firstTracking, "SCRAP");
+
+
+                //         const total = waiting + gum + fault + firstTracking?.available_stock;
+
+                //         return (
+                //           <tr key={item.id} className="hover:bg-gray-50 text-[10px] ">
+                //             <td className="px-4 py-3">
+                //               <div className="font-semibold text-gray-900">
+                //                 {index + 1}
+                //               </div>
+                //             </td>
+
+                //             <td className="px-4 py-3">
+                //               <div className="font-semibold text-gray-900">
+                //                 {item.name}
+                //               </div>
+                //               <div className="text-xs text-gray-500">
+                //                 Tray: {item?.tray_code || "-"}
+                //               </div>
+
+                //             </td>
+
+
+                //             <td className="px-4 py-3">
+                //               <div className="text-sm font-medium">
+                //                 {item.category_name}
+                //               </div>
+                //               <div className="text-xs text-gray-500">
+                //                 Brand: {item.brand_name}
+                //               </div>
+                //             </td>
+
+
+                //             <td className="px-4 py-3 text-center font-bold text-blue-700">
+                //               {firstTracking?.total_in || 0}
+                //             </td>
+
+
+                //             <td className="px-4 py-3 text-center font-bold text-red-700">
+                //               {firstTracking?.total_out || 0}
+                //             </td>
+
+
+                //             <td className="px-4 py-3 text-center font-bold text-green-700">
+                //               {firstTracking?.available_stock || 0}
+                //             </td>
+
+
+
+                //             {selectedTray?.code === "CHECKING AREA" && (
+                //               <>
+                //                 <td className="px-4 py-3 text-center">
+                //                   {getOutCount(firstTracking, "WAITING AREA")}
+                //                 </td>
+                //                 <td className="px-4 py-3 text-center">
+                //                   {getOutCount(firstTracking, "GUM LEAKAGE BOARD")}
+                //                 </td>
+                //                 <td className="px-4 py-3 text-center">
+                //                   {getOutCount(firstTracking, "FAULT BOARD")}
+                //                 </td>
+                //                 <td className="px-4 py-3 text-center">
+                //                   {getOutCount(firstTracking, "SCRAP")}
+                //                 </td>
+                //                 <td className="px-4 py-3 text-center font-bold text-green-700">
+                //                   {total}
+                //                 </td>
+                //               </>
+                //             )}
+
+                //             {selectedTray?.code === "WAITING AREA" && (
+                //               <td className="px-4 py-3 text-center font-semibold text-blue-600">
+                //                 {getInCount(firstTracking, "CHECKING AREA")}
+                //               </td>
+                //             )}
+
+                //             {selectedTray?.code === "GUM LEAKAGE BOARD" && (
+                //               <td className="px-4 py-3 text-center">
+                //                 {getOutCount(firstTracking, "WAITING AREA")}
+                //               </td>
+                //             )}
+
+                //             {selectedTray?.code === "FAULT BOARD" && (
+                //               <>
+                //                 <td className="px-4 py-3 text-center">
+                //                   {getOutCount(firstTracking, "WAITING AREA")}
+                //                 </td>
+                //                 <td className="px-4 py-3 text-center">
+                //                   {getOutCount(firstTracking, "SCRAP")}
+                //                 </td>
+                //               </>
+                //             )}
+                //             <td className="px-6 py-4 text-center">
+                //               <div className="flex justify-end gap-2 ">
+                //                 <button
+                //                   onClick={() => {
+                //                     setSelectedAsset(item);
+                //                     setShowHistoryModal(true);
+                //                   }}
+
+                //                   className="p-2 flex gap-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
+                //                   title="View History"
+                //                 >
+                //                   <Package className="h-4 w-4" />
+                //                 </button>
+                //               </div>
+                //             </td>
+
+                //           </tr>
+                //         );
+                //       })}
+                //     </tbody>
+
+
+                //   </table>
+                // </div>
+                <div className="border rounded-xl bg-white overflow-hidden">
+
+                  {/* 👇 Scroll Wrapper */}
+                  <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+
+                    <table className="min-w-full w-full">
+
+                      {/* 👇 Sticky Header */}
+                      <thead className="bg-gray-100 text-[10px] uppercase text-gray-600 font-semibold sticky top-0 z-20 shadow-sm">
+                        <tr>
+                          <th className="px-4 py-3">S.No</th>
+                          <th className="px-4 py-3">Product</th>
+                          <th className="px-4 py-3">Product Type / Brand</th>
+                          <th className="px-4 py-3 text-center">Total In</th>
+                          <th className="px-4 py-3 text-center">Total Out</th>
+                          <th className="px-4 py-3 text-center">Available Stock</th>
+
+                          {selectedTray?.code === "CHECKING AREA" && (
+                            <>
+                              <th className="px-4 py-3 text-center">Waiting Area</th>
+                              <th className="px-4 py-3 text-center">Gum Leakage</th>
+                              <th className="px-4 py-3 text-center">Fault Board</th>
+                              <th className="px-4 py-3 text-center">Scrap</th>
+                              <th className="px-4 py-3 text-center font-bold text-green-700">
+                                TOTAL
+                              </th>
+                            </>
+                          )}
+
+                          {selectedTray?.code === "WAITING AREA" && (
                             <th className="px-4 py-3 text-center">Input</th>
-                          </>
-                        )}
-                        {/* out_track Stock  */}
-                        {selectedTray?.code === "GUM LEAKAGE BOARD" && (
-                          <>
+                          )}
+
+                          {selectedTray?.code === "GUM LEAKAGE BOARD" && (
                             <th className="px-4 py-3 text-center">Waiting Area</th>
-                          </>
-                        )}
+                          )}
 
-                        {/* out_track Stock  */}
+                          {selectedTray?.code === "FAULT BOARD" && (
+                            <>
+                              <th className="px-4 py-3 text-center">Waiting Area</th>
+                              <th className="px-4 py-3 text-center">Scrap</th>
+                            </>
+                          )}
 
-                        {selectedTray?.code === "FAULT BOARD" && (
-                          <>
-                            <th className="px-4 py-3 text-center">Waiting Area</th>
-                            <th className="px-4 py-3 text-center">Scrap</th>
-                          </>
-                        )}
+                          <th className="px-4 py-3 text-center">Action</th>
+                        </tr>
+                      </thead>
 
-                        <th className="px-4 py-3">Action</th>
+                      <tbody className="divide-y divide-gray-200">
+                        {filteredAssets?.map((item: any, index: number) => {
+                          const firstTracking = item?.tracking?.[0];
+                          const waiting = getOutCount(firstTracking, "WAITING AREA");
+                          const gum = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
+                          const fault = getOutCount(firstTracking, "FAULT BOARD");
+                          const scrap = getOutCount(firstTracking, "SCRAP");
+                          const total = waiting + gum + fault + firstTracking?.available_stock;
 
-                      </tr>
-                    </thead>
+                          return (
+                            <tr key={item.id} className="hover:bg-gray-50 text-[10px]">
+                              <td className="px-4 py-3">
+                                <div className="font-semibold text-gray-900">
+                                  {index + 1}
+                                </div>
+                              </td>
+
+                              <td className="px-4 py-3">
+                                <div className="font-semibold text-gray-900">
+                                  {item.name}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Tray: {item?.tray_code || "-"}
+                                </div>
+
+                              </td>
 
 
-                    <tbody className="divide-y divide-gray-200">
-                      {filteredAssets?.map((item: any, index: number) => {
-                        const firstTracking = item?.tracking?.[0]; // one tracking per product
-                        const waiting = getOutCount(firstTracking, "WAITING AREA");
-                        const gum = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
-                        const fault = getOutCount(firstTracking, "FAULT BOARD");
-                        const scrap = getOutCount(firstTracking, "SCRAP");
+                              <td className="px-4 py-3">
+                                <div className="text-sm font-medium">
+                                  {item.category_name}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Brand: {item.brand_name}
+                                </div>
+                              </td>
 
-                        // 🔥 TOTAL = CHECKING AREA OUT FLOWS (except scrap)
-                        const total = waiting + gum + fault + firstTracking?.available_stock;
 
-                        return (
-                          <tr key={item.id} className="hover:bg-gray-50 text-[10px] ">
-                            <td className="px-4 py-3">
-                              <div className="font-semibold text-gray-900">
-                                {index + 1}
-                              </div>
-                            </td>
-                            {/* Product */}
-                            <td className="px-4 py-3">
-                              <div className="font-semibold text-gray-900">
-                                {item.name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                Tray: {item?.tray_code || "-"}
-                              </div>
-                              {/* <div className="text-xs font-mono text-gray-600">
-                                Barcode: {item.id}
-                              </div> */}
-                            </td>
+                              <td className="px-4 py-3 text-center font-bold text-blue-700">
+                                {firstTracking?.total_in || 0}
+                              </td>
 
-                            {/* Product Type / Brand */}
-                            <td className="px-4 py-3">
-                              <div className="text-sm font-medium">
-                                {item.category_name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                Brand: {item.brand_name}
-                              </div>
-                            </td>
 
-                            {/* Normal In */}
-                            <td className="px-4 py-3 text-center font-bold text-blue-700">
-                              {firstTracking?.total_in || 0}
-                            </td>
+                              <td className="px-4 py-3 text-center font-bold text-red-700">
+                                {firstTracking?.total_out || 0}
+                              </td>
 
-                            {/* Normal Out */}
-                            <td className="px-4 py-3 text-center font-bold text-red-700">
-                              {firstTracking?.total_out || 0}
-                            </td>
 
-                            {/* Available */}
-                            <td className="px-4 py-3 text-center font-bold text-green-700">
-                              {firstTracking?.available_stock || 0}
-                            </td>
+                              <td className="px-4 py-3 text-center font-bold text-green-700">
+                                {firstTracking?.available_stock || 0}
+                              </td>
 
 
 
-                            {selectedTray?.code === "CHECKING AREA" && (
-                              <>
+                              {selectedTray?.code === "CHECKING AREA" && (
+                                <>
+                                  <td className="px-4 py-3 text-center">
+                                    {getOutCount(firstTracking, "WAITING AREA")}
+                                  </td>
+                                  <td className="px-4 py-3 text-center">
+                                    {getOutCount(firstTracking, "GUM LEAKAGE BOARD")}
+                                  </td>
+                                  <td className="px-4 py-3 text-center">
+                                    {getOutCount(firstTracking, "FAULT BOARD")}
+                                  </td>
+                                  <td className="px-4 py-3 text-center">
+                                    {getOutCount(firstTracking, "SCRAP")}
+                                  </td>
+                                  <td className="px-4 py-3 text-center font-bold text-green-700">
+                                    {total}
+                                  </td>
+                                </>
+                              )}
+
+                              {selectedTray?.code === "WAITING AREA" && (
+                                <td className="px-4 py-3 text-center font-semibold text-blue-600">
+                                  {getInCount(firstTracking, "CHECKING AREA")}
+                                </td>
+                              )}
+
+                              {selectedTray?.code === "GUM LEAKAGE BOARD" && (
                                 <td className="px-4 py-3 text-center">
                                   {getOutCount(firstTracking, "WAITING AREA")}
                                 </td>
-                                <td className="px-4 py-3 text-center">
-                                  {getOutCount(firstTracking, "GUM LEAKAGE BOARD")}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  {getOutCount(firstTracking, "FAULT BOARD")}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  {getOutCount(firstTracking, "SCRAP")}
-                                </td>
-                                <td className="px-4 py-3 text-center font-bold text-green-700">
-                                  {total}
-                                </td>
-                              </>
-                            )}
+                              )}
 
-                            {selectedTray?.code === "WAITING AREA" && (
-                              <td className="px-4 py-3 text-center font-semibold text-blue-600">
-                                {getInCount(firstTracking, "CHECKING AREA")}
+                              {selectedTray?.code === "FAULT BOARD" && (
+                                <>
+                                  <td className="px-4 py-3 text-center">
+                                    {getOutCount(firstTracking, "WAITING AREA")}
+                                  </td>
+                                  <td className="px-4 py-3 text-center">
+                                    {getOutCount(firstTracking, "SCRAP")}
+                                  </td>
+                                </>
+                              )}
+                              <td className="px-6 py-4 text-center">
+                                <div className="flex justify-end gap-2 ">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedAsset(item);
+                                      setShowHistoryModal(true);
+                                    }}
+
+                                    className="p-2 flex gap-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
+                                    title="View History"
+                                  >
+                                    <Package className="h-4 w-4" />
+                                  </button>
+                                </div>
                               </td>
-                            )}
 
-                            {selectedTray?.code === "GUM LEAKAGE BOARD" && (
-                              <td className="px-4 py-3 text-center">
-                                {getOutCount(firstTracking, "WAITING AREA")}
-                              </td>
-                            )}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
 
-                            {selectedTray?.code === "FAULT BOARD" && (
-                              <>
-                                <td className="px-4 py-3 text-center">
-                                  {getOutCount(firstTracking, "WAITING AREA")}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  {getOutCount(firstTracking, "SCRAP")}
-                                </td>
-                              </>
-                            )}
-                            <td className="px-6 py-4 text-center">
-                              <div className="flex justify-end gap-2 ">
-                                <button
-                                  onClick={() => {
-                                    setSelectedAsset(item);
-                                    setShowHistoryModal(true);
-                                  }}
+                    </table>
 
-                                  className="p-2 flex gap-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
-                                  title="View History"
-                                >
-                                  <Package className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </td>
-
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-
-
-                  </table>
+                  </div>
                 </div>
-
               )}
             </div>
 
