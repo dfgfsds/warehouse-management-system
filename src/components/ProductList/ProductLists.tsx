@@ -323,13 +323,21 @@ export const printAllQRCodes = async (items: any[]) => {
 
             /* 🔥 PRODUCT TITLE */
             .product {
-              font-size: 6px;
-              font-weight: 600;
+              font-size: 7px;
+              font-weight: 700;
               text-align: center;
-              margin-bottom: 1mm;
+              margin-bottom: 2mm;
               max-width: 30mm;
               line-height: 1.2;
             }
+              .trayName{
+                 margin-top: 2mm;
+                    font-size: 15px;
+              font-weight: 900;
+              text-align: center;
+                max-width: 30mm;
+              line-height: 1.2;
+              }
 
             /* 🔥 EXACT 2CM QR */
             .qr {
@@ -340,12 +348,13 @@ export const printAllQRCodes = async (items: any[]) => {
             /* SIDE BARCODE */
             .barcode-side {
               position: absolute;
-              right: 8mm;
+              right: 9mm;
               top: 50%;
               transform: rotate(90deg) translateY(-50%);
               transform-origin: center;
-              font-size: 6px;
-              font-weight: bold;
+              font-size: 7px;
+              font-weight: 700;
+              text-align: center;
               white-space: nowrap;
             }
           </style>
@@ -358,8 +367,8 @@ export const printAllQRCodes = async (items: any[]) => {
 
                 <div class="label">
                   <div class="product">${item.productName}</div>
-                  <div class="product">Tray: ${item.trayName || ""}</div>
                   <img id="qr-${i}" class="qr" />
+                  <div class="trayName">Tray: ${item.trayName || ""}</div>
                   <div class="barcode-side">${item.barcode}</div>
                 </div>
 
@@ -1101,7 +1110,7 @@ export const ProductList: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 justify-end" >
                 {/* <button
                     onClick={() => printAllBarcodes(getFilteredBarcodeItems())}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg flex gap-2"
@@ -1118,12 +1127,12 @@ export const ProductList: React.FC = () => {
                     Print All Barcodes
                 </button> */}
 
-                {/* <button
+                <button
                     onClick={() => printAllQRCodes(getFilteredBarcodeItems())}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg"
                 >
                     Print All QR Codes
-                </button> */}
+                </button>
 
 
 
