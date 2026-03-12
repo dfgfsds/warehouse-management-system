@@ -46,46 +46,169 @@ const BarcodePrintModal: React.FC<Props> = ({
   }, [open, barcode, printType]);
 
   /* ================= PRINT ================= */
+  // const handlePrint = () => {
+  //   const content = document.getElementById("barcode-print-area");
+  //   if (!content) return;
+
+  //   const printWindow = window.open("", "", "width=1000,height=800");
+  //   if (!printWindow) return;
+
+  //   let html = "";
+  //   for (let i = 0; i < copies; i++) {
+  //     html += `
+  //       <div style="
+  //         page-break-inside: avoid;
+  //         border: 1px dashed #ccc;
+  //         padding: 12px;
+  //         margin-bottom: 20px;
+  //         text-align: center;
+  //         font-family: Arial;
+  //       ">
+  //         ${content.innerHTML}
+  //       </div>
+  //     `;
+  //   }
+
+  //   printWindow.document.write(`
+  //     <html>
+  //       <head>
+  //         <title>Print</title>
+  //       </head>
+  //       <body>${html}</body>
+  //     </html>
+  //   `);
+
+  //   printWindow.document.close();
+  //   printWindow.focus();
+  //   setTimeout(() => {
+  //     printWindow.print();
+  //     printWindow.close();
+  //   }, 500);
+  // };
+
   const handlePrint = () => {
-    const content = document.getElementById("barcode-print-area");
-    if (!content) return;
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return;
 
-    const printWindow = window.open("", "", "width=1000,height=800");
-    if (!printWindow) return;
+  let html = "";
 
-    let html = "";
-    for (let i = 0; i < copies; i++) {
-      html += `
-        <div style="
-          page-break-inside: avoid;
-          border: 1px dashed #ccc;
-          padding: 12px;
-          margin-bottom: 20px;
-          text-align: center;
-          font-family: Arial;
-        ">
-          ${content.innerHTML}
-        </div>
-      `;
-    }
+  for (let i = 0; i < copies; i++) {
+    html += `
+      ${i % 24 === 0 ? `<div class="page">` : ""}
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Print</title>
-        </head>
-        <body>${html}</body>
-      </html>
-    `);
+      <div class="label">
+        ${productName ? `<div class="product">${productName}</div>` : ""}
 
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 500);
-  };
+        ${
+          printType === "barcode"
+            ? document.querySelector("svg")?.outerHTML
+            : `<img src="${qrImageUrl}" class="qr" />`
+        }
 
+        ${trayName ? `<div class="trayName">Tray: ${trayName}</div>` : ""}
+        <div class="barcode-side">${barcode}</div>
+      </div>
+
+      ${i % 24 === 23 || i === copies - 1 ? `</div>` : ""}
+    `;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(`
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>QR Print</title>
+
+      <style>
+
+        @page{
+          size:A4;
+          margin:0;
+        }
+
+        body{
+          margin:0;
+          font-family: Arial, sans-serif;
+        }
+
+        /* SAME GRID STRUCTURE */
+        .page{
+          width:210mm;
+          height:297mm;
+          display:grid;
+          grid-template-columns:repeat(4,1fr);
+          grid-auto-rows:45mm;
+          padding:10mm;
+          box-sizing:border-box;
+          page-break-after:always;
+        }
+
+        .label{
+          position:relative;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+        }
+
+        .product{
+          font-size:7px;
+          font-weight:700;
+          text-align:center;
+          margin-bottom:2mm;
+          max-width:30mm;
+          line-height:1.2;
+        }
+
+        .trayName{
+          margin-top:2mm;
+          font-size:15px;
+          font-weight:900;
+          text-align:center;
+          max-width:30mm;
+          line-height:1.2;
+        }
+
+        .qr{
+          width:20mm;
+          height:20mm;
+        }
+
+        svg{
+          width:30mm;
+        }
+
+        .barcode-side{
+          position:absolute;
+          right:9mm;
+          top:50%;
+          transform:rotate(90deg) translateY(-50%);
+          transform-origin:center;
+          font-size:7px;
+          font-weight:700;
+          text-align:center;
+          white-space:nowrap;
+        }
+
+      </style>
+
+    </head>
+
+    <body>
+      ${html}
+    </body>
+  </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+
+  setTimeout(() => {
+    printWindow.print();
+    printWindow.close();
+  }, 500);
+};
   /* ================= DOWNLOAD BARCODE ================= */
   const downloadBarcode = () => {
     if (!svgRef.current) return;
