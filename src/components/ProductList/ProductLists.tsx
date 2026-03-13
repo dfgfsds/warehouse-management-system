@@ -22,7 +22,6 @@ export interface BarcodeItem {
     trayName?: string;
 }
 
-// import JsBarcode from "jsbarcode";
 
 // export const printAllBarcodes = (items: any[]) => {
 //     if (!items.length) return;
@@ -821,14 +820,14 @@ export const ProductList: React.FC = () => {
     //   setWarehouses(allWarehouses);
     // };
 
-    const filteredAssets = assets.filter(asset => {
-        const matchesSearch = asset.qrCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            asset.productType.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || asset.status === statusFilter;
-        const matchesWarehouse = warehouseFilter === 'all' || asset.warehouseId === warehouseFilter;
+    // const filteredAssets = assets.filter(asset => {
+    //     const matchesSearch = asset.qrCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    //         asset.productType.toLowerCase().includes(searchTerm.toLowerCase());
+    //     const matchesStatus = statusFilter === 'all' || asset.status === statusFilter;
+    //     const matchesWarehouse = warehouseFilter === 'all' || asset.warehouseId === warehouseFilter;
 
-        return matchesSearch && matchesStatus && matchesWarehouse;
-    });
+    //     return matchesSearch && matchesStatus && matchesWarehouse;
+    // });
 
     const getWarehouseInfo = (warehouseId: string, sectionId: string, trayId: string) => {
         const warehouse = warehouses.find(w => w.id === warehouseId);

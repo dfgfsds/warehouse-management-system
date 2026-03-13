@@ -45,17 +45,14 @@ const BarcodePrintModal: React.FC<Props> = ({
   //   }
   // }, [open, barcode, printType]);
 
-
-
-  
   useEffect(() => {
     if (!open || !barcode) return;
 
     if (printType === "barcode" && svgRef.current) {
       JsBarcode(svgRef.current, barcode, {
         format: "CODE128",
-        width: 1.5,      // thinner bars
-        height: 35,      // fits inside 25mm label
+        width: 1.5,      
+        height: 35,    
         displayValue: true,
         fontSize: 12,
         margin: 0
@@ -64,7 +61,7 @@ const BarcodePrintModal: React.FC<Props> = ({
 
     if (printType === "qrcode") {
       QRCode.toDataURL(barcode, {
-        width: 120,      // smaller QR
+        width: 120,    
         margin: 1
       }).then((url: any) => {
         setQrImageUrl(url);
