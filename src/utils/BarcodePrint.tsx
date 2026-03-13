@@ -46,6 +46,8 @@ const BarcodePrintModal: React.FC<Props> = ({
   // }, [open, barcode, printType]);
 
 
+
+  
   useEffect(() => {
     if (!open || !barcode) return;
 
