@@ -26,24 +26,179 @@ const BarcodePrintModal: React.FC<Props> = ({
   const [qrImageUrl, setQrImageUrl] = useState("");
 
   /* ================= GENERATE BARCODE / QR ================= */
+  // useEffect(() => {
+  //   if (!open || !barcode) return;
+
+  //   if (printType === "barcode" && svgRef.current) {
+  //     JsBarcode(svgRef.current, barcode, {
+  //       format: "CODE128",
+  //       width: 2,
+  //       height: 70,
+  //       displayValue: true,
+  //     });
+  //   }
+
+  //   if (printType === "qrcode") {
+  //     QRCode.toDataURL(barcode, { width: 200, margin: 2 }).then((url) => {
+  //       setQrImageUrl(url);
+  //     });
+  //   }
+  // }, [open, barcode, printType]);
+
+
   useEffect(() => {
     if (!open || !barcode) return;
 
     if (printType === "barcode" && svgRef.current) {
       JsBarcode(svgRef.current, barcode, {
         format: "CODE128",
-        width: 2,
-        height: 70,
+        width: 1.5,      // thinner bars
+        height: 35,      // fits inside 25mm label
         displayValue: true,
+        fontSize: 12,
+        margin: 0
       });
     }
 
     if (printType === "qrcode") {
-      QRCode.toDataURL(barcode, { width: 200, margin: 2 }).then((url) => {
+      QRCode.toDataURL(barcode, {
+        width: 120,      // smaller QR
+        margin: 1
+      }).then((url: any) => {
         setQrImageUrl(url);
       });
     }
   }, [open, barcode, printType]);
+
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    let html = "";
+
+    for (let i = 0; i < copies; i++) {
+      html += `
+      ${i % 10 === 0 ? `<div class="page">` : ""}
+
+    <div class="label">
+
+  <div class="product">${productName}</div>
+
+  <img src="${qrImageUrl}" class="qr"/>
+
+  <div class="tray">Tray: ${trayName}</div>
+
+  <div class="code">${barcode}</div>
+
+</div>
+
+      ${i % 10 === 9 || i === copies - 1 ? `</div>` : ""}
+    `;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+<title>QR Print</title>
+
+<style>
+
+@page{
+  size:A4;
+  margin:0;
+}
+
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== PDF SAME GRID ===== */
+
+.page{
+  width:210mm;
+  height:297mm;
+
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:repeat(5,1fr);
+
+  padding:8mm;
+  box-sizing:border-box;
+
+  page-break-after:always;
+}
+.label{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.product{
+  position:absolute;
+  top:8mm;
+  font-size:8px;
+  font-weight:bold;
+  max-width:80mm;
+}
+
+.qr{
+  width:32mm;
+  height:32mm;
+}
+
+.tray{
+  position:absolute;
+  bottom:7mm;
+    font-size:12px;
+  font-weight:bolder;
+}
+
+.code{
+  position:absolute;
+  right:25mm;
+  top:50%;
+  transform:rotate(90deg) translateY(-50%);
+  transform-origin:center;
+  font-size:9px;
+  font-weight:bold;
+}
+
+/* QR EXACT SIZE */
+
+.qr{
+  width:32mm;
+  height:32mm;
+}
+
+svg{
+  width:40mm;
+}
+
+</style>
+
+</head>
+
+<body>
+${html}
+</body>
+</html>
+`);
+
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  };
 
   /* ================= PRINT ================= */
   // const handlePrint = () => {
@@ -86,129 +241,7 @@ const BarcodePrintModal: React.FC<Props> = ({
   //   }, 500);
   // };
 
-  const handlePrint = () => {
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
 
-  let html = "";
-
-  for (let i = 0; i < copies; i++) {
-    html += `
-      ${i % 24 === 0 ? `<div class="page">` : ""}
-
-      <div class="label">
-        ${productName ? `<div class="product">${productName}</div>` : ""}
-
-        ${
-          printType === "barcode"
-            ? document.querySelector("svg")?.outerHTML
-            : `<img src="${qrImageUrl}" class="qr" />`
-        }
-
-        ${trayName ? `<div class="trayName">Tray: ${trayName}</div>` : ""}
-        <div class="barcode-side">${barcode}</div>
-      </div>
-
-      ${i % 24 === 23 || i === copies - 1 ? `</div>` : ""}
-    `;
-  }
-
-  printWindow.document.open();
-  printWindow.document.write(`
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <title>QR Print</title>
-
-      <style>
-
-        @page{
-          size:A4;
-          margin:0;
-        }
-
-        body{
-          margin:0;
-          font-family: Arial, sans-serif;
-        }
-
-        /* SAME GRID STRUCTURE */
-        .page{
-          width:210mm;
-          height:297mm;
-          display:grid;
-          grid-template-columns:repeat(4,1fr);
-          grid-auto-rows:45mm;
-          padding:10mm;
-          box-sizing:border-box;
-          page-break-after:always;
-        }
-
-        .label{
-          position:relative;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-        }
-
-        .product{
-          font-size:7px;
-          font-weight:700;
-          text-align:center;
-          margin-bottom:2mm;
-          max-width:30mm;
-          line-height:1.2;
-        }
-
-        .trayName{
-          margin-top:2mm;
-          font-size:15px;
-          font-weight:900;
-          text-align:center;
-          max-width:30mm;
-          line-height:1.2;
-        }
-
-        .qr{
-          width:20mm;
-          height:20mm;
-        }
-
-        svg{
-          width:30mm;
-        }
-
-        .barcode-side{
-          position:absolute;
-          right:9mm;
-          top:50%;
-          transform:rotate(90deg) translateY(-50%);
-          transform-origin:center;
-          font-size:7px;
-          font-weight:700;
-          text-align:center;
-          white-space:nowrap;
-        }
-
-      </style>
-
-    </head>
-
-    <body>
-      ${html}
-    </body>
-  </html>
-  `);
-
-  printWindow.document.close();
-  printWindow.focus();
-
-  setTimeout(() => {
-    printWindow.print();
-    printWindow.close();
-  }, 500);
-};
   /* ================= DOWNLOAD BARCODE ================= */
   const downloadBarcode = () => {
     if (!svgRef.current) return;
@@ -331,8 +364,8 @@ const BarcodePrintModal: React.FC<Props> = ({
               key={t}
               onClick={() => setPrintType(t as any)}
               className={`px-3 py-1.5 rounded text-sm font-medium ${printType === t
-                  ? "bg-blue-600 text-white"
-                  : "border hover:bg-gray-50"
+                ? "bg-blue-600 text-white"
+                : "border hover:bg-gray-50"
                 }`}
             >
               {t.toUpperCase()}
