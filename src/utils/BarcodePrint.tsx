@@ -69,135 +69,175 @@ const BarcodePrintModal: React.FC<Props> = ({
     }
   }, [open, barcode, printType]);
 
+    const handlePrint = () => {
+    const content = document.getElementById("barcode-print-area");
+    if (!content) return;
 
-  const handlePrint = () => {
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open("", "", "width=1000,height=800");
     if (!printWindow) return;
 
     let html = "";
-
     for (let i = 0; i < copies; i++) {
       html += `
-      ${i % 10 === 0 ? `<div class="page">` : ""}
-
-    <div class="label">
-
-  <div class="product">${productName}</div>
-
-  <img src="${qrImageUrl}" class="qr"/>
-
-  <div class="tray">Tray: ${trayName}</div>
-
-  <div class="code">${barcode}</div>
-
-</div>
-
-      ${i % 10 === 9 || i === copies - 1 ? `</div>` : ""}
-    `;
+        <div style="
+          page-break-inside: avoid;
+          // border: 1px dashed #ccc;
+          padding: 12px;
+          margin-bottom: 20px;
+          text-align: center;
+          font-family: Arial;
+        ">
+          ${content.innerHTML}
+        </div>
+      `;
     }
 
-    printWindow.document.open();
     printWindow.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-<title>QR Print</title>
-
-<style>
-
-@page{
-  size:A4;
-  margin:0;
-}
-
-body{
-  margin:0;
-  font-family: Arial, sans-serif;
-}
-
-/* ===== PDF SAME GRID ===== */
-
-.page{
-  width:210mm;
-  height:297mm;
-
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  grid-template-rows:repeat(5,1fr);
-
-  padding:8mm;
-  box-sizing:border-box;
-
-  page-break-after:always;
-}
-.label{
-  position:relative;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-}
-
-.product{
-  position:absolute;
-  top:8mm;
-  font-size:8px;
-  font-weight:bold;
-  max-width:80mm;
-}
-
-.qr{
-  width:32mm;
-  height:32mm;
-}
-
-.tray{
-  position:absolute;
-  bottom:7mm;
-    font-size:12px;
-  font-weight:bolder;
-}
-
-.code{
-  position:absolute;
-  right:25mm;
-  top:50%;
-  transform:rotate(90deg) translateY(-50%);
-  transform-origin:center;
-  font-size:9px;
-  font-weight:bold;
-}
-
-/* QR EXACT SIZE */
-
-.qr{
-  width:32mm;
-  height:32mm;
-}
-
-svg{
-  width:40mm;
-}
-
-</style>
-
-</head>
-
-<body>
-${html}
-</body>
-</html>
-`);
+      <html>
+        <head>
+          <title>Print</title>
+        </head>
+        <body>${html}</body>
+      </html>
+    `);
 
     printWindow.document.close();
     printWindow.focus();
-
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
     }, 500);
   };
+
+
+//   const handlePrint = () => {
+//     const printWindow = window.open("", "_blank");
+//     if (!printWindow) return;
+
+//     let html = "";
+
+//     for (let i = 0; i < copies; i++) {
+//       html += `
+//       ${i % 10 === 0 ? `<div class="page">` : ""}
+
+//     <div class="label">
+
+//   <div class="product">${productName}</div>
+
+//   <img src="${qrImageUrl}" class="qr"/>
+
+//   <div class="tray">Tray: ${trayName}</div>
+
+//   <div class="code">${barcode}</div>
+
+// </div>
+
+//       ${i % 10 === 9 || i === copies - 1 ? `</div>` : ""}
+//     `;
+//     }
+
+//     printWindow.document.open();
+//     printWindow.document.write(`
+// <!DOCTYPE html>
+// <html>
+// <head>
+// <title>QR Print</title>
+
+// <style>
+
+// @page{
+//   size:A4;
+//   margin:0;
+// }
+
+// body{
+//   margin:0;
+//   font-family: Arial, sans-serif;
+// }
+
+// /* ===== PDF SAME GRID ===== */
+
+// .page{
+//   width:210mm;
+//   height:297mm;
+
+//   display:grid;
+//   grid-template-columns:1fr 1fr;
+//   grid-template-rows:repeat(5,1fr);
+
+//   padding:8mm;
+//   box-sizing:border-box;
+
+//   page-break-after:always;
+// }
+// .label{
+//   position:relative;
+//   display:flex;
+//   flex-direction:column;
+//   align-items:center;
+//   justify-content:center;
+//   text-align:center;
+// }
+
+// .product{
+//   position:absolute;
+//   top:8mm;
+//   font-size:8px;
+//   font-weight:bold;
+//   max-width:80mm;
+// }
+
+// .qr{
+//   width:32mm;
+//   height:32mm;
+// }
+
+// .tray{
+//   position:absolute;
+//   bottom:7mm;
+//     font-size:12px;
+//   font-weight:bolder;
+// }
+
+// .code{
+//   position:absolute;
+//   right:25mm;
+//   top:50%;
+//   transform:rotate(90deg) translateY(-50%);
+//   transform-origin:center;
+//   font-size:9px;
+//   font-weight:bold;
+// }
+
+// /* QR EXACT SIZE */
+
+// .qr{
+//   width:32mm;
+//   height:32mm;
+// }
+
+// svg{
+//   width:40mm;
+// }
+
+// </style>
+
+// </head>
+
+// <body>
+// ${html}
+// </body>
+// </html>
+// `);
+
+//     printWindow.document.close();
+//     printWindow.focus();
+
+//     setTimeout(() => {
+//       printWindow.print();
+//       printWindow.close();
+//     }, 500);
+//   };
 
   /* ================= PRINT ================= */
   // const handlePrint = () => {
