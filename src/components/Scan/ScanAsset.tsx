@@ -56,7 +56,7 @@ export const ScanAsset: React.FC = () => {
   }
 
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
-console.log(scannedItems)
+  console.log(scannedItems)
   // Modal State
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAssetCode, setNewAssetCode] = useState('');
@@ -307,8 +307,40 @@ console.log(scannedItems)
         );
       }
       // first time scan
+      // return [
+      //   ...prev,
+      //   {
+      //     assetId: asset?.product?.id,
+      //     qrCode: code,
+      //     status,
+      //     trayName: asset?.trays[0]?.name,
+      //     ...(actionType === 'add' && {
+      //       tray_id: asset?.trays?.find(
+      //         (t: any) => t?.parent_division_id === status
+      //       )?.id,
+      //     }),
+      //     ...(actionType === 'transfer' && {
+      //       tray_id: asset?.trays?.find(
+      //         (t: any) => t?.parent_division_id === status
+      //       )?.id,
+      //     }),
+      //     ...(actionType === 'transfer' && {
+      //       previous_tray_id: asset?.trays?.find(
+      //         (t: any) => t?.parent_division_id === fromDiv
+      //       )?.id,
+      //     }),
+      //     ...(actionType === 'sale' && {
+      //       tray_id: asset?.trays?.find(
+      //         (t: any) => t?.parent_division_id === status
+      //       )?.id,
+      //     }),
+      //     moveQuantity: 1,
+      //     productType: asset?.product?.product_kind,
+      //     spareName: asset?.product?.title,
+      //     brand: asset?.product?.brand?.name,
+      //   },
+      // ];
       return [
-        ...prev,
         {
           assetId: asset?.product?.id,
           qrCode: code,
@@ -339,6 +371,7 @@ console.log(scannedItems)
           spareName: asset?.product?.title,
           brand: asset?.product?.brand?.name,
         },
+        ...prev
       ];
     });
   };
@@ -532,7 +565,7 @@ console.log(scannedItems)
                 </p>
               )}
 
-              {actionType === "transfer" && (
+              {/* {actionType === "transfer" && (
                 <p className="text-sm text-gray-600 font-semibold">
                   Transfer From:
                   <span className="ml-1 text-indigo-600">
@@ -542,7 +575,7 @@ console.log(scannedItems)
                     }
                   </span>
                 </p>
-              )}
+              )} */}
 
               {actionType === "sale" && (
                 <p className="text-sm text-gray-600 font-semibold flex items-center gap-1">
@@ -554,7 +587,7 @@ console.log(scannedItems)
 
           </div>
           <div className="flex gap-4">
-            {actionType !== 'sale' && actionType !== 'add' && (
+            {actionType !== 'sale' && (actionType === 'add' || actionType === 'transfer') && (
               <>
                 <div className="flex bg-gray-100 rounded-lg p-1">
                   <button onClick={() => setStatusMode('auto')} className={`px-3 py-1 rounded-md text-sm font-medium ${statusMode === 'auto' ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}>Auto Status</button>
@@ -567,12 +600,12 @@ console.log(scannedItems)
                     onChange={(e) => setAutoStatus(e.target.value as AssetStatus)}
                   >
                     {STATUSES?.
-                    // slice(1, 6)?.
-                    map((s: any) => (
-                      <option key={s?.id} value={s?.id}>
-                        {s?.division_name}
-                      </option>
-                    ))}
+                      // slice(1, 6)?.
+                      map((s: any) => (
+                        <option key={s?.id} value={s?.id}>
+                          {s?.division_name}
+                        </option>
+                      ))}
                   </select>
                 )}
               </>
@@ -611,41 +644,41 @@ console.log(scannedItems)
             )} */}
 
             {scannedItems?.length > 0 && (
-  <button
-    onClick={confirmMove}
-    disabled={loading}
-    className={`flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-bold text-white 
+              <button
+                onClick={confirmMove}
+                disabled={loading}
+                className={`flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-bold text-white 
     ${loading ? "bg-green-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"}`}
-  >
-    {loading ? (
-      <>
-        <svg
-          className="animate-spin h-5 w-5 text-white"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v8H4z"
-          />
-        </svg>
-        Loading...
-      </>
-    ) : (
-      "Confirm"
-    )}
-  </button>
-)}
+              >
+                {loading ? (
+                  <>
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"
+                      />
+                    </svg>
+                    Loading...
+                  </>
+                ) : (
+                  "Confirm"
+                )}
+              </button>
+            )}
           </div>
           <table className="w-full">
             <thead className="bg-gray-50 text-left text-sm text-gray-500">
