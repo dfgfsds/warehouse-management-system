@@ -72,7 +72,7 @@ export default function AddProductModal({
     // product_expiry_date: null,
     // amc_expiry_date: "",
     // insurance_expiry_date: "",
-    tray_codes: '',
+    trays: [],
   });
 
   /* ================= CATEGORIES (ARRAY) ================= */
@@ -111,7 +111,7 @@ export default function AddProductModal({
     if (!editProduct) return;
 
     const p = editProduct?.product;
-
+    console.log(editProduct)
     /* ================= PRODUCT ================= */
     setProduct({
       title: p?.title || "",
@@ -132,7 +132,7 @@ export default function AddProductModal({
       // product_status_id: p.status?.id ?? "",
       // division_id: p.division?.id ?? "",
       hub_id: p.hub?.id ?? "",
-      tray_codes: p?.tray_codes || [],
+      trays: editProduct?.trays || [],
 
       // 📅 dates (YYYY-MM-DD format)
       // product_expiry_date: p.product_expiry_date
@@ -253,7 +253,7 @@ export default function AddProductModal({
         setApiErrors("Title and SKU are required");
         return;
       }
-
+      console.log(product)
       const productData = {
         product: {
           ...product,
@@ -280,7 +280,7 @@ export default function AddProductModal({
         //   max_stock: Number(inventory.max_stock),
         //   vendor_id: user.vendor_id,
         // },
-        tray_codes: [product?.tray_codes]
+        trays: [product?.tray_codes]
       };
 
       // ✅ FormData

@@ -1956,7 +1956,7 @@ export const InventoryManagement: React.FC = () => {
                                     {getOutCount(firstTracking, "SCRAP")}
                                   </td>
                                   <td className="px-4 py-3 text-center font-bold text-green-700">
-                                    {total}
+                                    {total ? total :0}
                                   </td>
                                 </>
                               )}

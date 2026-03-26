@@ -601,13 +601,51 @@ console.log(scannedItems)
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
             <h3 className="font-semibold text-gray-700">Scanned Items ({scannedItems?.length})</h3>
-            {scannedItems?.length > 0 && (
+            {/* {scannedItems?.length > 0 && (
               <button
                 onClick={confirmMove}
+                disabled={loading}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold">
                 Confirm
               </button>
-            )}
+            )} */}
+
+            {scannedItems?.length > 0 && (
+  <button
+    onClick={confirmMove}
+    disabled={loading}
+    className={`flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-bold text-white 
+    ${loading ? "bg-green-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"}`}
+  >
+    {loading ? (
+      <>
+        <svg
+          className="animate-spin h-5 w-5 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          />
+        </svg>
+        Loading...
+      </>
+    ) : (
+      "Confirm"
+    )}
+  </button>
+)}
           </div>
           <table className="w-full">
             <thead className="bg-gray-50 text-left text-sm text-gray-500">
