@@ -254,7 +254,7 @@ export default function OrderHistory() {
 
                         <thead className="bg-gray-50 text-xs uppercase text-gray-500 sticky top-0 z-10">
                             <tr>
-                                <th className="px-4 py-3">#</th>
+                                <th className="px-4 py-3">S.No</th>
                                 <th className="px-4 py-3">Product</th>
                                 <th className="px-4 py-3">Type / Category</th>
                                 <th className="px-4 py-3">Hub</th>
@@ -272,23 +272,23 @@ export default function OrderHistory() {
 
                                 return (
                                     <tr key={order.id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3">{index + 1}</td>
+                                        <td className="px-4 py-3 text-center">{index + 1}</td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="px-4 py-3 text-center">
                                             <div className="font-semibold">{product?.title}</div>
                                             <div className="text-xs text-gray-500">
                                                 BarCode: {product?.sku}
                                             </div>
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="px-4 py-3 text-center">
                                             <div>{product?.product_type?.name} /</div>
                                             <div className="text-xs text-gray-500">
                                                 {details?.categories?.[0]?.name}
                                             </div>
                                         </td>
 
-                                        <td className="px-4 py-3">{order.hub_name}</td>
+                                        <td className="px-4 py-3 text-center">{order.hub_name}</td>
 
                                         <td className="px-4 py-3 text-center">
                                             <span
@@ -301,11 +301,11 @@ export default function OrderHistory() {
                                             </span>
                                         </td>
 
-                                        <td className="px-4 py-3 text-right font-bold">
+                                        <td className="px-4 py-3  font-bold text-center">
                                             ₹ {order.amount}
                                         </td>
 
-                                        <td className="px-4 py-3">
+                                        <td className="px-4 py-3 text-center">
                                             <div className="font-medium">{order.customer_name}</div>
                                             <div className="text-xs text-gray-500">
                                                 {order.customer_mobile}

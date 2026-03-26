@@ -645,28 +645,29 @@ export const ProductList: React.FC = () => {
     const [trayName, setTrayName] = useState("")
 
     const handleExportExcel = () => {
-        if (!filteredProducts || filteredProducts.length === 0) {
+        if (!filteredProducts || filteredProducts?.length === 0) {
             alert("No data to export");
             return;
         }
 
-        const excelData = filteredProducts.map((item: any) => {
-            const p = item.product;
+        const excelData = filteredProducts?.map((item: any) => {
+            const p = item?.product;
 
             return {
                 "Product Name": p?.title || "",
-                "SKU": p?.sku || "",
                 "Barcode": p?.barcode_value || "",
-                "Status": p?.status?.name || "",
+                "trays": item?.trays[0]?.name || "",
+                "SKU": p?.sku || "",
+                // "Status": p?.status?.name || "",
                 "Brand": p?.brand?.name || "",
                 "Category": item?.categories[0]?.name || "",
                 "Product Type": p?.product_type?.name || "",
-                "Hub": p?.hub?.name || "",
-                "AMC Expiry": p?.amc_expiry_date || "",
-                "Insurance Expiry": p?.insurance_expiry_date || "",
-                "Created At": p?.created_at
-                    ? new Date(p.created_at).toLocaleDateString()
-                    : "",
+                // "Hub": p?.hub?.name || "",
+                // "AMC Expiry": p?.amc_expiry_date || "",
+                // "Insurance Expiry": p?.insurance_expiry_date || "",
+                // "Created At": p?.created_at
+                //     ? new Date(p.created_at).toLocaleDateString()
+                //     : "",
             };
         });
 
