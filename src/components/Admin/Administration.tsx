@@ -294,7 +294,7 @@ export const Administration: React.FC = () => {
                             <tr key={u.id}>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{u?.full_name}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{u?.email}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{u?.email.replace('_', ' ')}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{u?.role.replace('_', ' ')}</td>
 
                               {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer" onClick={() => { setShowUserModal(!showUserModal), setEditUser(u) }}>
                                 Edit
