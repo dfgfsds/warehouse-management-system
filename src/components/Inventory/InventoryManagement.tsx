@@ -28,6 +28,7 @@ import AssetHistoryModal from '../Modals/AssetHistoryModal';
 import OutputOrderModal from '../Modals/OutputOrderModal';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { toast } from 'react-toastify';
 
 const PRODUCT_TYPES = [
   'Washing Machine',
@@ -370,28 +371,6 @@ export const InventoryManagement: React.FC = () => {
     setIsSidebarOpen(false);
   };
 
-  // ======================================================
-  // 🔒 ASSET LOADING (UNCHANGED)
-  // ======================================================
-  // useEffect(() => {
-  //   if (selectedTray) {
-  //     setLoading(true);
-  //     setTimeout(() => {
-  //       const trayAssets = StorageManager.getAssetsByTray(selectedTray.id);
-  //       setAssets(trayAssets);
-  //       setLoading(false);
-  //     }, 300);
-  //   } else {
-  //     setAssets([]);
-  //   }
-  // }, [selectedTray]);
-
-  /* ===================== END PART 1 ===================== */
-
-
-  // ======================================================
-  // 🔒 COUNTS CALCULATION (UNCHANGED)
-  // ======================================================
   useEffect(() => {
     const tCounts: Record<string, number> = {};
     const dCounts: Record<string, number> = {};
@@ -801,6 +780,9 @@ export const InventoryManagement: React.FC = () => {
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
 
+    const [hubstartDate, setHubStartDate] = useState(today);
+  const [hubendDate, setHubEndDate] = useState(today);
+
   const getTrayProductsApi = async () => {
     try {
       setProductLoading(true);
@@ -834,13 +816,6 @@ export const InventoryManagement: React.FC = () => {
   }, [expandedDiv, expandedHub, selectedTray?.id, startDate, endDate]);
 
 
-  // useEffect(() => {
-  //   if (selectedTray?.id) {
-  //     getTrayProductsApi();
-  //   }
-  // }, [selectedTray?.id])
-
-
   const [brands, setBrands] = useState<any[]>([]);
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [productStatuses, setProductStatuses] = useState<any[]>([]);
@@ -853,48 +828,6 @@ export const InventoryManagement: React.FC = () => {
       .then(r => setProductStatuses(r?.data?.data?.statuses || []));
   }, []);
 
-
-  // const filteredAssets = productData?.filter((asset: any) => {
-  //   const product = asset?.product_details?.product;
-  //   const category = asset?.product_details?.categories?.[0];
-
-  //   const search = searchText?.toLowerCase().trim();
-
-  //   /* 🔍 SEARCH : barcode / sku / product name */
-  //   const matchSearch =
-  //     !search ||
-  //     product?.barcode_value?.toLowerCase().includes(search) ||
-  //     product?.sku?.toLowerCase().includes(search) ||
-  //     product?.title?.toLowerCase().includes(search);
-
-  //   /* 📦 PRODUCT TYPE */
-  //   const matchProductType =
-  //     filterProductType === "all" ||
-  //     asset?.product_type_id === filterProductType;
-
-  //   /* 🏷 BRAND */
-  //   const matchBrand =
-  //     filterBrand === "all" ||
-  //     asset?.brand_name_id === filterBrand;
-
-  //   /* 🗂 CATEGORY */
-  //   const matchCategory =
-  //     filterCategory === "all" ||
-  //     category?.id === filterCategory;
-
-  //   /* 🚦 STATUS */
-  //   const matchStatus =
-  //     filterStatus === "all" ||
-  //     asset?.product_details?.product?.status?.id === filterStatus;
-
-  //   return (
-  //     matchSearch &&
-  //     matchProductType &&
-  //     matchBrand &&
-  //     matchCategory &&
-  //     matchStatus
-  //   );
-  // });
 
   const filteredAssets = (productData || [])
     .filter((asset: any) => {
@@ -965,7 +898,7 @@ export const InventoryManagement: React.FC = () => {
       return aParsed.number - bParsed.number;
     });
 
-  console.log(filteredAssets)
+
   // 🔹 delete Tray
 
   const tableRows = filteredAssets?.flatMap((item: any) => {
@@ -1042,150 +975,6 @@ export const InventoryManagement: React.FC = () => {
     id: i + 1,
     name: `Tray ${i + 1}`,
   }));
-
-  // const [selectedTray, setSelectedTray] = useState<string>("");
-
-  // const downloadExcel = () => {
-  //   if (!filteredAssets || filteredAssets.length === 0) return;
-
-  //   const rows = filteredAssets.map((item: any, index: number) => {
-  //     const firstTracking = item?.tracking?.[0] || {};
-
-  //     const row: any = {
-  //       "S.No": index + 1,
-  //       "Product Name": item.name,
-  //       "Category": item.category_name,
-  //       "Brand": item.brand_name,
-  //       "Tray": firstTracking?.tray_name || "-",
-  //       "Barcode": item.id,
-  //       "Total In": firstTracking?.total_in || 0,
-  //       "Total Out": firstTracking?.total_out || 0,
-  //       "Available Stock": firstTracking?.available_stock || 0,
-  //     };
-
-  //     /* ================= SAME TABLE LOGIC ================= */
-
-  //     if (selectedTray?.code === "CHECKING AREA") {
-  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
-  //       row["Gum Leakage"] = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
-  //       row["Fault Board"] = getOutCount(firstTracking, "FAULT BOARD");
-  //       row["Scrap"] = getOutCount(firstTracking, "SCRAP");
-  //     }
-
-  //     if (selectedTray?.code === "WAITING AREA") {
-  //       row["Input"] = getInCount(firstTracking, "CHECKING AREA");
-  //     }
-
-  //     if (selectedTray?.code === "GUM LEAKAGE BOARD") {
-  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
-  //     }
-
-  //     if (selectedTray?.code === "FAULT BOARD") {
-  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
-  //       row["Scrap"] = getOutCount(firstTracking, "SCRAP");
-  //     }
-
-  //     return row;
-  //   });
-
-  //   const worksheet = XLSX.utils.json_to_sheet(rows);
-  //   const workbook = XLSX.utils.book_new();
-
-  //   XLSX.utils.book_append_sheet(
-  //     workbook,
-  //     worksheet,
-  //     selectedTray?.code || "Assets"
-  //   );
-
-  //   XLSX.writeFile(
-  //     workbook,
-  //     `Assets_${selectedTray?.code || "ALL"}_${new Date()
-  //       .toISOString()
-  //       .slice(0, 10)}.xlsx`
-  //   );
-  // };
-
-  // const downloadExcel = () => {
-  //   if (!filteredAssets || filteredAssets.length === 0) return;
-
-  //   const rows: any[] = [];
-  //   const totals: any = {};
-
-  //   filteredAssets.forEach((item: any, index: number) => {
-  //     const firstTracking = item?.tracking?.[0] || {};
-
-  //     const row: any = {
-  //       "S.No": index + 1,
-  //       "Product Name": item.name,
-  //       "Category": item.category_name,
-  //       "Brand": item.brand_name,
-  //       "Tray": firstTracking?.tray_name || "-",
-  //       "Barcode": item.id,
-  //       "Total In": firstTracking?.total_in || 0,
-  //       "Total Out": firstTracking?.total_out || 0,
-  //       "Available Stock": firstTracking?.available_stock || 0,
-  //     };
-
-  //     /* ================= SAME TABLE LOGIC ================= */
-
-  //     if (selectedTray?.code === "CHECKING AREA") {
-  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
-  //       row["Gum Leakage"] = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
-  //       row["Fault Board"] = getOutCount(firstTracking, "FAULT BOARD");
-  //       row["Scrap"] = getOutCount(firstTracking, "SCRAP");
-  //     }
-
-  //     if (selectedTray?.code === "WAITING AREA") {
-  //       row["Input"] = getInCount(firstTracking, "CHECKING AREA");
-  //     }
-
-  //     if (selectedTray?.code === "GUM LEAKAGE BOARD") {
-  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
-  //     }
-
-  //     if (selectedTray?.code === "FAULT BOARD") {
-  //       row["Waiting Area"] = getOutCount(firstTracking, "WAITING AREA");
-  //       row["Scrap"] = getOutCount(firstTracking, "SCRAP");
-  //     }
-
-  //     // 🔥 accumulate totals dynamically
-  //     Object.keys(row).forEach((key) => {
-  //       if (typeof row[key] === "number") {
-  //         totals[key] = (totals[key] || 0) + row[key];
-  //       }
-  //     });
-
-  //     rows.push(row);
-  //   });
-
-  //   // 🔥 GRAND TOTAL ROW
-  //   const totalRow: any = {
-  //     "S.No": "",
-  //     "Product Name": "GRAND TOTAL",
-  //   };
-
-  //   Object.keys(totals).forEach((key) => {
-  //     totalRow[key] = totals[key];
-  //   });
-
-  //   rows.push(totalRow);
-
-  //   const worksheet = XLSX.utils.json_to_sheet(rows);
-  //   const workbook = XLSX.utils.book_new();
-
-  //   XLSX.utils.book_append_sheet(
-  //     workbook,
-  //     worksheet,
-  //     selectedTray?.code || "Assets"
-  //   );
-
-  //   XLSX.writeFile(
-  //     workbook,
-  //     `Assets_${selectedTray?.code || "ALL"}_${new Date()
-  //       .toISOString()
-  //       .slice(0, 10)}.xlsx`
-  //   );
-  // };
   const downloadExcel = () => {
     if (!filteredAssets || filteredAssets.length === 0) return;
 
@@ -1286,6 +1075,59 @@ export const InventoryManagement: React.FC = () => {
     );
   };
 
+  const HubdownloadExcel = async () => {
+  try {
+    if (!hubstartDate || !hubendDate) {
+      return toast.error("Select start & end date");
+    }
+
+    const res = await axios.get(
+      `${baseUrl.productInventoryLogs}?skip=0&limit=10000&hub_id=${selectedHubData?.id}&start_date=${hubstartDate}&end_date=${hubendDate}`
+    );
+
+    const logs = res?.data?.data?.logs || [];
+
+    if (!logs.length) {
+      return toast.error("No data found");
+    }
+
+    // 🔥 MAP DATA
+    const rows = logs.map((e: any, i: number) => ({
+      "S.No": i + 1,
+      "Date & Time": new Date(e.created_at).toLocaleString(),
+      "Barcode": e.product_details.product.barcode_value || "-",
+      "Product": e.product_name || "-",
+      "Action": e.action_type || "-",
+      "Stock Change": e.stock_change || 0,
+      "Current Stock": e.current_stock || 0,
+      "Hub": e.hub_name || "-",
+      "Transfer Hub": e?.previous_hub_name ? e?.previous_hub_name : e.hub_name || "-",
+      "Division": e.division_name || "-",
+      "Tray": e.tray_name || "-",
+      "User": e.user_name || "-",
+      "Vendor": e.vendor_name || "-",
+      "Remarks": e.description || "-",
+    }));
+
+    // 🔥 EXCEL
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Inventory Logs");
+
+    const buffer = XLSX.write(wb, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    saveAs(
+      new Blob([buffer]),
+      `${selectedHubData?.name}-Inventory_${startDate}_to_${endDate}.xlsx`
+    );
+  } catch (err) {
+    console.error(err);
+    toast.error("Download failed");
+  }
+};
 
   const getInCount = (tracking: any, division: string) => {
     if (!tracking?.in_track) return 0;
@@ -1372,50 +1214,10 @@ export const InventoryManagement: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{hub?.sections.length || 0}</span>
-                    {/* {expandedHub === hub.id && (
-                      <div className="flex gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditWarehouse(hub);
-                            setShowAddSectionModal(true);
-                            setSelectHubId(hub?.id)
-                            setEditDivision(hub)
-                          }}
-                          className="p-1 text-amber-600 hover:bg-amber-100 rounded"
-                          title="Edit"
-                        >
-                          <PlusCircle className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteWarehouse(hub.id, hub.name);
-                          }}
-                          className="p-1 text-red-600 hover:bg-red-100 rounded"
-                          title="Delete"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectHubId(hub?.id)
-                            setShowAddSectionModal(true);
-                          }}
-                          className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                          title="Add Section"
-                        >
-                          <PlusCircle className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )} */}
+                  
                   </div>
                 </button>
 
-                {/* {expandedHub === hub.id && (
-                  <div className="ml-6 space-y-1 mt-1 border-l-2 border-gray-100 pl-2">
-                    {hub.sections.map(div => ( */}
                 {expandedHub === hub.id && (
                   <div className="ml-6 space-y-1 mt-1 border-l-2 border-gray-100 pl-2">
                     {divisionLoading && (
@@ -1437,54 +1239,7 @@ export const InventoryManagement: React.FC = () => {
                             {div.name}
                           </div>
                           <div className="flex items-center gap-1">
-                            {/* <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{hub?.sections?.trays?.length || 0}</span> */}
-                            {/* {expandedDiv === div.id && (
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedHubData(hub);
-                                    handleEditSection(div);
-                                    setShowAddSectionModal(true);
-                                    setSelectHubId(div?.id)
-                                    setEditDivision(div)
-                                  }}
-                                  className="p-1 text-amber-600 hover:bg-amber-100 rounded"
-                                  title="Edit"
-                                >
-                                  <PlusCircle className="h-3 w-3" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteSection(div.id, div.name);
-                                    setdDvisionConfirmOpen(!divisionConfirmOpen);
-                                    setSelectedDivision(div);
 
-                                  }}
-                                  className="p-1 text-red-600 hover:bg-red-100 rounded"
-                                  title="Delete"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedDivData(div);
-                                    setShowAddTrayModal(true);
-                                    setShowAddSectionModal(true);
-                                    setSelectHubId(div?.id)
-                                    setEditDivision(div)
-                                    setAddTrayModal(!addTrayModal)
-                                    setDivisionModalData(div)
-                                  }}
-                                  className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                                  title="Add Tray"
-                                >
-                                  <PlusCircle className="h-3 w-3" />
-                                </button>
-                              </div>
-                            )} */}
                           </div>
                         </button>
 
@@ -1507,37 +1262,10 @@ export const InventoryManagement: React.FC = () => {
                                         <Box className="h-3 w-3" />
                                         {tray?.name}
                                       </div>
-                                      {/* <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedTray?.id === tray.id ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>
-                                        {trayCounts[tray.id] || 0}
-                                      </span> */}
+                                    
                                     </button>
 
-                                    {/* <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditTray(tray);
-                                      setEditTrayData(tray)
-                                      setAddTrayModal(!addTrayModal)
-                                    }}
-                                    className="p-1 text-amber-600 hover:bg-amber-100 rounded"
-                                    title="Edit"
-                                  >
-                                    <PlusCircle className="h-3 w-3" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setTrayDeleteItem(tray);
-                                      setTrayConfirmOpenDelete(true);
-                                      handleDeleteTray(tray.id, tray.name);
-                                    }}
-                                    className="p-1 text-red-600 hover:bg-red-100 rounded"
-                                    title="Delete"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                </div> */}
+                              
 
                                   </div>
                                 ))}
@@ -1663,182 +1391,6 @@ export const InventoryManagement: React.FC = () => {
                   Loading Products...
                 </div>
               ) : (
-                // <div className="overflow-x-auto">
-                //   <table className="w-full">
-                //     <thead className="bg-gray-100 text-[10px] uppercase text-gray-600 font-semibold">
-                //       <tr>
-                //         <th className="px-4 py-3">S.No</th>
-                //         <th className="px-4 py-3">Product
-
-                //         </th>
-                //         <th className="px-4 py-3">Product Type / Brand</th>
-
-                //         <th className="px-4 py-3 text-center">Total In </th>
-                //         <th className="px-4 py-3 text-center">Total Out </th>
-
-                //         <th className="px-4 py-3 text-center">Available Stock</th>
-
-                //         {selectedTray?.code === "CHECKING AREA" && (
-                //           <>
-                //             <th className="px-4 py-3 text-center">Waiting Area</th>
-                //             <th className="px-4 py-3 text-center">Gum Leakage</th>
-                //             <th className="px-4 py-3 text-center">Fault Board</th>
-                //             <th className="px-4 py-3 text-center">Scrap</th>
-                //             <th className="px-4 py-3 text-center font-bold text-green-700">
-                //               TOTAL
-                //             </th>
-                //           </>
-                //         )}
-
-                //         {selectedTray?.code === "WAITING AREA" && (
-                //           <>
-                //             <th className="px-4 py-3 text-center">Input</th>
-                //           </>
-                //         )}
-
-                //         {selectedTray?.code === "GUM LEAKAGE BOARD" && (
-                //           <>
-                //             <th className="px-4 py-3 text-center">Waiting Area</th>
-                //           </>
-                //         )}
-
-
-
-                //         {selectedTray?.code === "FAULT BOARD" && (
-                //           <>
-                //             <th className="px-4 py-3 text-center">Waiting Area</th>
-                //             <th className="px-4 py-3 text-center">Scrap</th>
-                //           </>
-                //         )}
-
-                //         <th className="px-4 py-3">Action</th>
-
-                //       </tr>
-                //     </thead>
-
-
-                //     <tbody className="divide-y divide-gray-200">
-                //       {filteredAssets?.map((item: any, index: number) => {
-                //         const firstTracking = item?.tracking?.[0]; 
-                //         const waiting = getOutCount(firstTracking, "WAITING AREA");
-                //         const gum = getOutCount(firstTracking, "GUM LEAKAGE BOARD");
-                //         const fault = getOutCount(firstTracking, "FAULT BOARD");
-                //         const scrap = getOutCount(firstTracking, "SCRAP");
-
-
-                //         const total = waiting + gum + fault + firstTracking?.available_stock;
-
-                //         return (
-                //           <tr key={item.id} className="hover:bg-gray-50 text-[10px] ">
-                //             <td className="px-4 py-3">
-                //               <div className="font-semibold text-gray-900">
-                //                 {index + 1}
-                //               </div>
-                //             </td>
-
-                //             <td className="px-4 py-3">
-                //               <div className="font-semibold text-gray-900">
-                //                 {item.name}
-                //               </div>
-                //               <div className="text-xs text-gray-500">
-                //                 Tray: {item?.tray_code || "-"}
-                //               </div>
-
-                //             </td>
-
-
-                //             <td className="px-4 py-3">
-                //               <div className="text-sm font-medium">
-                //                 {item.category_name}
-                //               </div>
-                //               <div className="text-xs text-gray-500">
-                //                 Brand: {item.brand_name}
-                //               </div>
-                //             </td>
-
-
-                //             <td className="px-4 py-3 text-center font-bold text-blue-700">
-                //               {firstTracking?.total_in || 0}
-                //             </td>
-
-
-                //             <td className="px-4 py-3 text-center font-bold text-red-700">
-                //               {firstTracking?.total_out || 0}
-                //             </td>
-
-
-                //             <td className="px-4 py-3 text-center font-bold text-green-700">
-                //               {firstTracking?.available_stock || 0}
-                //             </td>
-
-
-
-                //             {selectedTray?.code === "CHECKING AREA" && (
-                //               <>
-                //                 <td className="px-4 py-3 text-center">
-                //                   {getOutCount(firstTracking, "WAITING AREA")}
-                //                 </td>
-                //                 <td className="px-4 py-3 text-center">
-                //                   {getOutCount(firstTracking, "GUM LEAKAGE BOARD")}
-                //                 </td>
-                //                 <td className="px-4 py-3 text-center">
-                //                   {getOutCount(firstTracking, "FAULT BOARD")}
-                //                 </td>
-                //                 <td className="px-4 py-3 text-center">
-                //                   {getOutCount(firstTracking, "SCRAP")}
-                //                 </td>
-                //                 <td className="px-4 py-3 text-center font-bold text-green-700">
-                //                   {total}
-                //                 </td>
-                //               </>
-                //             )}
-
-                //             {selectedTray?.code === "WAITING AREA" && (
-                //               <td className="px-4 py-3 text-center font-semibold text-blue-600">
-                //                 {getInCount(firstTracking, "CHECKING AREA")}
-                //               </td>
-                //             )}
-
-                //             {selectedTray?.code === "GUM LEAKAGE BOARD" && (
-                //               <td className="px-4 py-3 text-center">
-                //                 {getOutCount(firstTracking, "WAITING AREA")}
-                //               </td>
-                //             )}
-
-                //             {selectedTray?.code === "FAULT BOARD" && (
-                //               <>
-                //                 <td className="px-4 py-3 text-center">
-                //                   {getOutCount(firstTracking, "WAITING AREA")}
-                //                 </td>
-                //                 <td className="px-4 py-3 text-center">
-                //                   {getOutCount(firstTracking, "SCRAP")}
-                //                 </td>
-                //               </>
-                //             )}
-                //             <td className="px-6 py-4 text-center">
-                //               <div className="flex justify-end gap-2 ">
-                //                 <button
-                //                   onClick={() => {
-                //                     setSelectedAsset(item);
-                //                     setShowHistoryModal(true);
-                //                   }}
-
-                //                   className="p-2 flex gap-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg"
-                //                   title="View History"
-                //                 >
-                //                   <Package className="h-4 w-4" />
-                //                 </button>
-                //               </div>
-                //             </td>
-
-                //           </tr>
-                //         );
-                //       })}
-                //     </tbody>
-
-
-                //   </table>
-                // </div>
                 <div className="border rounded-xl bg-white overflow-hidden">
 
                   {/* 👇 Scroll Wrapper */}
@@ -2015,74 +1567,80 @@ export const InventoryManagement: React.FC = () => {
 
 
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-gray-400">
-            <Folder className="h-16 w-16 text-gray-200 mb-4" />
-            <p className="text-lg font-medium">Select a Tray from the sidebar</p>
-            <p className="text-sm">Browse the organization hierarchy to view inventory</p>
-          </div>
+  <div className="h-full flex flex-col p-4 md:p-8">
+  {/* 🛠 FILTER & ACTION SECTION */}
+  <div className="bg-white rounded-[20px] md:rounded-[24px] border border-slate-100 shadow-sm p-4 md:p-6 mb-6 md:mb-8">
+    
+    <div className="flex flex-col flex-wrap gap-4 md:flex-row md:items-end md:gap-5">
+      
+      {/* Date Picker Group */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full md:w-auto">
+        
+        {/* Start Date */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+            Start Date
+          </label>
+          <input
+            type="date"
+            value={hubstartDate}
+            onChange={(e) => setHubStartDate(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-100 px-3 py-2.5 md:px-4 md:py-3 rounded-xl md:rounded-2xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20"
+          />
+        </div>
+
+        {/* End Date */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+            End Date
+          </label>
+          <input
+            type="date"
+            value={hubendDate}
+            onChange={(e) => setHubEndDate(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-100 px-3 py-2.5 md:px-4 md:py-3 rounded-xl md:rounded-2xl text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20"
+          />
+        </div>
+
+      </div>
+
+      {/* Download Button */}
+      <button
+        onClick={HubdownloadExcel}
+        disabled={!hubstartDate || !hubendDate}
+        className={`w-full md:w-auto flex items-center justify-center gap-2 px-4 py-3 md:px-6 md:py-3 rounded-xl md:rounded-2xl text-xs md:text-sm font-bold uppercase tracking-wider transition-all active:scale-95 ${
+          !hubstartDate || !hubendDate
+            ? "bg-slate-100 text-slate-300 cursor-not-allowed"
+            : "bg-green-600 text-white hover:bg-green-700"
+        }`}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Download Excel
+      </button>
+    </div>
+  </div>
+
+  {/* 📂 EMPTY STATE */}
+  <div className="flex-1 flex flex-col items-center justify-center py-16 md:py-20 px-4 md:px-6 bg-slate-50/50 rounded-[28px] md:rounded-[40px] border-2 border-dashed border-slate-100 text-center">
+    
+    <div className="bg-white p-5 md:p-6 rounded-[24px] md:rounded-[32px] shadow-xl shadow-slate-100 mb-5 md:mb-6">
+      <Folder className="h-10 w-10 md:h-12 md:w-12 text-slate-200 stroke-[1.5]" />
+    </div>
+
+    <h3 className="text-lg md:text-xl font-black text-slate-800 mb-2">
+      Select a Tray
+    </h3>
+
+    <p className="text-slate-400 text-xs md:text-sm font-medium max-w-[240px] md:max-w-[260px] leading-relaxed">
+      Browse the organization hierarchy in the sidebar to view detailed inventory.
+    </p>
+  </div>
+</div>
         )}
       </div>
 
-      {/* History Modal */}
-      {/* {showHistoryModal && selectedAsset && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh]">
-            <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                <History className="h-5 w-5 text-blue-600" /> Asset History
-              </h3>
-              <button onClick={() => setShowHistoryModal(false)} className="text-gray-400 hover:text-gray-600">
-                &times;
-              </button>
-            </div>
-            <div className="p-4 bg-gray-50/50 border-b">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="text-xs text-gray-500 uppercase font-bold">Product</div>
-                  <div className="font-medium text-gray-900">{selectedAsset.productType}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-gray-500 uppercase font-bold">QR Code</div>
-                  <div className="font-mono">{selectedAsset.qrCode}</div>
-                </div>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {assetHistory.length === 0 ? (
-                <p className="text-center text-gray-400 py-8">No history events found.</p>
-              ) : (
-                assetHistory.map((event, idx) => (
-                  <div key={idx} className="relative pl-6 pb-4 border-l-2 border-gray-100 last:border-0 last:pb-0">
-                    <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-blue-100 border-2 border-white ring-1 ring-blue-500"></div>
-                    <div className="text-sm font-bold text-gray-800 mb-1">
-                      {event.type.replace('_', ' ')}
-                    </div>
-                    <div className="text-xs text-gray-500 mb-2">
-                      {new Date(event.timestamp).toLocaleString()}
-                    </div>
-                    {event.remarks && (
-                      <div className="bg-yellow-50 p-2 rounded text-xs text-yellow-800 mb-2">
-                        Note: {event.remarks}
-                      </div>
-                    )}
-                    {event.type === 'MOVED' && (
-                      <div className="bg-gray-50 p-2 rounded text-xs text-gray-600">
-                        <div><span className="font-semibold text-gray-500">From:</span> {event.fromLocation?.warehouseName} / {event.fromLocation?.sectionName} / {event.fromLocation?.trayName}</div>
-                        <div><span className="font-semibold text-green-600">To:</span> {event.toLocation?.warehouseName} / {event.toLocation?.sectionName} / {event.toLocation?.trayName}</div>
-                      </div>
-                    )}
-                    {event.type === 'RECEIVED' && (
-                      <div className="bg-green-50 p-2 rounded text-xs text-green-800">
-                        Added to: {event.toLocation?.warehouseName} / {event.toLocation?.trayName}
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )} */}
 
       <AssetHistoryModal
         open={showHistoryModal}
