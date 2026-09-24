@@ -31,6 +31,7 @@ export default function AddProductModal({
   const [productStatuses, setProductStatuses] = useState<any[]>([]);
   const [trayOption, setTrayOption] = useState([])
 
+  console.log(trayOption,'trayOption')
   useEffect(() => {
     if (!user?.vendor_id) return;
 
@@ -42,11 +43,54 @@ export default function AddProductModal({
       .get(`${baseUrl.productStatus}/?vendor_id=${user?.vendor_id}&type=division`)
       .then(r => setProductStatuses(r?.data?.data?.statuses || []));
 
-    axios
-      .get(`${baseUrl.divisions}/?vendor=${user?.vendor_id}/tray-codes`)
-      .then(r => setTrayOption(r?.data?.data?.divisions || []));
+    // axios
+    //   .get(`${baseUrl.divisions}/?vendor=${user?.vendor_id}/tray-codes`)
+    //   .then(r => setTrayOption(r?.data?.data?.divisions || []));
 
+  //  const updatedapi:any= axios
+  // // .get(`${baseUrl.divisions}/?vendor=${user?.vendor_id}/tray-codes`)
+  // .get(`${baseUrl.divisions}/?vendor=${user?.vendor_id}/tray-codes`)
+  // .then((r) => {
+  //   const divisions = r?.data?.data?.divisions || [];
+
+  //   console.log(divisions,'divisions')
+  //   const uniqueDivisions:any = Array.from(
+  //     new Map(
+  //       divisions.map((division: any) => [
+  //         division.division_name,
+  //         division,
+  //       ])
+  //     ).values()
+  //   );
+
+  //   setTrayOption(uniqueDivisions);
+  // });
+  // console.log(updatedapi?.data,'updatedapi')
   }, [user?.vendor_id]);
+
+
+const fetchDivisions = async () => {
+  try {
+    const response = await axios.get(
+      `${baseUrl.divisions}/vendor/${user?.vendor_id}/tray-codes`
+    );
+
+    const trayCodes = response?.data?.data?.tray_codes || [];
+
+    console.log("Total Tray Codes:", trayCodes.length);
+
+    setTrayOption(trayCodes);
+  } catch (error) {
+    console.error("Division API Error:", error);
+    setTrayOption([]);
+  }
+};
+
+useEffect(() => {
+  if (user?.vendor_id) {
+    fetchDivisions();
+  }
+}, [user?.vendor_id]);
 
   // divisions
 
@@ -461,11 +505,20 @@ export default function AddProductModal({
               >
                 <option value="">Select tray_codes</option>
 
-                {trayOption?.map((tray: any) => (
+                {/* {trayOption?.map((tray: any) => (
                   <option key={tray?.division_code} value={tray?.division_code} className="capitalize">
-                    {tray?.division_name} {/* or hub.name */}
+                    {tray?.division_name} 
                   </option>
-                ))}
+                ))} */}
+                {trayOption?.map((tray: string) => (
+  <option
+    key={tray}
+    value={tray}
+    className="capitalize"
+  >
+    {tray}
+  </option>
+))}
               </select>
             </div>
             {/* <div>
