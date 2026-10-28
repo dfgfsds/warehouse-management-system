@@ -1,4 +1,4 @@
-export const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://inventory-api.ftdigitalsolutions.org/';
+export const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://inventory-api.ftdigitalsolutions.org';
 
 const signIn = `${baseUrl}/auth/login`;
 const vendorUsers = `${baseUrl}/users/vendor-user`;
